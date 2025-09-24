@@ -3,7 +3,7 @@
 Spring Boot + MongoDB web app for locality businesses and users.
 
 ## Prerequisites
-- Java JDK 21 (installed and on PATH)
+- Java JDK 23 (installed and on PATH)
 - MongoDB Community Server running on `localhost:27017`
 - Maven Wrapper (included) – no global Maven required
 
