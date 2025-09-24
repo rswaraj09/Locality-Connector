@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>View Feedback</title>
+  <style>
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f4;
+        padding: 20px;
+    }
+    .container {
+        max-width: 800px;
+        margin: 50px auto;
+        background-color: white;
+        padding: 30px;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    h2 {
+        text-align: center;
+    }
+    .feedback {
+        margin-bottom: 20px;
+        padding: 20px;
+        background-color: #f9f9f9;
+        border-radius: 8px;
+        border-left: 4px solid #4CAF50;
+    }
+    .feedback h4 {
+        margin: 0;
+    }
+    .feedback p {
+        margin: 10px 0;
+        color: #555;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h2>User Feedback</h2>
+  <div id="feedback-list">
+    <!-- Feedback items will be loaded here -->
+  </div>
+</div>
+
+<script>
+  function loadFeedback() {
+      // Fetch feedback from the server (you can replace this with actual API call)
+      fetch('Thirteenth.html')
+      .then(response => response.json())
+      .then(feedbackData => {
+          const feedbackList = document.getElementById('feedback-list');
+          feedbackList.innerHTML = '';
+
+          feedbackData.forEach(feedback => {
+              const feedbackItem = document.createElement('div');
+              feedbackItem.classList.add('feedback');
+              feedbackItem.innerHTML = `
+                  <h4>${feedback.name}</h4>
+                  <p>${feedback.feedback}</p>
+              `;
+              feedbackList.appendChild(feedbackItem);
+          });
+      })
+      .catch(error => {
+          alert('Error loading feedback.');
+      });
+  }
+
+  // Load feedback on page load
+  window.onload = loadFeedback;
+</script>
+
+</body>
+</html>

@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nearby Shops</title>
+  <style>
+    body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #f5f5f5;
+        color: #333;
+    }
+    .container {
+        padding: 50px;
+    }
+    h1 {
+        text-align: center;
+        color: #2c3e50;
+        font-size: 2.5rem;
+        margin-bottom: 20px;
+    }
+    .shop-list {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+    .shop-card {
+        display: flex;
+        align-items: center;
+        background-color: #fff;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 20px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        width: 80%;
+        transition: all 0.3s ease-in-out;
+        position: relative;
+    }
+    .shop-card.expanded {
+        width: 90%;
+        padding: 30px;
+        background-color: #e3f2fd;
+    }
+    .shop-details {
+        flex: 1;
+    }
+    .shop-image {
+        width: 120px;
+        height: 120px;
+        border-radius: 8px;
+        margin-left: 20px;
+        object-fit: cover;
+    }
+    .btn {
+        padding: 8px 12px;
+        font-size: 0.9rem;
+        background-color: #3498db;
+        color: #fff;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        text-decoration: none;
+        margin-right: 5px;
+    }
+    .btn:hover {
+        background-color: #2980b9;
+    }
+    .grocery-list {
+        display: none;
+        font-size: 1rem;
+        color: #2c3e50;
+        margin-top: 10px;
+        font-weight: bold;
+    }
+    .shop-card.expanded .grocery-list {
+        display: block;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>NEARBY SHOPS</h1>
+  <div class="shop-list">
+    <!-- Shop Cards -->
+    <div class="shop-card">
+      <div class="shop-details">
+        <h3>Metro Medical </h3>
+        <p>Address: Dhamini, Khalapur, Raigad, Maharashtra </p>
+        <p>Longitude: 73.82958100</p>
+        <p>Latitude: 18.54013400 </p>
+        <button class="btn" onclick="toggleGroceryList(this)">Medicines Available</button>
+        <a href="medicine" class="btn">Order Something</a>
+        <a href="https://www.mappls.com/place-Riddhi+Iron+and+Steel+Pvt+Ltd-Khalapur-Raigad+District-Maharashtra-7gt8s5@,,,l,f,f,f,f,f,f,zdata=MTguODIwMTA0KzczLjI3MzU2MisxOS42MzcwNzMwNDc4NjcrN2d0OHM1ed"
+           target="_blank"
+           class="btn">
+          Directions
+        </a>
+        <p class="grocery-list">
+          Pain Relievers:
+
+          Paracetamol (500 mg) - ₹20 to ₹50
+          Ibuprofen (200 mg) - ₹30 to ₹80
+          Antibiotics:
+
+          Amoxicillin (500 mg) - ₹40 to ₹100
+          Ciprofloxacin (500 mg) - ₹50 to ₹120
+          First Aid Supplies:
+
+          Band-Aid (small pack) - ₹20 to ₹50
+          Antiseptic Solution (100 ml) - ₹30 to ₹80
+          Gauze Pads (pack of 10) - ₹20 to ₹50
+          Cold and Cough Medications:
+
+          Cough Syrup (100 ml) - ₹60 to ₹150
+          Nasal Decongestant (20 ml) - ₹50 to ₹120
+          Digestive Aids:
+
+          Antacid Tablets (20 tablets) - ₹30 to ₹70
+          Digestive Enzyme (30 tablets) - ₹80 to ₹150
+          Vitamins:
+
+          Vitamin C Tablets (30 tablets) - ₹40 to ₹100
+          Multivitamin Tablets (30 tablets) - ₹100 to ₹300
+          Thermometers:
+
+          Digital Thermometer - ₹100 to ₹300
+          Bandages:
+
+          Crepe Bandage (5 cm x 4.5 m) - ₹30 to ₹70
+          Elastic Bandage (10 cm x 4.5 m) - ₹50 to ₹100
+          Eye Drops:
+
+          Antibacterial Eye Drops (10 ml) - ₹50 to ₹150
+          Lubricating Eye Drops (10 ml) - ₹30 to ₹80</p>
+      </div>
+      <img src="https://assets.indiaonline.in/cat-default/450/medical-shops.jpg" alt="Shop 1" class="shop-image">
+    </div>
+
+    <div class="shop-card">
+      <div class="shop-details">
+        <h3>Khumbhivali Medical </h3>
+        <p>Address: Khumbhivali , Raigad, Maharashtra</p>
+        <p>Longitude: 73.8295746 </p>
+        <p>Latitude: 18.56307000 </p>
+        <button class="btn" onclick="toggleGroceryList(this)">Medicines Available</button>
+<!--        <a href="order" class="btn">Order Something</a>-->
+        <a href="https://www.mappls.com/place-Kumbhivali-Khalapur-Raigad+District-Maharashtra-daad64@,,,l,f,f,f,f,f,f,zdata=MTguODIyNTIzKzczLjI2OTI0KzE5LjEyMjIxNjM0NzA2NCtkYWFkNjQed"
+           target="_blank"
+           class="btn">
+          Directions
+        </a>
+        <p class="grocery-list">
+          Pain Relievers:
+
+          Paracetamol (500 mg) - ₹20 to ₹50
+          Ibuprofen (200 mg) - ₹30 to ₹80
+          Antibiotics:
+
+          Amoxicillin (500 mg) - ₹40 to ₹100
+          Ciprofloxacin (500 mg) - ₹50 to ₹120
+          First Aid Supplies:
+
+          Band-Aid (small pack) - ₹20 to ₹50
+          Antiseptic Solution (100 ml) - ₹30 to ₹80
+          Gauze Pads (pack of 10) - ₹20 to ₹50
+          Cold and Cough Medications:
+
+          Cough Syrup (100 ml) - ₹60 to ₹150
+          Nasal Decongestant (20 ml) - ₹50 to ₹120
+          Digestive Aids:
+
+          Antacid Tablets (20 tablets) - ₹30 to ₹70
+          Digestive Enzyme (30 tablets) - ₹80 to ₹150
+          Vitamins:
+
+          Vitamin C Tablets (30 tablets) - ₹40 to ₹100
+          Multivitamin Tablets (30 tablets) - ₹100 to ₹300
+          Thermometers:
+
+          Digital Thermometer - ₹100 to ₹300
+          Bandages:
+
+          Crepe Bandage (5 cm x 4.5 m) - ₹30 to ₹70
+          Elastic Bandage (10 cm x 4.5 m) - ₹50 to ₹100
+          Eye Drops:
+
+          Antibacterial Eye Drops (10 ml) - ₹50 to ₹150
+          Lubricating Eye Drops (10 ml) - ₹30 to ₹80</p>
+      </div>
+      <img src="https://www.deccanchronicle.com/h-upload/2024/09/11/1840318-medicalshop.jpg" alt="Shop 2" class="shop-image">
+    </div>
+  </div>
+</div>
+
+<script>
+  function toggleGroceryList(button) {
+      let shopCard = button.closest('.shop-card');
+      shopCard.classList.toggle('expanded');
+  }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Business Management Dashboard with Geolocation</title>
+  <style>
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f4;
+        margin: 0;
+        padding: 0;
+    }
+    .navbar {
+        background-color: #333;
+        padding: 15px;
+        text-align: center;
+    }
+    .navbar a {
+        color: white;
+        text-decoration: none;
+        margin: 0 20px;
+    }
+    .navbar a:hover {
+        background-color: #575757;
+        padding: 10px 20px;
+    }
+    .container {
+        max-width: 1200px;
+        margin: 40px auto;
+        background-color: white;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+    h1 {
+        text-align: center;
+        margin-bottom: 40px;
+    }
+    .grid-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 20px;
+    }
+    .grid-item {
+        padding: 20px;
+        background-color: #f9f9f9;
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        text-align: center;
+    }
+    .grid-item h3 {
+        margin-bottom: 20px;
+    }
+    .grid-item button {
+        padding: 10px 20px;
+        background-color: #4CAF50;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+    .grid-item button:hover {
+        background-color: #45a049;
+    }
+    form {
+        margin-top: 20px;
+    }
+    input, textarea {
+        width: 100%;
+        padding: 10px;
+        margin: 10px 0;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+    }
+    textarea {
+        height: 80px;
+    }
+    .submit-btn {
+        background-color: #4CAF50;
+        color: white;
+        padding: 10px 15px;
+        border: none;
+        cursor: pointer;
+        border-radius: 5px;
+        width: 100%;
+    }
+    .submit-btn:hover {
+        background-color: #45a049;
+    }
+    .location-btn {
+        background-color: #4CAF50;
+        color: white;
+        padding: 10px 20px;
+        text-align: center;
+        text-decoration: none;
+        border-radius: 4px;
+        cursor: pointer;
+        margin: 10px 0;
+        display: inline-block;
+    }
+    .location-btn:hover {
+        background-color: #45a049;
+    }
+  </style>
+</head>
+<body>
+
+<div class="navbar">
+<!--  <a href="/business-home">Home</a>-->
+<!--  <a href="/manage-business">Manage Business</a>-->
+<!--  <a href="/inventory">Inventory</a>-->
+<!--  <a href="/orders">Orders</a>-->
+<!--  <a href="/profile">Profile</a>-->
+<!--  <a href="/logout">Logout</a>-->
+</div>
+
+<div class="container">
+  <h1>Business Management Dashboard</h1>
+
+  <div class="grid-container">
+    <!-- Manage Items -->
+    <div class="grid-item">
+      <h3>Manage Items</h3>
+      <p>Add, update, or remove items from your inventory.</p>
+      <button onclick="showItemForm()">Manage Items</button>
+
+<!--      <form id="item-form" style="display:none;">-->
+<!--        <h4>Add/Update Item</h4>-->
+<!--        <input type="text" name="itemName" placeholder="Item Name" required>-->
+<!--        <input type="number" step="0.01" name="itemPrice" placeholder="Price" required>-->
+<!--        <textarea name="itemDescription" placeholder="Description"></textarea>-->
+<!--        <button class="submit-btn" type="submit">Save Item</button>-->
+<!--      </form>-->
+
+      <form id="item-form" style="display:none;">
+        <h4>Add/Update Item</h4>
+        <input type="hidden" name="businessName" value="${sessionScope.loggedInBusinessName}">
+        <input type="text" id="itemName" name="itemName" placeholder="Item Name" required>
+        <input type="number" step="0.01" id="itemPrice" name="itemPrice" placeholder="Price" required>
+        <textarea id="itemDescription" name="itemDescription" placeholder="Description"></textarea>
+        <button class="submit-btn" type="submit">Save Item</button>
+      </form>
+
+
+
+    </div>
+
+
+    <div class="grid-item">
+      <h3>Fetch Location</h3>
+      <p>Fetch and save your business's current location.</p>
+      <button type="button" onclick="showLocationForm()">Fetch Location</button>
+
+      <form id="location-form" style="display:none;" method="POST" action="/saveLocation">
+        <h4>Fetch and Save Location</h4>
+
+        <!-- Fetch Latitude and Longitude Button -->
+        <div>
+          <button class="location-btn" id="fetchLocation" type="button">Fetch Longitude and Latitude via Current Location</button>
+        </div>
+
+        <!-- Latitude and Longitude Input Fields -->
+        <input type="hidden" name="businessName"  value="${sessionScope.loggedInBusinessName}"> <!-- Assuming session attribute is stored as 'loggedInBusinessName' -->
+        <input type="text" id="latitude" name="businessLatitude" placeholder="Latitude" readonly required>
+        <input type="text" id="longitude" name="businessLongitude" placeholder="Longitude" readonly required>
+
+        <button class="submit-btn" type="submit">Save Location</button>
+      </form>
+    </div>
+
+
+    <!-- Manage Orders -->
+    <div class="grid-item">
+      <h3>Manage Orders</h3>
+      <p>View and manage customer orders.</p>
+      <a href="details" class="btn btn-order">Manage Orders</a>
+    </div>
+
+    <!-- Analytics Section -->
+    <div class="grid-item">
+      <h3>View Analytics</h3>
+      <p>Check performance and insights into your business.</p>
+      <button onclick="alert('Analytics coming soon!')">View Analytics</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Toggle Item Form
+  function showItemForm() {
+      var itemForm = document.getElementById('item-form');
+      if (itemForm.style.display === "none") {
+          itemForm.style.display = "block";
+      } else {
+          itemForm.style.display = "none";
+      }
+  }
+
+  // Toggle Location Form
+  function showLocationForm() {
+      var locationForm = document.getElementById('location-form');
+      if (locationForm.style.display === "none") {
+          locationForm.style.display = "block";
+      } else {
+          locationForm.style.display = "none";
+      }
+  }
+
+  // Fetching latitude and longitude
+  const fetchLocationBtn = document.getElementById('fetchLocation');
+
+  fetchLocationBtn.addEventListener('click', function(event) {
+      event.preventDefault();  // Prevent the form submission
+
+      if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(showPosition, showError);
+      } else {
+          alert("Geolocation is not supported by this browser.");
+      }
+  });
+
+  function showPosition(position) {
+      // Populate the fetched latitude and longitude into the input fields
+      document.getElementById('latitude').value = position.coords.latitude;
+      document.getElementById('longitude').value = position.coords.longitude;
+  }
+
+  function showError(error) {
+      switch(error.code) {
+          case error.PERMISSION_DENIED:
+              alert("User denied the request for Geolocation.");
+              break;
+          case error.POSITION_UNAVAILABLE:
+              alert("Location information is unavailable.");
+              break;
+          case error.TIMEOUT:
+              alert("The request to get user location timed out.");
+              break;
+          case error.UNKNOWN_ERROR:
+              alert("An unknown error occurred.");
+              break;
+      }
+  }
+
+const locationForm = document.getElementById('location-form');
+locationForm.addEventListener('submit', function(event) {
+    event.preventDefault(); // Prevent the default form submission
+
+    // Gather form data
+    const businessName = document.querySelector('input[name="businessName"]').value; // Get the business name
+    const latitude = document.getElementById('latitude').value;
+    const longitude = document.getElementById('longitude').value;
+
+    // Simple validation
+    if (!latitude || !longitude) {
+        displayMessage("Please fetch your location before saving.", "error");
+        return;
+    }
+
+    // Prepare data to send
+    const data = {
+        businessName: businessName, // Include business name
+        businessLatitude: latitude,
+        businessLongitude: longitude
+    };
+
+    console.log("Data being sent:", data); // Log the data
+
+    // Send data to the backend via Fetch API
+    fetch('/saveLocation', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            displayMessage(data.success, "success");
+            locationForm.reset();
+            locationForm.style.display = "none";
+        } else if (data.error) {
+            displayMessage(data.error, "error");
+        }
+    })
+    .catch((error) => {
+        console.error('Error:', error);
+        // displayMessage("An error occurred while saving the location.", "error");
+    });
+});
+
+// Submit Item Form via JSON to /addListing
+const itemForm = document.getElementById('item-form');
+itemForm.addEventListener('submit', function(event) {
+    event.preventDefault();
+
+    const businessName = itemForm.querySelector('input[name="businessName"]').value;
+    const itemName = document.getElementById('itemName').value;
+    const itemPrice = document.getElementById('itemPrice').value;
+    const itemDescription = document.getElementById('itemDescription').value;
+
+    if (!itemName || !itemPrice) {
+        displayMessage("Please enter item name and price.", "error");
+        return;
+    }
+
+    fetch('/addListing', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ businessName, itemName, itemPrice, itemDescription })
+    })
+    .then(r => r.json())
+    .then(res => {
+        if (res.success) {
+            // Redirect to addlisting page to manage items
+            const target = '/addlisting' + (businessName ? ('?businessName=' + encodeURIComponent(businessName)) : '');
+            window.location.href = target;
+        } else {
+            displayMessage(res.error || 'Failed to save item.', 'error');
+        }
+    })
+    .catch(err => {
+        console.error('Error:', err);
+        displayMessage('An error occurred while saving the item.', 'error');
+    });
+});
+
+  function displayMessage(message, type) {
+        // Create a div element to hold the message
+        const messageDiv = document.createElement('div');
+        messageDiv.textContent = message;
+
+        // Add a class based on the message type (e.g., success or error)
+        messageDiv.className = type === "success" ? "success-message" : "error-message";
+
+        // Append the message div to the container or body
+        document.body.appendChild(messageDiv);
+
+        // Set a timeout to remove the message after 3 seconds
+        setTimeout(() => {
+            messageDiv.remove();
+        }, 3000);
+    }
+
+    // Style for the messages
+    const style = document.createElement('style');
+    style.innerHTML = `
+        .success-message {
+            background-color: #d4edda;
+            color: #155724;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #c3e6cb;
+            border-radius: 5px;
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+        .error-message {
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #f5c6cb;
+            border-radius: 5px;
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+    `;
+    document.head.appendChild(style);
+
+
+</script>
+
+</body>
+</html>
+
+

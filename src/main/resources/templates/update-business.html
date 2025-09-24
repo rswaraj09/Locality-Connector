@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Business Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: url('https://png.pngtree.com/background/20240412/original/pngtree-red-abstract-binary-code-technology-a-3d-rendered-illustration-of-digital-picture-image_8461897.jpg') no-repeat center center/cover;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+        }
+
+        .dashboard-container {
+            background-color: rgba(0, 0, 0, 0.7); /* Dark glass-like effect */
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            width: 600px; /* Increased width */
+            backdrop-filter: blur(10px); /* Glass effect */
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .dashboard-container h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 2rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #ff5722; /* Bright color for heading */
+        }
+
+        .dashboard-container form {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .dashboard-container form input[type="text"],
+        .dashboard-container form textarea,
+        .dashboard-container form select {
+            background: rgba(255, 255, 255, 0.1); /* Transparent input fields */
+            border: none;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            color: #fff;
+            font-size: 1rem;
+        }
+
+        .dashboard-container form input[type="text"]::placeholder,
+        .dashboard-container form textarea::placeholder {
+            color: #ccc;
+        }
+
+        .dashboard-container form select {
+            color: #ccc;
+        }
+
+        .dashboard-container form select option {
+            background-color: #000;
+            color: #fff;
+        }
+
+        .dashboard-container form input:focus,
+        .dashboard-container form textarea:focus,
+        .dashboard-container form select:focus {
+            outline: none;
+            box-shadow: 0 0 10px #ff5722; /* Neon glow effect */
+        }
+
+        .dashboard-container form button {
+            background: linear-gradient(135deg, #ff5722 0%, #e64a19 100%);
+            border: none;
+            padding: 15px;
+            font-size: 1rem;
+            color: white;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+
+        .dashboard-container form button:hover {
+            background-color: #e64a19;
+        }
+    </style>
+</head>
+<body>
+
+<div class="dashboard-container">
+    <h2>Business Dashboard</h2>
+    <form action="/update-business" method="POST">
+        <label for="business-name">Business Name:</label>
+        <input type="text" id="business-name" name="business_name" placeholder="Enter your business name" required>
+
+        <label for="business-type">Business Type:</label>
+        <select id="business-type" name="business_type" required>
+            <option value="grocery">Grocery Store</option>
+            <option value="pharmacy">Pharmacy</option>
+            <option value="fooditem">Fooditem</option>
+            <option value="hardware">Hardware Store</option>
+            <option value="clothing">Clothing Store</option>
+            <option value="other">Other</option>
+        </select>
+
+        <label for="business-description">Business Description:</label>
+        <textarea id="business-description" name="business_description" placeholder="Describe your business" rows="4" required></textarea>
+
+        <label for="business-address">Business Address:</label>
+        <input type="text" id="business-address" name="business_address" placeholder="Enter your business address" required>
+
+        <label for="contact-number">Contact Number:</label>
+        <input type="text" id="contact-number" name="contact_number" placeholder="Enter your contact number" required>
+
+        <button type="submit">Submit Details</button>
+    </form>
+</div>
+
+</body>
+</html>

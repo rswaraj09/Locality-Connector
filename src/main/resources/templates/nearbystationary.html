@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nearby Shops</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        .container {
+            padding: 50px;
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+        }
+        .shop-list {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .shop-card {
+            display: flex;
+            align-items: center;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            width: 80%;
+            transition: all 0.3s ease-in-out;
+            position: relative;
+        }
+        .shop-card.expanded {
+            width: 90%;
+            padding: 30px;
+            background-color: #e3f2fd;
+        }
+        .shop-details {
+            flex: 1;
+        }
+        .shop-image {
+            width: 120px;
+            height: 120px;
+            border-radius: 8px;
+            margin-left: 20px;
+            object-fit: cover;
+        }
+        .btn {
+            padding: 8px 12px;
+            font-size: 0.9rem;
+            background-color: #3498db;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            margin-right: 5px;
+        }
+        .btn:hover {
+            background-color: #2980b9;
+        }
+        .grocery-list {
+            display: none;
+            font-size: 1rem;
+            color: #2c3e50;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+        .shop-card.expanded .grocery-list {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>NEARBY SHOPS</h1>
+    <div class="shop-list">
+        <!-- Shop Cards -->
+        <div class="shop-card">
+            <div class="shop-details">
+                <h3>Vimeet Stationary</h3>
+                <p>Address: Vimeet Campus,Dhamini, Khalapur, Raigad, Maharashtra </p>
+                <p>Longitude: 73.82958105</p>
+                <p>Latitude: 18.53685808 </p>
+                <button class="btn" onclick="toggleGroceryList(this)">Items List</button>
+<!--                <a href="order" class="btn">Order Something</a>-->
+                <a href="https://www.mappls.com/place-Vishwa+Niketans+Institute+of+Management+Entrepreneurship+and+Engineering+Technology-Khalapur-Raigad+District-Maharashtra-e6bnds@,,,l,f,f,f,f,f,f,zdata=MTguODIwOTErNzMuMjcwNzQyKzE3Ljk5OTk5OTk5OTk5OStlNmJuZHMed"
+                   target="_blank"
+                   class="btn">
+                    Directions
+                </a>
+                <p class="grocery-list">blue black pen :₹10-50
+                books :₹40-120
+                photocopy: ₹2</p>
+            </div>
+            <img src="shop1.jpg" alt="Shop 1" class="shop-image">
+        </div>
+
+        <div class="shop-card">
+            <div class="shop-details">
+                <h3>Harsh Stationary</h3>
+                <p>Address: Dhamni, Khalapur, Raigad, Maharashtra</p>
+                <p>Longitude: 73.82958101 </p>
+                <p>Latitude: 18.56307401 </p>
+                <a href="https://www.mappls.com/place-Ashapura+Agrocom+Pvt+Ltd-Khalapur-Raigad+District-Maharashtra-g2mrnq@,,,l,f,f,ee,f,f,f,zdata=MTguODIwNzU3KzczLjI3MzAwOCsxNy45OTk5OTk5OTk5OTkrZzJtcm5xed"
+                   target="_blank"
+                   class="btn">
+                    Directions
+                </a>
+<!--                <a href="orders" class="btn">Order Something</a>-->
+                <button class="btn">Directions</button>
+                <p class="grocery-list">
+                    >blue black pen :₹10-50
+                    books :₹40-120
+                    photocopy: ₹2
+                </p>
+            </div>
+            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQWsyIcGOPvQovCL4L-ZtdhSgNlhjdahDJzbw&s" alt="Shop 2" class="shop-image">
+        </div>
+
+<!--        <div class="shop-card">-->
+<!--            <div class="shop-details">-->
+<!--                <h3>Vishal General Store</h3>-->
+<!--                <p>Address: Dhamni, Khalapur, Raigad, Maharashtra</p>-->
+<!--                <p>Longitude: 73.82958100 </p>-->
+<!--                <p>Latitude: 18.56307200 </p>-->
+<!--                <button class="btn" onclick="toggleGroceryList(this)">Grocery List</button>-->
+<!--                <a href="order" class="btn">Order Something</a>-->
+<!--                <button class="btn">Directions</button>-->
+<!--                <p class="grocery-list">Apples (1 kg): ₹100-->
+<!--                    Bananas (1 kg): ₹60-->
+<!--                    Oranges (1 kg): ₹60-->
+<!--                    Tomatoes (1 kg): ₹24-->
+<!--                    Potatoes (1 kg): ₹20-->
+<!--                    Onions (1 kg): ₹30-->
+<!--                    Carrots (1 kg): ₹40-->
+<!--                    Spinach (1 bunch): ₹20-->
+<!--                    Dairy & Eggs:-->
+<!--                    Milk (1 liter): ₹52-->
+<!--                    Butter (500 g): ₹250-->
+<!--                    Cheese (1 kg): ₹250-->
+<!--                    Yogurt (500 g): ₹50-->
+<!--                    Eggs (12 units): ₹60-->
+<!--                    Grains & Bread:-->
+<!--                    Rice (1 kg): ₹40 – ₹80-->
+<!--                    Flour (Wheat/All-purpose, 1 kg): ₹30-->
+<!--                    Bread (500 g loaf): ₹30-->
+<!--                    Pasta (500 g): ₹50-->
+<!--                    Protein & Meat:-->
+<!--                    Chicken (1 kg): ₹160-->
+<!--                    Fish (1 kg): ₹200-->
+<!--                    Lentils (1 kg): ₹80-->
+<!--                    Beans (1 kg): ₹80-->
+<!--                    Pantry Staples:-->
+<!--                    Cooking oil (1 liter): ₹100-->
+<!--                    Salt (1 kg): ₹20-->
+<!--                    Sugar (1 kg): ₹40-->
+<!--                    Spices (100 g): ₹30-->
+<!--                    Tea (250 g): ₹125-->
+<!--                    Coffee (50 g): ₹170-->
+<!--                    Snacks & Beverages:-->
+<!--                    Biscuits (200 g): ₹20-->
+<!--                    Chips (150 g): ₹20</p>-->
+<!--            </div>-->
+<!--            <img src="shop3.jpg" alt="Shop 3" class="shop-image">-->
+<!--        </div>-->
+
+<!--        <div class="shop-card">-->
+<!--            <div class="shop-details">-->
+<!--                <h3>Lota General Store</h3>-->
+<!--                <p>Address: Dhamni, Khalapur, Raigad, Maharashtra</p>-->
+<!--                <p>Longitude: 73.82958102 </p>-->
+<!--                <p>Latitude: 18.56307403 </p>-->
+<!--                <button class="btn" onclick="toggleGroceryList(this)">Grocery List</button>-->
+<!--                <a href="order" class="btn">Order Something</a>-->
+<!--                <button class="btn">Directions</button>-->
+<!--                <p class="grocery-list">Apples (1 kg): ₹100-->
+<!--                    Bananas (1 kg): ₹60-->
+<!--                    Oranges (1 kg): ₹60-->
+<!--                    Tomatoes (1 kg): ₹24-->
+<!--                    Potatoes (1 kg): ₹20-->
+<!--                    Onions (1 kg): ₹30-->
+<!--                    Carrots (1 kg): ₹40-->
+<!--                    Spinach (1 bunch): ₹20-->
+<!--                    Dairy & Eggs:-->
+<!--                    Milk (1 liter): ₹52-->
+<!--                    Butter (500 g): ₹250-->
+<!--                    Cheese (1 kg): ₹250-->
+<!--                    Yogurt (500 g): ₹50-->
+<!--                    Eggs (12 units): ₹60-->
+<!--                    Grains & Bread:-->
+<!--                    Rice (1 kg): ₹40 – ₹80-->
+<!--                    Flour (Wheat/All-purpose, 1 kg): ₹30-->
+<!--                    Bread (500 g loaf): ₹30-->
+<!--                    Pasta (500 g): ₹50-->
+<!--                    Protein & Meat:-->
+<!--                    Chicken (1 kg): ₹160-->
+<!--                    Fish (1 kg): ₹200-->
+<!--                    Lentils (1 kg): ₹80-->
+<!--                    Beans (1 kg): ₹80-->
+<!--                    Pantry Staples:-->
+<!--                    Cooking oil (1 liter): ₹100-->
+<!--                    Salt (1 kg): ₹20-->
+<!--                    Sugar (1 kg): ₹40-->
+<!--                    Spices (100 g): ₹30-->
+<!--                    Tea (250 g): ₹125-->
+<!--                    Coffee (50 g): ₹170-->
+<!--                    Snacks & Beverages:-->
+<!--                    Biscuits (200 g): ₹20-->
+<!--                    Chips (150 g): ₹20</p>-->
+<!--            </div>-->
+<!--            <img src="shop4.jpg" alt="Shop 4" class="shop-image">-->
+<!--        </div>-->
+
+        <!--    <div class="shop-card">-->
+        <!--      <div class="shop-details">-->
+        <!--        <h3>Kirana Store</h3>-->
+        <!--        <p>Address: Dhamni, Khalapur, Raigad, Maharashtra</p>-->
+        <!--        <button class="btn" onclick="toggleGroceryList(this)">Grocery List</button>-->
+        <!--        <a href="order" class="btn">Order Something</a>-->
+        <!--        <button class="btn">Directions</button>-->
+        <!--        <p class="grocery-list">Rice</p>-->
+        <!--      </div>-->
+        <!--      <img src="shop5.jpg" alt="Shop 5" class="shop-image">-->
+        <!--    </div>-->
+
+        <!--    <div class="shop-card">-->
+        <!--      <div class="shop-details">-->
+        <!--        <h3>Sanjay General Store</h3>-->
+        <!--        <p>Address: Dhamni, Khalapur, Raigad, Maharashtra</p>-->
+        <!--        <button class="btn" onclick="toggleGroceryList(this)">Grocery List</button>-->
+        <!--        <a href="order" class="btn">Order Something</a>-->
+        <!--        <button class="btn">Directions</button>-->
+        <!--        <p class="grocery-list">Rice</p>-->
+        <!--      </div>-->
+        <!--      <img src="shop6.jpg" alt="Shop 6" class="shop-image">-->
+        <!--    </div>-->
+    </div>
+</div>
+
+<script>
+    function toggleGroceryList(button) {
+        let shopCard = button.closest('.shop-card');
+        shopCard.classList.toggle('expanded');
+    }
+</script>
+
+</body>
+</html>

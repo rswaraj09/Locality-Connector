@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nearby Shops</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        .container {
+            padding: 50px;
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+        }
+        .shop-list {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .shop-card {
+            display: flex;
+            align-items: center;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            width: 80%;
+            transition: all 0.3s ease-in-out;
+            position: relative;
+        }
+        .shop-card.expanded {
+            width: 90%;
+            padding: 30px;
+            background-color: #e3f2fd;
+        }
+        .shop-details {
+            flex: 1;
+        }
+        .shop-image {
+            width: 120px;
+            height: 120px;
+            border-radius: 8px;
+            margin-left: 20px;
+            object-fit: cover;
+        }
+        .btn {
+            padding: 8px 12px;
+            font-size: 0.9rem;
+            background-color: #3498db;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            margin-right: 5px;
+        }
+        .btn:hover {
+            background-color: #2980b9;
+        }
+        .grocery-list {
+            display: none;
+            font-size: 1rem;
+            color: #2c3e50;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+        .shop-card.expanded .grocery-list {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>NEARBY SHOPS</h1>
+    <div class="shop-list">
+        <!-- Shop Cards -->
+        <div class="shop-card">
+            <div class="shop-details">
+                <h3>Vimeet Hostel Shop</h3>
+                <p>Address: Vimeet,Dhamini, Khalapur, Raigad, Maharashtra </p>
+                <p>Longitude: 73.82958111 </p>
+                <p>Latitude: 18.53685800 </p>
+                <button class="btn" onclick="toggleGroceryList(this)">Food Item List</button>
+<!--                <a href="order" class="btn">Order Something</a>-->
+                <a href="https://www.mappls.com/place-Vishwaniketans+Hostel-Khalapur-Raigad+District-Maharashtra-ck2a2q@,,,l,f,f,f,f,f,f,zdata=MTguODIwNDUxKzczLjI2OTk3NSsxNy45OTk5OTk5OTk5OTkrY2syYTJxed"
+                   target="_blank"
+                   class="btn">
+                    Directions
+                </a>
+                <p class="grocery-list">
+                    Snacks & Beverages:
+                    Biscuits : ₹10
+                    Chips : ₹10
+                    Magiee :₹14</p>
+            </div>
+            <img src="shop1.jpg" alt="Shop 1" class="shop-image">
+        </div>
+        <div class="shop-card">
+            <div class="shop-details">
+                <h3>Vimeet Canteen</h3>
+                <p>Address: Vimeet,Dhamini, Khalapur, Raigad, Maharashtra </p>
+                <p>Longitude: 73.82958111 </p>
+                <p>Latitude: 18.53685800 </p>
+                <button class="btn" onclick="toggleGroceryList(this)">Food Item List</button>
+                                <a href="food" class="btn">Order Something</a>
+                <a href="https://www.mappls.com/place-Vishwaniketan%E2%80%99s+Cafeteria-Khalapur-Raigad+District-Maharashtra-yl35mu@,,,l,f,f,f,f,f,f,zdata=MTguODIxMjc5KzczLjI3MDgzNisxNy45OTk5OTk5OTk5OTkreWwzNW11ed"
+                   target="_blank"
+                   class="btn">
+                    Directions
+                </a>
+                <p class="grocery-list">
+
+                    Biscuits : ₹10
+                    Chips : ₹10
+                    tea:₹10
+                    coffee:₹15
+                    roti:₹10
+                    panner masala:₹100
+                    paneer krispy:₹100</p>
+            </div>
+            <img src="shop1.jpg" alt="Shop 1" class="shop-image">
+        </div>
+
+        <div class="shop-card">
+            <div class="shop-details">
+                <h3>Rohit Hotel</h3>
+                <p>Address: In front of Vimeet,Dhamini, Khalapur, Raigad, Maharashtra </p>
+                <p>Longitude: 73.82958111 </p>
+                <p>Latitude: 18.53685800 </p>
+                <button class="btn" onclick="toggleGroceryList(this)">Food Item List</button>
+                                <a href="food" class="btn">Order Something</a>
+                <a href="https://www.mappls.com/place-GA+Steels-Khalapur-Raigad+District-Maharashtra-k19iiv@,,,l,f,f,f,f,f,f,zdata=MTguODIxNzY1KzczLjI3MDQyOSsyMC4xODA1MTMwNDY2MTUrazE5aWl2ed"
+                   target="_blank"
+                   class="btn">
+                    Directions
+                </a>
+                <p class="grocery-list">
+
+                    Biscuits : ₹10
+                    Chips : ₹10
+                    tea:₹10
+                vada pav:₹12</p>
+            </div>
+            <img src="shop1.jpg" alt="Shop 1" class="shop-image">
+        </div>
+
+        <div class="shop-card">
+            <div class="shop-details">
+                <h3>Vada Pav Dhamini</h3>
+                <p>Address: Dhamni, Khalapur, Raigad, Maharashtra</p>
+                <p>Longitude: 73.82958109 </p>
+                <p>Latitude: 18.56307400 </p>
+                <button class="btn" onclick="toggleGroceryList(this)">Food Item List</button>
+                <a href="food" class="btn">Order Something</a>
+                <a href="https://www.mappls.com/place-Ashapura+Agrocom+Pvt+Ltd-Khalapur-Raigad+District-Maharashtra-g2mrnq@,,,l,f,f,f,f,f,f,zdata=MTguODIwOTgyKzczLjI3MjYxNysxNy45OTk5OTk5OTk5OTkrZzJtcm5xed"
+                   target="_blank"
+                   class="btn">
+                    Directions
+                </a>
+                <p class="grocery-list">tea:₹10
+                vada pav:₹12
+                pattiees:₹12</p>
+            </div>
+            <img src="shop4.jpg" alt="Shop 4" class="shop-image">
+        </div>
+
+
+    </div>
+</div>
+
+<script>
+    function toggleGroceryList(button) {
+        let shopCard = button.closest('.shop-card');
+        shopCard.classList.toggle('expanded');
+    }
+</script>
+
+</body>
+</html>

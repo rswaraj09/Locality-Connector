@@ -1,0 +1,632 @@
+<!--&lt;!&ndash;<!DOCTYPE html>&ndash;&gt;-->
+<!--&lt;!&ndash;<html lang="en">&ndash;&gt;-->
+<!--&lt;!&ndash;<head>&ndash;&gt;-->
+<!--&lt;!&ndash;    <meta charset="UTF-8">&ndash;&gt;-->
+<!--&lt;!&ndash;    <meta name="viewport" content="width=device-width, initial-scale=1.0">&ndash;&gt;-->
+<!--&lt;!&ndash;    <title>Grocery List</title>&ndash;&gt;-->
+<!--&lt;!&ndash;    <style>&ndash;&gt;-->
+<!--&lt;!&ndash;        body {&ndash;&gt;-->
+<!--&lt;!&ndash;            font-family: Arial, sans-serif;&ndash;&gt;-->
+<!--&lt;!&ndash;            margin: 0;&ndash;&gt;-->
+<!--&lt;!&ndash;            padding: 20px;&ndash;&gt;-->
+<!--&lt;!&ndash;            background-color: #f5f5f5;&ndash;&gt;-->
+<!--&lt;!&ndash;            color: #333;&ndash;&gt;-->
+<!--&lt;!&ndash;        }&ndash;&gt;-->
+<!--&lt;!&ndash;        .container {&ndash;&gt;-->
+<!--&lt;!&ndash;            max-width: 800px;&ndash;&gt;-->
+<!--&lt;!&ndash;            margin: 0 auto;&ndash;&gt;-->
+<!--&lt;!&ndash;            text-align: center;&ndash;&gt;-->
+<!--&lt;!&ndash;        }&ndash;&gt;-->
+<!--&lt;!&ndash;        h1 {&ndash;&gt;-->
+<!--&lt;!&ndash;            color: #2c3e50;&ndash;&gt;-->
+<!--&lt;!&ndash;            font-size: 2.5rem;&ndash;&gt;-->
+<!--&lt;!&ndash;            margin-bottom: 20px;&ndash;&gt;-->
+<!--&lt;!&ndash;        }&ndash;&gt;-->
+<!--&lt;!&ndash;        ul {&ndash;&gt;-->
+<!--&lt;!&ndash;            text-align: left;&ndash;&gt;-->
+<!--&lt;!&ndash;            list-style-type: none;&ndash;&gt;-->
+<!--&lt;!&ndash;            padding: 0;&ndash;&gt;-->
+<!--&lt;!&ndash;        }&ndash;&gt;-->
+<!--&lt;!&ndash;        ul li {&ndash;&gt;-->
+<!--&lt;!&ndash;            font-size: 1.1rem;&ndash;&gt;-->
+<!--&lt;!&ndash;            margin: 5px 0;&ndash;&gt;-->
+<!--&lt;!&ndash;        }&ndash;&gt;-->
+<!--&lt;!&ndash;        .category {&ndash;&gt;-->
+<!--&lt;!&ndash;            font-weight: bold;&ndash;&gt;-->
+<!--&lt;!&ndash;            font-size: 1.2rem;&ndash;&gt;-->
+<!--&lt;!&ndash;            margin-top: 15px;&ndash;&gt;-->
+<!--&lt;!&ndash;        }&ndash;&gt;-->
+<!--&lt;!&ndash;    </style>&ndash;&gt;-->
+<!--&lt;!&ndash;</head>&ndash;&gt;-->
+<!--&lt;!&ndash;<body>&ndash;&gt;-->
+<!--&lt;!&ndash;<div class="container">&ndash;&gt;-->
+<!--&lt;!&ndash;    <h1>List of Materials Available in Our Shop</h1>&ndash;&gt;-->
+<!--&lt;!&ndash;    <ul>&ndash;&gt;-->
+<!--&lt;!&ndash;        <li class="category">Produce:</li>&ndash;&gt;-->
+<!--&lt;!&ndash;        <li>Apples</li>&ndash;&gt;-->
+<!--&lt;!&ndash;        <li>Bananas</li>&ndash;&gt;-->
+<!--&lt;!&ndash;        <li>Carrots</li>&ndash;&gt;-->
+<!--&lt;!&ndash;        <li>Broccoli</li>&ndash;&gt;-->
+<!--&lt;!&ndash;        <li>Spinach</li>&ndash;&gt;-->
+<!--&lt;!&ndash;        <li>Lettuce</li>&ndash;&gt;-->
+<!--&lt;!&ndash;        <li>Tomatoes</li>&ndash;&gt;-->
+<!--&lt;!&ndash;        <li>Avocados</li>&ndash;&gt;-->
+<!--&lt;!&ndash;        <li>Potatoes</li>&ndash;&gt;-->
+<!--&lt;!&ndash;        <li>Onions</li>&ndash;&gt;-->
+<!--&lt;!&ndash;        <li>Garlic</li>&ndash;&gt;-->
+<!--&lt;!&ndash;        <li>Lemons</li>&ndash;&gt;-->
+<!--&lt;!&ndash;        <li class="category">Dairy:</li>&ndash;&gt;-->
+<!--&lt;!&ndash;        <li>Milk</li>&ndash;&gt;-->
+<!--&lt;!&ndash;        <li>Eggs</li>&ndash;&gt;-->
+<!--&lt;!&ndash;        <li>Cheese (cheddar, mozzarella, or your choice)</li>&ndash;&gt;-->
+<!--&lt;!&ndash;        <li>Butter or margarine</li>&ndash;&gt;-->
+<!--&lt;!&ndash;        <li>Yogurt</li>&ndash;&gt;-->
+<!--&lt;!&ndash;        <li class="category">Grains:</li>&ndash;&gt;-->
+<!--&lt;!&ndash;        <li>Bread (whole wheat or white)</li>&ndash;&gt;-->
+<!--&lt;!&ndash;        <li>Rice (white, brown, or basmati)</li>&ndash;&gt;-->
+<!--&lt;!&ndash;        <li>Pasta (spaghetti, penne, etc.)</li>&ndash;&gt;-->
+<!--&lt;!&ndash;        <li>Oats</li>&ndash;&gt;-->
+<!--&lt;!&ndash;        <li>Tortillas (flour or corn)</li>&ndash;&gt;-->
+<!--&lt;!&ndash;        <li class="category">Frozen:</li>&ndash;&gt;-->
+<!--&lt;!&ndash;        <li>Frozen vegetables (peas, corn, mixed veggies)</li>&ndash;&gt;-->
+<!--&lt;!&ndash;        <li>Frozen fruit (berries, mangoes)</li>&ndash;&gt;-->
+<!--&lt;!&ndash;        <li>Frozen pizza (optional)</li>&ndash;&gt;-->
+<!--&lt;!&ndash;        <li class="category">Canned & Jarred:</li>&ndash;&gt;-->
+<!--&lt;!&ndash;        <li>Canned tomatoes</li>&ndash;&gt;-->
+<!--&lt;!&ndash;        <li>Canned tuna or salmon</li>&ndash;&gt;-->
+<!--&lt;!&ndash;        <li>Canned soups</li>&ndash;&gt;-->
+<!--&lt;!&ndash;        <li>Pasta sauce</li>&ndash;&gt;-->
+<!--&lt;!&ndash;        <li>Canned corn</li>&ndash;&gt;-->
+<!--&lt;!&ndash;        <li class="category">Snacks & Treats:</li>&ndash;&gt;-->
+<!--&lt;!&ndash;        <li>Crackers</li>&ndash;&gt;-->
+<!--&lt;!&ndash;        <li>Chips</li>&ndash;&gt;-->
+<!--&lt;!&ndash;        <li>Granola bars</li>&ndash;&gt;-->
+<!--&lt;!&ndash;        <li>Cookies or sweets</li>&ndash;&gt;-->
+<!--&lt;!&ndash;        <li class="category">Beverages:</li>&ndash;&gt;-->
+<!--&lt;!&ndash;        <li>Coffee or tea</li>&ndash;&gt;-->
+<!--&lt;!&ndash;        <li>Juice</li>&ndash;&gt;-->
+<!--&lt;!&ndash;        <li>Sparkling water</li>&ndash;&gt;-->
+<!--&lt;!&ndash;        <li>Soft drinks (if preferred)</li>&ndash;&gt;-->
+<!--&lt;!&ndash;        <li class="category">Household Items:</li>&ndash;&gt;-->
+<!--&lt;!&ndash;        <li>Paper towels</li>&ndash;&gt;-->
+<!--&lt;!&ndash;        <li>Toilet paper</li>&ndash;&gt;-->
+<!--&lt;!&ndash;        <li>Dish soap</li>&ndash;&gt;-->
+<!--&lt;!&ndash;        <li>Laundry detergent</li>&ndash;&gt;-->
+<!--&lt;!&ndash;        <li class="category">Spices & Condiments:</li>&ndash;&gt;-->
+<!--&lt;!&ndash;        <li>Salt</li>&ndash;&gt;-->
+<!--&lt;!&ndash;        <li>Pepper</li>&ndash;&gt;-->
+<!--&lt;!&ndash;        <li>Olive oil</li>&ndash;&gt;-->
+<!--&lt;!&ndash;        <li>Vinegar</li>&ndash;&gt;-->
+<!--&lt;!&ndash;        <li>Soy sauce</li>&ndash;&gt;-->
+<!--&lt;!&ndash;        <li>Mustard</li>&ndash;&gt;-->
+<!--&lt;!&ndash;        <li>Ketchup</li>&ndash;&gt;-->
+<!--&lt;!&ndash;        <li>Hot sauce</li>&ndash;&gt;-->
+<!--&lt;!&ndash;    </ul>&ndash;&gt;-->
+<!--&lt;!&ndash;</div>&ndash;&gt;-->
+<!--&lt;!&ndash;</body>&ndash;&gt;-->
+<!--&lt;!&ndash;</html>&ndash;&gt;-->
+
+
+
+
+<!--<!DOCTYPE html>-->
+<!--<html lang="en">-->
+<!--<head>-->
+<!--    <meta charset="UTF-8">-->
+<!--    <meta name="viewport" content="width=device-width, initial-scale=1.0">-->
+<!--    <title>Nearby Shops</title>-->
+<!--    <style>-->
+<!--        body {-->
+<!--            font-family: Arial, sans-serif;-->
+<!--            margin: 0;-->
+<!--            padding: 0;-->
+<!--            background-color: #f5f5f5;-->
+<!--            color: #333;-->
+<!--        }-->
+<!--        .container {-->
+<!--            text-align: center;-->
+<!--            padding: 50px;-->
+<!--        }-->
+<!--        h1 {-->
+<!--            color: #2c3e50;-->
+<!--            font-size: 3rem;-->
+<!--            margin-bottom: 10px;-->
+<!--        }-->
+<!--        h2 {-->
+<!--            color: #7f8c8d;-->
+<!--            font-size: 1.5rem;-->
+<!--            margin-bottom: 30px;-->
+<!--        }-->
+<!--        .shop-list {-->
+<!--            margin-top: 20px;-->
+<!--            display: flex;-->
+<!--            justify-content: center;-->
+<!--            flex-wrap: wrap;-->
+<!--        }-->
+<!--        .shop-card {-->
+<!--            background-color: #fff;-->
+<!--            border: 1px solid #ddd;-->
+<!--            border-radius: 8px;-->
+<!--            padding: 20px;-->
+<!--            margin: 10px;-->
+<!--            width: 250px;-->
+<!--            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);-->
+<!--            text-align: left;-->
+<!--        }-->
+<!--        .shop-card h3 {-->
+<!--            margin: 0;-->
+<!--            font-size: 1.2rem;-->
+<!--            color: #34495e;-->
+<!--        }-->
+<!--        .shop-card p {-->
+<!--            margin: 5px 0 10px;-->
+<!--            font-size: 0.9rem;-->
+<!--            color: #7f8c8d;-->
+<!--        }-->
+<!--        .btn {-->
+<!--            padding: 8px 15px;-->
+<!--            font-size: 0.9rem;-->
+<!--            background-color: #3498db;-->
+<!--            color: #fff;-->
+<!--            border: none;-->
+<!--            border-radius: 5px;-->
+<!--            cursor: pointer;-->
+<!--            text-decoration: none;-->
+<!--            display: inline-block;-->
+<!--            margin-top: 5px;-->
+<!--        }-->
+<!--        .btn:hover {-->
+<!--            background-color: #2980b9;-->
+<!--        }-->
+<!--        #grocery-list, #order-form {-->
+<!--            display: none;-->
+<!--            background-color: #fff;-->
+<!--            border-radius: 8px;-->
+<!--            padding: 20px;-->
+<!--            margin: 20px auto;-->
+<!--            max-width: 600px;-->
+<!--            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);-->
+<!--            text-align: left;-->
+<!--        }-->
+<!--        #grocery-list h3, #order-form h3 {-->
+<!--            margin-top: 0;-->
+<!--            color: #2c3e50;-->
+<!--        }-->
+<!--        #grocery-list ul {-->
+<!--            padding-left: 20px;-->
+<!--            color: #7f8c8d;-->
+<!--        }-->
+<!--        #close-list, #close-form {-->
+<!--            margin-top: 15px;-->
+<!--            cursor: pointer;-->
+<!--            font-size: 0.9rem;-->
+<!--            color: #e74c3c;-->
+<!--            border: none;-->
+<!--            background: none;-->
+<!--            text-decoration: underline;-->
+<!--        }-->
+<!--        #order-form label {-->
+<!--            display: block;-->
+<!--            margin: 10px 0 5px;-->
+<!--            font-size: 0.9rem;-->
+<!--            color: #2c3e50;-->
+<!--        }-->
+<!--        #order-form input, #order-form select {-->
+<!--            width: 100%;-->
+<!--            padding: 8px;-->
+<!--            margin-bottom: 15px;-->
+<!--            border: 1px solid #ddd;-->
+<!--            border-radius: 5px;-->
+<!--            font-size: 0.9rem;-->
+<!--        }-->
+<!--        #order-form button {-->
+<!--            display: block;-->
+<!--            width: 100%;-->
+<!--            padding: 10px;-->
+<!--            background-color: #3498db;-->
+<!--            color: #fff;-->
+<!--            border: none;-->
+<!--            border-radius: 5px;-->
+<!--            cursor: pointer;-->
+<!--            font-size: 1rem;-->
+<!--        }-->
+<!--        #order-form button:hover {-->
+<!--            background-color: #2980b9;-->
+<!--        }-->
+<!--    </style>-->
+<!--</head>-->
+<!--<body>-->
+<!--<div class="container">-->
+<!--    <h1>NEARBY SHOPS</h1>-->
+<!--    <h2>Hey User, the nearby shops around you are listed below</h2>-->
+<!--    <div class="shop-list">-->
+<!--        <div class="shop-card">-->
+<!--            <h3>Shop Hostel Shop</h3>-->
+<!--            <p>Address: Room No 2, Girls Hostel, Vimeet</p>-->
+<!--            <p>Type: Grocery</p>-->
+<!--            <p>Longitude: 00000</p>-->
+<!--            <p>Latitude: 00000</p>-->
+<!--            <a href="https://www.mappls.com/place-Vishwaniketans+Hostel-Khalapur-Raigad+District-Maharashtra-ck2a2q"-->
+<!--               target="_blank"-->
+<!--               class="btn">-->
+<!--                Directions-->
+<!--            </a>-->
+<!--            <button class="btn" onclick="showGroceryList()">Grocery List</button>-->
+<!--        </div>-->
+<!--    </div>-->
+<!--    <div id="grocery-list">-->
+<!--        <h3>Materials available in our shop</h3>-->
+<!--        <ul>-->
+<!--            <li><strong>Produce:</strong> Apples, Bananas, Carrots, Broccoli, Spinach, Lettuce, Tomatoes, Avocados, Potatoes, Onions, Garlic, Lemons</li>-->
+<!--            <li><strong>Dairy:</strong> Milk, Eggs, Cheese (cheddar, mozzarella, or your choice), Butter or margarine, Yogurt</li>-->
+<!--            <li><strong>Grains:</strong> Bread (whole wheat or white), Rice (white, brown, or basmati), Pasta (spaghetti, penne, etc.), Oats, Tortillas (flour or corn)</li>-->
+<!--            <li><strong>Frozen:</strong> Frozen vegetables (peas, corn, mixed veggies), Frozen fruit (berries, mangoes), Frozen pizza (optional)</li>-->
+<!--            <li><strong>Canned & Jarred:</strong> Canned tomatoes, Canned tuna or salmon, Canned soups, Pasta sauce, Canned corn</li>-->
+<!--            <li><strong>Snacks & Treats:</strong> Crackers, Chips, Granola bars, Cookies or sweets</li>-->
+<!--            <li><strong>Beverages:</strong> Coffee or tea, Juice, Sparkling water, Soft drinks (if preferred)</li>-->
+<!--            <li><strong>Household Items:</strong> Paper towels, Toilet paper, Dish soap, Laundry detergent</li>-->
+<!--            <li><strong>Spices & Condiments:</strong> Salt, Pepper, Olive oil, Vinegar, Soy sauce, Mustard, Ketchup, Hot sauce</li>-->
+<!--        </ul>-->
+<!--        <button class="btn" onclick="showOrderForm()">Order Something</button>-->
+<!--        <button id="close-list" onclick="hideGroceryList()">Close List</button>-->
+<!--    </div>-->
+<!--    <div id="order-form">-->
+<!--        <h3>Order Registration Form</h3>-->
+<!--        <form>-->
+<!--            <label for="name">Name:</label>-->
+<!--            <input type="text" id="name" placeholder="Enter your name" required>-->
+
+<!--            <label for="address">Address:</label>-->
+<!--            <input type="text" id="address" placeholder="Enter your address" required>-->
+
+<!--            <label for="phone">Phone Number:</label>-->
+<!--            <input type="tel" id="phone" placeholder="Enter your phone number" required>-->
+
+<!--            <label for="payment-mode">Payment Mode:</label>-->
+<!--            <select id="payment-mode">-->
+<!--                <option value="cod">Cash on Delivery</option>-->
+<!--            </select>-->
+
+<!--            <button type="submit">Submit</button>-->
+<!--        </form>-->
+<!--        <button id="close-form" onclick="hideOrderForm()">Close</button>-->
+
+<!--        -->
+<!--    </div>-->
+<!--</div>-->
+
+<!--<script>-->
+<!--    function showGroceryList() {-->
+<!--      document.getElementById('grocery-list').style.display = 'block';-->
+<!--      document.getElementById('order-form').style.display = 'none';-->
+<!--    }-->
+
+<!--    function hideGroceryList() {-->
+<!--      document.getElementById('grocery-list').style.display = 'none';-->
+<!--    }-->
+
+<!--    function showOrderForm() {-->
+<!--      document.getElementById('order-form').style.display = 'block';-->
+<!--    }-->
+
+<!--    function hideOrderForm() {-->
+<!--      document.getElementById('order-form').style.display = 'none';-->
+<!--    }-->
+<!--</script>-->
+<!--</body>-->
+<!--</html>-->
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nearby Shops</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        .container {
+            text-align: center;
+            padding: 50px;
+        }
+        h1 {
+            color: #2c3e50;
+            font-size: 3rem;
+            margin-bottom: 10px;
+        }
+        h2 {
+            color: #7f8c8d;
+            font-size: 1.5rem;
+            margin-bottom: 30px;
+        }
+        .shop-list {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .shop-card {
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 10px;
+            width: 250px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            text-align: left;
+        }
+        .shop-card h3 {
+            margin: 0;
+            font-size: 1.2rem;
+            color: #34495e;
+        }
+        .shop-card p {
+            margin: 5px 0 10px;
+            font-size: 0.9rem;
+            color: #7f8c8d;
+        }
+        .btn {
+            padding: 8px 15px;
+            font-size: 0.9rem;
+            background-color: #3498db;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 5px;
+        }
+        .btn:hover {
+            background-color: #2980b9;
+        }
+        #grocery-list, #order-form {
+            display: none;
+            background-color: #fff;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px auto;
+            max-width: 600px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            text-align: left;
+        }
+        #grocery-list h3, #order-form h3 {
+            margin-top: 0;
+            color: #2c3e50;
+        }
+        #grocery-list ul {
+            padding-left: 20px;
+            color: #7f8c8d;
+        }
+        #close-list, #close-form {
+            margin-top: 15px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            color: #e74c3c;
+            border: none;
+            background: none;
+            text-decoration: underline;
+        }
+        #order-form label {
+            display: block;
+            margin: 10px 0 5px;
+            font-size: 0.9rem;
+            color: #2c3e50;
+        }
+        #order-form input, #order-form select {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 0.9rem;
+        }
+        #order-form button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            background-color: #3498db;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+        #order-form button:hover {
+            background-color: #2980b9;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>NEARBY SHOPS</h1>
+    <h2>Hey User, the nearby shops around you are listed below</h2>
+    <div class="shop-list">
+
+        <!-- Shop 1 -->
+        <div class="shop-card">
+            <h3>Shop Hostel Shop</h3>
+            <p>Address: Room No 2, Girls Hostel, Vimeet</p>
+            <p>Type: Grocery</p>
+            <p>Longitude: 00000</p>
+            <p>Latitude: 00000</p>
+            <a href="https://www.mappls.com/place-Vishwaniketans+Hostel-Khalapur-Raigad+District-Maharashtra-ck2a2q"
+               target="_blank"
+               class="btn">
+                Directions
+            </a>
+            <button class="btn" onclick="showGroceryList(1)">Grocery List</button>
+            <button class="btn" onclick="showOrderForm(1)">Order Something</button>
+        </div>
+
+        <!-- Shop 2 -->
+        <div class="shop-card">
+            <h3>Shop: Sanjay General Store</h3>
+            <p>Address: Dhamni, Khalapur, Raigad, Maharashtra</p>
+            <p>Type: Grocery</p>
+            <p>Longitude: 00000</p>
+            <p>Latitude: 00000</p>
+            <a href="https://www.mappls.com/place-Harsh+Electrical+Stationery+Mobile+and+General+Stores-Khalapur-Raigad+District-Maharashtra-1e3ny0"
+               target="_blank"
+               class="btn">
+                Directions
+            </a>
+            <button class="btn" onclick="showGroceryList(2)">Grocery List</button>
+            <button class="btn" onclick="showOrderForm(2)">Order Something</button>
+        </div>
+
+        <!-- Shop 3 -->
+        <div class="shop-card">
+            <h3>Shop: Rohit Kirana</h3>
+            <p>Address: Dhamni, Khalapur, Raigad, Maharashtra</p>
+            <p>Type: Grocery</p>
+            <p>Longitude: 00000</p>
+            <p>Latitude: 00000</p>
+            <a href="https://www.mappls.com/place-Harsh+Electrical+Stationery+Mobile+and+General+Stores-Khalapur-Raigad+District-Maharashtra-1e3ny0"
+               target="_blank"
+               class="btn">
+                Directions
+            </a>
+            <button class="btn" onclick="showGroceryList(3)">Grocery List</button>
+            <button class="btn" onclick="showOrderForm(3)">Order Something</button>
+        </div>
+
+        <!-- Shop 4 -->
+        <div class="shop-card">
+            <h3>Shop Name: Lota General Store</h3>
+            <p>Address: Dhamni, Khalapur, Raigad, Maharashtra</p>
+            <p>Type: Grocery</p>
+            <p>Longitude: 00000</p>
+            <p>Latitude: 00000</p>
+            <a href="https://www.mappls.com/place-Harsh+Electrical+Stationery+Mobile+and+General+Stores-Khalapur-Raigad+District-Maharashtra-1e3ny0"
+               target="_blank"
+               class="btn">
+                Directions
+            </a>
+            <button class="btn" onclick="showGroceryList(4)">Grocery List</button>
+            <button class="btn" onclick="showOrderForm(4)">Order Something</button>
+        </div>
+
+        <!-- Shop 5 -->
+        <div class="shop-card">
+            <h3>Shop: Kirana</h3>
+            <p>Address: Dhamni, Khalapur, Raigad, Maharashtra</p>
+            <p>Type: Grocery</p>
+            <p>Longitude: 00000</p>
+            <p>Latitude: 00000</p>
+            <a href="https://www.mappls.com/place-Harsh+Electrical+Stationery+Mobile+and+General+Stores-Khalapur-Raigad+District-Maharashtra-1e3ny0"
+               target="_blank"
+               class="btn">
+                Directions
+            </a>
+            <button class="btn" onclick="showGroceryList(5)">Grocery List</button>
+            <button class="btn" onclick="showOrderForm(5)">Order Something</button>
+        </div>
+
+        <!-- Shop 6 -->
+        <div class="shop-card">
+            <h3>Shop: Sanjay General Store</h3>
+            <p>Address: Dhamni, Khalapur, Raigad, Maharashtra</p>
+            <p>Type: Grocery</p>
+            <p>Longitude: 00000</p>
+            <p>Latitude: 00000</p>
+            <a href="https://www.mappls.com/place-Harsh+Electrical+Stationery+Mobile+and+General+Stores-Khalapur-Raigad+District-Maharashtra-1e3ny0"
+               target="_blank"
+               class="btn">
+                Directions
+            </a>
+            <button class="btn" onclick="showGroceryList(6)">Grocery List</button>
+            <button class="btn" onclick="showOrderForm(6)">Order Something</button>
+        </div>
+
+    </div>
+
+    <!-- Grocery List Modal -->
+    <div id="grocery-list">
+        <h3>Materials available in our shop</h3>
+        <ul id="grocery-items">
+            <!-- Items will be dynamically populated based on the selected shop -->
+        </ul>
+        <button id="close-list" onclick="closeGroceryList()">Close</button>
+    </div>
+
+    <!-- Order Form Modal -->
+    <div id="order-form">
+        <h3>Place your order</h3>
+        <form>
+            <label for="item">Item:</label>
+            <select id="item" name="item">
+                <option value="grocery">Grocery</option>
+                <option value="medicine">Medicine</option>
+                <option value="snacks">Snacks</option>
+                <option value="electronics">Electronics</option>
+            </select>
+
+            <label for="quantity">Quantity:</label>
+            <input type="number" id="quantity" name="quantity" min="1" required>
+
+            <label for="delivery">Delivery Address:</label>
+            <textarea id="delivery" name="delivery" rows="3" required></textarea>
+
+            <button type="submit">Place Order</button>
+        </form>
+        <button id="close-form" onclick="closeOrderForm()">Close</button>
+    </div>
+
+</div>
+
+<script>
+    // Show Grocery List with Dynamic Content
+    function showGroceryList(shopId) {
+      var groceryList = document.getElementById('grocery-list');
+      var groceryItems = document.getElementById('grocery-items');
+
+      // Clear current items
+      groceryItems.innerHTML = '';
+
+      // Add items based on shopId
+      if (shopId === 1) {
+          groceryItems.innerHTML = '<li><strong>Rice</strong></li>';
+      } else if (shopId === 2) {
+          groceryItems.innerHTML = '<li><strong>Sugar</strong></li>';
+      } else if (shopId === 3) {
+          groceryItems.innerHTML = '<li><strong>Salt</strong></li>';
+      } else if (shopId === 4) {
+          groceryItems.innerHTML = '<li><strong>Egg</strong></li>';
+      } else if (shopId === 5) {
+          groceryItems.innerHTML = '<li><strong>Rice</strong></li>';
+      } else if (shopId === 6) {
+          groceryItems.innerHTML = '<li><strong>Sugar</strong></li>';
+      }
+
+      // Show the grocery list modal
+      groceryList.style.display = 'block';
+    }
+
+    // Close Grocery List
+    function closeGroceryList() {
+      var groceryList = document.getElementById('grocery-list');
+      groceryList.style.display = 'none';
+    }
+
+    // Show Order Form
+    function showOrderForm(shopId) {
+      var orderForm = document.getElementById('order-form');
+      orderForm.style.display = 'block';
+    }
+
+    // Close Order Form
+    function closeOrderForm() {
+      var orderForm = document.getElementById('order-form');
+      orderForm.style.display = 'none';
+    }
+</script>
+
+</body>
+</html>
