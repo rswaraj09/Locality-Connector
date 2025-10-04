@@ -232,33 +232,27 @@
     </style>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const businessNameInput = document.getElementById('businessName');
-            const stored = localStorage.getItem('businessName');
-            if (stored && !businessNameInput.value) businessNameInput.value = stored;
-
             loadItems();
 
             document.getElementById('itemForm').addEventListener('submit', async (e) => {
                 e.preventDefault();
-                const businessName = businessNameInput.value.trim();
                 const itemName = document.getElementById('itemName').value.trim();
                 const itemPrice = document.getElementById('itemPrice').value;
                 const itemDescription = document.getElementById('itemDescription').value.trim();
 
-                if (!businessName || !itemName || !itemPrice) {
-                    return showMsg('Please fill business name, item name and price.', true);
+                if (!itemName || !itemPrice) {
+                    return showMsg('Please fill item name and price.', true);
                 }
                 try {
                     const res = await fetch('/api/items', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ businessName, itemName, itemPrice, itemDescription })
+                        body: JSON.stringify({ itemName, itemPrice, itemDescription })
                     });
                     const data = await res.json();
                     if (!res.ok || data.error) throw new Error(data.error || 'Failed to save');
                     showMsg('Item saved', false);
                     (document.getElementById('itemForm')).reset();
-                    if (businessName) localStorage.setItem('businessName', businessName);
                     loadItems();
                 } catch (err) {
                     showMsg(err.message, true);
@@ -269,13 +263,8 @@
         async function loadItems() {
             const list = document.getElementById('itemsList');
             list.innerHTML = '<div class="muted">Loading...</div>';
-            const businessName = document.getElementById('businessName').value.trim() || localStorage.getItem('businessName') || '';
-            if (!businessName) {
-                list.innerHTML = '<div class="muted">Enter business name to load items.</div>';
-                return;
-            }
             try {
-                const res = await fetch('/api/items?businessName=' + encodeURIComponent(businessName));
+                const res = await fetch('/api/items');
                 const data = await res.json();
                 if (!res.ok || data.error) throw new Error(data.error || 'Failed to load items');
                 if (!Array.isArray(data) || data.length === 0) {
@@ -294,7 +283,7 @@
                         <div style="text-align:right">
                           <div class="price">₹ ${Number(it.price).toFixed(2)}</div>
                           <div class="actions">
-                            <button class="btn btn-secondary" onclick="editItem('${it.id || it._id}', '${businessName}', '${encodeURIComponent(it.name)}', ${Number(it.price)}, '${encodeURIComponent(it.description || '')}')\">Edit</button>
+                            <button class="btn btn-secondary" onclick="editItem('${it.id || it._id}', '${it.businessName}', '${encodeURIComponent(it.name)}', ${Number(it.price)}, '${encodeURIComponent(it.description || '')}')\">Edit</button>
                             <button class="btn btn-danger" onclick="deleteItem('${it.id || it._id}')\">Delete</button>
                           </div>
                         </div>
@@ -368,8 +357,6 @@
         <div class="card">
             <h3>Add Item</h3>
             <form id="itemForm">
-                <label>Business Name</label>
-                <input id="businessName" name="businessName" type="text" placeholder="Business name" value="${sessionScope.loggedInBusinessName}">
                 <label>Item Name</label>
                 <input id="itemName" name="itemName" type="text" placeholder="e.g., Sugar" required>
                 <label>Price</label>

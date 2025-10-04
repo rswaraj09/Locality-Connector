@@ -205,3 +205,4 @@ All templates are fully responsive and work on:
 
 This architecture provides a solid foundation for a marketplace platform where users and businesses can interact while maintaining separate, tailored experiences.
 
+

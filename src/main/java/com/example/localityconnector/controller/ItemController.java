@@ -22,23 +22,23 @@ public class ItemController {
 	@PostMapping
 	public ResponseEntity<?> create(@RequestBody Map<String, Object> body, jakarta.servlet.http.HttpSession session) {
 		try {
-			String reqBusinessName = (String) body.get("businessName");
-			String resolvedBusinessName = reqBusinessName;
-			if (resolvedBusinessName == null || resolvedBusinessName.isBlank() || resolvedBusinessName.contains("${sessionScope")) {
-				Object n = session.getAttribute("loggedInBusinessName");
-				if (n != null) resolvedBusinessName = n.toString();
+			// Get businessId from session (more secure than using business name)
+			String businessId = (String) session.getAttribute("loggedInBusinessId");
+			if (businessId == null) {
+				return ResponseEntity.badRequest().body(Map.of("error", "Business not logged in"));
 			}
+
 			String itemName = (String) body.get("itemName");
 			Object priceObj = body.get("itemPrice");
 			Double price = priceObj instanceof Number ? ((Number) priceObj).doubleValue() : Double.parseDouble(String.valueOf(priceObj));
 			String description = body.get("itemDescription") == null ? "" : String.valueOf(body.get("itemDescription"));
 
-			final String bn = resolvedBusinessName;
-			Business business = businessRepository.findByBusinessName(bn)
-					.orElseThrow(() -> new RuntimeException("Business not found: " + bn));
+			// Get business details using businessId
+			Business business = businessRepository.findById(businessId)
+					.orElseThrow(() -> new RuntimeException("Business not found with ID: " + businessId));
 
 			Item item = new Item();
-			item.setBusinessId(business.getId());
+			item.setBusinessId(business.getId()); // Foreign key relationship
 			item.setBusinessName(business.getBusinessName());
 			item.setName(itemName);
 			item.setPrice(price);
@@ -52,21 +52,16 @@ public class ItemController {
 	}
 
 	@GetMapping
-    public ResponseEntity<?> list(@RequestParam(required = false) String businessName,
-                                    jakarta.servlet.http.HttpSession session) {
+    public ResponseEntity<?> list(jakarta.servlet.http.HttpSession session) {
 		try {
-            String resolvedBusinessName = businessName;
-            if (resolvedBusinessName == null || resolvedBusinessName.isBlank() || resolvedBusinessName.contains("${sessionScope")) {
-                Object n = session.getAttribute("loggedInBusinessName");
-                if (n != null) resolvedBusinessName = n.toString();
-            }
-            if (resolvedBusinessName == null || resolvedBusinessName.isBlank()) {
-				return ResponseEntity.badRequest().body(Map.of("error", "businessName required"));
+			// Get businessId from session (more secure than using business name)
+			String businessId = (String) session.getAttribute("loggedInBusinessId");
+			if (businessId == null) {
+				return ResponseEntity.badRequest().body(Map.of("error", "Business not logged in"));
 			}
-            final String bn = resolvedBusinessName;
-            Business business = businessRepository.findByBusinessName(bn)
-                    .orElseThrow(() -> new RuntimeException("Business not found: " + bn));
-			List<Item> items = itemRepository.findByBusinessId(business.getId());
+
+			// Get items using businessId (foreign key relationship)
+			List<Item> items = itemRepository.findByBusinessId(businessId);
 			return ResponseEntity.ok(items);
 		} catch (Exception ex) {
 			return ResponseEntity.badRequest().body(Map.of("error", ex.getMessage()));
@@ -102,6 +97,16 @@ public class ItemController {
 		}
 		itemRepository.deleteById(id);
 		return ResponseEntity.ok(Map.of("success", "Item deleted"));
+	}
+
+	@GetMapping("/business/{businessId}")
+	public ResponseEntity<?> getItemsByBusinessId(@PathVariable String businessId) {
+		try {
+			List<Item> items = itemRepository.findByBusinessId(businessId);
+			return ResponseEntity.ok(items);
+		} catch (Exception ex) {
+			return ResponseEntity.badRequest().body(Map.of("error", ex.getMessage()));
+		}
 	}
 }
 

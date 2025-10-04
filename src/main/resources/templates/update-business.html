@@ -157,6 +157,29 @@
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(245, 87, 108, 0.4);
         }
+        
+        .message {
+            margin: 20px 0;
+            padding: 20px;
+            border-radius: 10px;
+            display: block;
+            font-size: 16px;
+            font-weight: bold;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        
+        .message.success {
+            background: #4CAF50;
+            color: white;
+            border: 2px solid #45a049;
+        }
+        
+        .message.error {
+            background: #f44336;
+            color: white;
+            border: 2px solid #d32f2f;
+        }
     </style>
 </head>
 <body>
@@ -175,31 +198,44 @@
 </div>
 
 <div class="dashboard-container">
-    <h2>Business Dashboard</h2>
-    <form action="/update-business" method="POST">
+    <h2>Update Business Profile</h2>
+    
+    <!-- Success/Error Messages -->
+    <div th:if="${success}" class="message success" th:text="${success}"></div>
+    <div th:if="${error}" class="message error" th:text="${error}"></div>
+    
+    <form action="/update-business" method="POST" th:object="${business}">
         <label for="business-name">Business Name:</label>
-        <input type="text" id="business-name" name="business_name" placeholder="Enter your business name" required>
+        <input type="text" id="business-name" name="business_name" 
+               th:value="${business?.businessName}" 
+               placeholder="Enter your business name" required>
 
         <label for="business-type">Business Type:</label>
         <select id="business-type" name="business_type" required>
-            <option value="grocery">Grocery Store</option>
-            <option value="pharmacy">Pharmacy</option>
-            <option value="fooditem">Fooditem</option>
-            <option value="hardware">Hardware Store</option>
-            <option value="clothing">Clothing Store</option>
-            <option value="other">Other</option>
+            <option value="grocery" th:selected="${business?.category == 'grocery'}">Grocery Store</option>
+            <option value="pharmacy" th:selected="${business?.category == 'pharmacy'}">Pharmacy</option>
+            <option value="fooditem" th:selected="${business?.category == 'fooditem'}">Fooditem</option>
+            <option value="hardware" th:selected="${business?.category == 'hardware'}">Hardware Store</option>
+            <option value="clothing" th:selected="${business?.category == 'clothing'}">Clothing Store</option>
+            <option value="other" th:selected="${business?.category == 'other'}">Other</option>
         </select>
 
         <label for="business-description">Business Description:</label>
-        <textarea id="business-description" name="business_description" placeholder="Describe your business" rows="4" required></textarea>
+        <textarea id="business-description" name="business_description" 
+                  th:text="${business?.description}"
+                  placeholder="Describe your business" rows="4" required></textarea>
 
         <label for="business-address">Business Address:</label>
-        <input type="text" id="business-address" name="business_address" placeholder="Enter your business address" required>
+        <input type="text" id="business-address" name="business_address" 
+               th:value="${business?.address}"
+               placeholder="Enter your business address" required>
 
         <label for="contact-number">Contact Number:</label>
-        <input type="text" id="contact-number" name="contact_number" placeholder="Enter your contact number" required>
+        <input type="text" id="contact-number" name="contact_number" 
+               th:value="${business?.phoneNumber}"
+               placeholder="Enter your contact number" required>
 
-        <button type="submit">Submit Details</button>
+        <button type="submit">Update Profile</button>
     </form>
 </div>
 
@@ -219,6 +255,16 @@
             }
         }
     }
+
+    // Auto-hide success messages after 5 seconds
+    document.addEventListener('DOMContentLoaded', function() {
+        const successMessage = document.querySelector('.message.success');
+        if (successMessage) {
+            setTimeout(function() {
+                successMessage.style.display = 'none';
+            }, 5000);
+        }
+    });
 </script>
 
 </body>

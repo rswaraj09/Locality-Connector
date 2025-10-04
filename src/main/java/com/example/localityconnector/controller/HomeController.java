@@ -5,21 +5,27 @@ import com.example.localityconnector.dto.SaveLocationRequest;
 import com.example.localityconnector.model.Item;
 import com.example.localityconnector.repository.ItemRepository;
 import com.example.localityconnector.repository.BusinessRepository;
+import com.example.localityconnector.service.BusinessService;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import jakarta.servlet.http.HttpSession;
 
 @Controller
 public class HomeController {
 
     private final BusinessRepository businessRepository;
     private final ItemRepository itemRepository;
+    private final BusinessService businessService;
 
-    public HomeController(BusinessRepository businessRepository, ItemRepository itemRepository) {
+    public HomeController(BusinessRepository businessRepository, ItemRepository itemRepository, BusinessService businessService) {
         this.businessRepository = businessRepository;
         this.itemRepository = itemRepository;
+        this.businessService = businessService;
     }
 
     // Main pages
@@ -100,7 +106,71 @@ public class HomeController {
     }
 
     @GetMapping("/update-business")
-    public String updateBusiness() {
+    public String updateBusiness(HttpSession session, Model model) {
+        String businessId = (String) session.getAttribute("loggedInBusinessId");
+        if (businessId == null) {
+            return "redirect:/business/login";
+        }
+        
+        try {
+            var business = businessService.findById(businessId);
+            if (business.isPresent()) {
+                model.addAttribute("business", business.get());
+            } else {
+                model.addAttribute("error", "Business not found");
+            }
+        } catch (Exception e) {
+            model.addAttribute("error", "Error loading business data: " + e.getMessage());
+        }
+        
+        return "update-business";
+    }
+    
+    @PostMapping("/update-business")
+    public String updateBusinessProfile(
+            @RequestParam String business_name,
+            @RequestParam String business_type,
+            @RequestParam String business_description,
+            @RequestParam String business_address,
+            @RequestParam String contact_number,
+            HttpSession session,
+            Model model) {
+        
+        String businessId = (String) session.getAttribute("loggedInBusinessId");
+        if (businessId == null) {
+            return "redirect:/business/login";
+        }
+        
+        try {
+            var existingBusiness = businessService.findById(businessId);
+            if (existingBusiness.isPresent()) {
+                Business business = existingBusiness.get();
+                business.setBusinessName(business_name);
+                business.setCategory(business_type);
+                business.setDescription(business_description);
+                business.setAddress(business_address);
+                business.setPhoneNumber(contact_number);
+                business.setUpdatedAt(java.time.LocalDateTime.now());
+                
+                businessService.updateBusiness(businessId, business);
+                model.addAttribute("success", "Business profile updated successfully!");
+            } else {
+                model.addAttribute("error", "Business not found");
+            }
+        } catch (Exception e) {
+            model.addAttribute("error", "Error updating business profile: " + e.getMessage());
+        }
+        
+        // Reload the business data for the form
+        try {
+            var business = businessService.findById(businessId);
+            if (business.isPresent()) {
+                model.addAttribute("business", business.get());
+            }
+        } catch (Exception e) {
+            model.addAttribute("error", "Error reloading business data: " + e.getMessage());
+        }
+        
         return "update-business";
     }
 
