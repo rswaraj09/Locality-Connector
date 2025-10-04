@@ -207,7 +207,7 @@
                 showLoginMessage('Login successful! Welcome back, ' + result.name, 'success');
                 // Redirect to user dashboard or homepage
                 setTimeout(() => {
-                    window.location.href = '/user-home';
+                    window.location.href = '/enhanced-user-dashboard';
                 }, 2000);
             } else {
                 showLoginMessage(result.error || 'Login failed. Please check your credentials.', 'error');
@@ -235,7 +235,7 @@
                 showLoginMessage('Login successful! Welcome back, ' + result.businessName, 'success');
                 // Redirect to business dashboard
                 setTimeout(() => {
-                    window.location.href = '/business-dashboard';
+                    window.location.href = '/enhanced-business-dashboard';
                 }, 2000);
             } else {
                 showLoginMessage(result.error || 'Login failed. Please check your credentials.', 'error');

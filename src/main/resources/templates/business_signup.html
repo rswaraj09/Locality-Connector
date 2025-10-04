@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Business Signup - Locality Connector</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .signup-container {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+        }
+        h1 {
+            color: #f5576c;
+            margin-bottom: 30px;
+            font-size: 2rem;
+        }
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+            font-weight: bold;
+        }
+        input[type="text"], input[type="email"], input[type="password"], input[type="tel"], select, textarea {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #f5576c;
+        }
+        .btn {
+            width: 100%;
+            padding: 15px;
+            background: #f5576c;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 20px;
+        }
+        .btn:hover {
+            background: #e34558;
+            transform: translateY(-2px);
+        }
+        .link {
+            color: #f5576c;
+            text-decoration: none;
+            display: block;
+            margin-top: 10px;
+        }
+        .link:hover {
+            text-decoration: underline;
+        }
+        .back-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+        .message {
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: none;
+            font-size: 16px;
+            font-weight: bold;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .message.success {
+            background: #4CAF50;
+            color: white;
+            border: 2px solid #45a049;
+        }
+        .message.error {
+            background: #f44336;
+            color: white;
+            border: 2px solid #d32f2f;
+        }
+    </style>
+</head>
+<body>
+    <a href="/business" class="back-btn">← Back to Business Portal</a>
+    <div class="signup-container">
+        <h1>Business Signup</h1>
+        <div id="message" class="message"></div>
+        <form id="business-signup-form">
+            <div class="form-group">
+                <label for="businessName">Business Name:</label>
+                <input type="text" id="businessName" name="businessName" required>
+            </div>
+            <div class="form-group">
+                <label for="ownerName">Owner Name:</label>
+                <input type="text" id="ownerName" name="ownerName" required>
+            </div>
+            <div class="form-group">
+                <label for="email">Email:</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Password:</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            <div class="form-group">
+                <label for="address">Business Address:</label>
+                <input type="text" id="address" name="address" required>
+            </div>
+            <div class="form-group">
+                <label for="phoneNumber">Phone Number:</label>
+                <input type="tel" id="phoneNumber" name="phoneNumber" required>
+            </div>
+            <div class="form-group">
+                <label for="category">Business Category:</label>
+                <select id="category" name="category" required>
+                    <option value="">Select Category</option>
+                    <option value="food">Food & Grocery</option>
+                    <option value="pharmacy">Pharmacy</option>
+                    <option value="clothing">Clothing</option>
+                    <option value="stationary">Stationary</option>
+                    <option value="hospital">Hospital</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="description">Business Description:</label>
+                <textarea id="description" name="description" rows="3"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="businessLicense">Business License (Optional):</label>
+                <input type="text" id="businessLicense" name="businessLicense">
+            </div>
+            <button type="submit" class="btn">Sign Up</button>
+        </form>
+        <a href="/business/login" class="link">Already have an account? Login here</a>
+    </div>
+
+    <script>
+        const form = document.getElementById('business-signup-form');
+        const messageDiv = document.getElementById('message');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = {
+                businessName: document.getElementById('businessName').value,
+                ownerName: document.getElementById('ownerName').value,
+                email: document.getElementById('email').value,
+                password: document.getElementById('password').value,
+                address: document.getElementById('address').value,
+                phoneNumber: document.getElementById('phoneNumber').value,
+                category: document.getElementById('category').value,
+                description: document.getElementById('description').value,
+                businessLicense: document.getElementById('businessLicense').value
+            };
+
+            try {
+                const response = await fetch('/api/auth/business/signup', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    showMessage('Registration successful! Now please login.', 'success');
+                    setTimeout(() => {
+                        window.location.href = '/business/login';
+                    }, 3000);
+                } else {
+                    showMessage(result.error || 'Signup failed. Please try again.', 'error');
+                }
+            } catch (error) {
+                showMessage('Network error. Please check your connection.', 'error');
+            }
+        });
+
+        function showMessage(text, type) {
+            messageDiv.textContent = text;
+            messageDiv.className = `message ${type}`;
+            messageDiv.style.display = 'block';
+            
+            setTimeout(() => {
+                messageDiv.style.display = 'none';
+            }, 5000);
+        }
+    </script>
+</body>
+</html>

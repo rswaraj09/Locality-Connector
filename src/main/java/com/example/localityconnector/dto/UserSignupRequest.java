@@ -1,11 +1,15 @@
 package com.example.localityconnector.dto;
 
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class UserSignupRequest {
     
     @NotBlank(message = "Name is required")
@@ -25,27 +29,3 @@ public class UserSignupRequest {
     
     private String phoneNumber;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

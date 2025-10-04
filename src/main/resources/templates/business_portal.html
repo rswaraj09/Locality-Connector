@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Business Portal - Locality Connector</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .portal-container {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 50px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            max-width: 500px;
+        }
+        h1 {
+            color: #f5576c;
+            margin-bottom: 20px;
+            font-size: 2.5rem;
+        }
+        p {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1rem;
+        }
+        .btn-group {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+        }
+        .btn {
+            padding: 15px 40px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn-primary {
+            background: #f5576c;
+            color: white;
+        }
+        .btn-primary:hover {
+            background: #e34558;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(245, 87, 108, 0.4);
+        }
+        .btn-secondary {
+            background: #f093fb;
+            color: white;
+        }
+        .btn-secondary:hover {
+            background: #de7fe9;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(240, 147, 251, 0.4);
+        }
+        .back-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <a href="/" class="back-btn">← Back to Home</a>
+    <div class="portal-container">
+        <h1>Welcome to Business Portal</h1>
+        <p>Manage your business, track orders, and grow your customer base.</p>
+        <div class="btn-group">
+            <a href="/business/login" class="btn btn-primary">Sign In</a>
+            <a href="/business/signup" class="btn btn-secondary">Sign Up</a>
+        </div>
+    </div>
+</body>
+</html>
+

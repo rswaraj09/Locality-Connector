@@ -13,21 +13,86 @@
 
         body {
             font-family: 'Arial', sans-serif;
-            background: url('https://png.pngtree.com/background/20240412/original/pngtree-red-abstract-binary-code-technology-a-3d-rendered-illustration-of-digital-picture-image_8461897.jpg') no-repeat center center/cover;
-            height: 100vh;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
             display: flex;
-            justify-content: center;
+            justify-content: space-between;
             align-items: center;
+        }
+        
+        .header h1 {
+            color: #f5576c;
+            font-size: 2rem;
+        }
+        
+        .profile-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .profile-icon {
+            width: 40px;
+            height: 40px;
+            background: #f5576c;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             color: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 18px;
+        }
+        
+        .profile-icon:hover {
+            background: #e34558;
+            transform: translateY(-2px);
+        }
+        
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            background-color: white;
+            min-width: 200px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+            border-radius: 10px;
+            z-index: 1000;
+            overflow: hidden;
+        }
+        
+        .dropdown-content a {
+            color: #333;
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            transition: background-color 0.3s;
+        }
+        
+        .dropdown-content a:hover {
+            background-color: #f1f1f1;
+        }
+        
+        .dropdown-content a:last-child {
+            color: #f5576c;
+            border-top: 1px solid #eee;
         }
 
         .dashboard-container {
-            background-color: rgba(0, 0, 0, 0.7); /* Dark glass-like effect */
+            background: rgba(255, 255, 255, 0.95);
             padding: 40px;
-            border-radius: 10px;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
-            width: 600px; /* Increased width */
-            backdrop-filter: blur(10px); /* Glass effect */
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 800px;
+            margin: 40px auto;
+            backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
@@ -35,9 +100,7 @@
             text-align: center;
             margin-bottom: 20px;
             font-size: 2rem;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            color: #ff5722; /* Bright color for heading */
+            color: #f5576c;
         }
 
         .dashboard-container form {
@@ -48,53 +111,68 @@
         .dashboard-container form input[type="text"],
         .dashboard-container form textarea,
         .dashboard-container form select {
-            background: rgba(255, 255, 255, 0.1); /* Transparent input fields */
-            border: none;
+            background: #fff;
+            border: 2px solid #ddd;
             padding: 15px;
             margin-bottom: 20px;
-            border-radius: 5px;
-            color: #fff;
+            border-radius: 10px;
+            color: #333;
             font-size: 1rem;
+            transition: border-color 0.3s;
         }
 
         .dashboard-container form input[type="text"]::placeholder,
         .dashboard-container form textarea::placeholder {
-            color: #ccc;
+            color: #999;
         }
 
         .dashboard-container form select {
-            color: #ccc;
+            color: #333;
         }
 
         .dashboard-container form select option {
-            background-color: #000;
-            color: #fff;
+            background-color: #fff;
+            color: #333;
         }
 
         .dashboard-container form input:focus,
         .dashboard-container form textarea:focus,
         .dashboard-container form select:focus {
             outline: none;
-            box-shadow: 0 0 10px #ff5722; /* Neon glow effect */
+            border-color: #f5576c;
         }
 
         .dashboard-container form button {
-            background: linear-gradient(135deg, #ff5722 0%, #e64a19 100%);
+            background: #f5576c;
             border: none;
             padding: 15px;
-            font-size: 1rem;
+            border-radius: 25px;
             color: white;
-            cursor: pointer;
-            border-radius: 5px;
-            transition: background-color 0.3s ease;
+            font-weight: bold;
+            transition: all 0.3s;
         }
-
+        
         .dashboard-container form button:hover {
-            background-color: #e64a19;
+            background: #e34558;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(245, 87, 108, 0.4);
         }
     </style>
 </head>
 <body>
+
+<div class="header">
+    <h1>Update Business Profile</h1>
+    <div class="profile-dropdown">
+        <div class="profile-icon" onclick="toggleDropdown()">👤</div>
+        <div class="dropdown-content" id="dropdown">
+            <a href="/listing">Manage Listings</a>
+            <a href="/addlisting">Add Listing</a>
+            <a href="/feedback">View Feedback</a>
+            <a href="/business/login">Logout</a>
+        </div>
+    </div>
+</div>
 
 <div class="dashboard-container">
     <h2>Business Dashboard</h2>
@@ -124,6 +202,24 @@
         <button type="submit">Submit Details</button>
     </form>
 </div>
+
+<script>
+    // Profile dropdown functionality
+    function toggleDropdown() {
+        const dropdown = document.getElementById('dropdown');
+        dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+    }
+
+    // Close dropdown when clicking outside
+    window.onclick = function(event) {
+        if (!event.target.matches('.profile-icon')) {
+            const dropdown = document.getElementById('dropdown');
+            if (dropdown.style.display === 'block') {
+                dropdown.style.display = 'none';
+            }
+        }
+    }
+</script>
 
 </body>
 </html>

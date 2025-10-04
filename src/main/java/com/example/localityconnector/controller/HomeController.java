@@ -28,6 +28,17 @@ public class HomeController {
         return "index";
     }
 
+    // NEW: Separate portal entry points
+    @GetMapping("/user")
+    public String userPortal() {
+        return "user_portal";
+    }
+
+    @GetMapping("/business")
+    public String businessPortal() {
+        return "business_portal";
+    }
+
     // Authentication pages
     @GetMapping("/login")
     public String login() {
@@ -39,10 +50,37 @@ public class HomeController {
         return "signup";
     }
 
+    // NEW: Separate login pages
+    @GetMapping("/user/login")
+    public String userLogin() {
+        return "user_login";
+    }
+
+    @GetMapping("/business/login")
+    public String businessLogin() {
+        return "business_login";
+    }
+
+    // NEW: Separate signup pages
+    @GetMapping("/user/signup")
+    public String userSignup() {
+        return "user_signup";
+    }
+
+    @GetMapping("/business/signup")
+    public String businessSignup() {
+        return "business_signup";
+    }
+
     // User pages
     @GetMapping("/user-home")
     public String userHome() {
         return "user_home";
+    }
+
+    @GetMapping("/enhanced-user-dashboard")
+    public String enhancedUserDashboard() {
+        return "enhanced_user_dashboard";
     }
 
     @GetMapping("/user-homepage")
@@ -54,6 +92,11 @@ public class HomeController {
     @GetMapping("/business-dashboard")
     public String businessDashboard() {
         return "business_dashboard";
+    }
+
+    @GetMapping("/enhanced-business-dashboard")
+    public String enhancedBusinessDashboard() {
+        return "enhanced_business_dashboard";
     }
 
     @GetMapping("/update-business")

@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Dashboard - Locality Connector</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 {
+            color: #667eea;
+            font-size: 2rem;
+        }
+        .logout-btn {
+            background: #f5576c;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+        .logout-btn:hover {
+            background: #e34558;
+            transform: translateY(-2px);
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        .card h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+        .business-item {
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+            background: #f9f9f9;
+        }
+        .business-item h4 {
+            color: #333;
+            margin-bottom: 5px;
+        }
+        .business-item p {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        .btn {
+            background: #667eea;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 10px;
+            transition: all 0.3s;
+        }
+        .btn:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+        .category-filter {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .category-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .category-btn.active {
+            background: rgba(255, 255, 255, 0.9);
+            color: #667eea;
+        }
+        .loading {
+            text-align: center;
+            color: white;
+            font-size: 1.2rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Welcome to Your Dashboard</h1>
+        <a href="/user/login" class="logout-btn">Logout</a>
+    </div>
+
+    <div class="container">
+        <div class="category-filter">
+            <button class="category-btn active" onclick="filterBusinesses('all')">All</button>
+            <button class="category-btn" onclick="filterBusinesses('food')">Food</button>
+            <button class="category-btn" onclick="filterBusinesses('pharmacy')">Pharmacy</button>
+            <button class="category-btn" onclick="filterBusinesses('clothing')">Clothing</button>
+            <button class="category-btn" onclick="filterBusinesses('stationary')">Stationary</button>
+            <button class="category-btn" onclick="filterBusinesses('hospital')">Hospital</button>
+        </div>
+
+        <div class="dashboard-grid">
+            <div class="card">
+                <h3>Local Businesses</h3>
+                <div id="businesses-list">
+                    <div class="loading">Loading businesses...</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>My Orders</h3>
+                <div id="orders-list">
+                    <div class="loading">Loading orders...</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>Quick Actions</h3>
+                <a href="/nearby-shops" class="btn">Find Nearby Shops</a>
+                <a href="/nearby-food" class="btn">Find Food Items</a>
+                <a href="/nearby-pharmacy" class="btn">Find Pharmacy</a>
+                <a href="/nearby-hospital" class="btn">Find Hospitals</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let allBusinesses = [];
+        let currentFilter = 'all';
+
+        // Load businesses on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadBusinesses();
+            loadOrders();
+        });
+
+        async function loadBusinesses() {
+            try {
+                const response = await fetch('/api/user/dashboard/businesses');
+                const businesses = await response.json();
+                allBusinesses = businesses;
+                displayBusinesses(businesses);
+            } catch (error) {
+                document.getElementById('businesses-list').innerHTML = '<p>Error loading businesses</p>';
+            }
+        }
+
+        async function loadOrders() {
+            try {
+                // This would need a user ID from session
+                const response = await fetch('/api/user/dashboard/orders/user123'); // Replace with actual user ID
+                const orders = await response.json();
+                displayOrders(orders);
+            } catch (error) {
+                document.getElementById('orders-list').innerHTML = '<p>No orders yet</p>';
+            }
+        }
+
+        function displayBusinesses(businesses) {
+            const container = document.getElementById('businesses-list');
+            if (businesses.length === 0) {
+                container.innerHTML = '<p>No businesses found</p>';
+                return;
+            }
+
+            container.innerHTML = businesses.map(business => `
+                <div class="business-item">
+                    <h4>${business.businessName}</h4>
+                    <p><strong>Category:</strong> ${business.category}</p>
+                    <p><strong>Address:</strong> ${business.address}</p>
+                    <p><strong>Phone:</strong> ${business.phoneNumber}</p>
+                    <button class="btn" onclick="viewBusinessItems('${business.id}')">View Items</button>
+                </div>
+            `).join('');
+        }
+
+        function displayOrders(orders) {
+            const container = document.getElementById('orders-list');
+            if (orders.length === 0) {
+                container.innerHTML = '<p>No orders yet</p>';
+                return;
+            }
+
+            container.innerHTML = orders.map(order => `
+                <div class="business-item">
+                    <h4>Order #${order.id}</h4>
+                    <p><strong>Business:</strong> ${order.businessName}</p>
+                    <p><strong>Total:</strong> $${order.totalAmount}</p>
+                    <p><strong>Status:</strong> ${order.status}</p>
+                </div>
+            `).join('');
+        }
+
+        function filterBusinesses(category) {
+            currentFilter = category;
+            
+            // Update active button
+            document.querySelectorAll('.category-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            if (category === 'all') {
+                displayBusinesses(allBusinesses);
+            } else {
+                const filtered = allBusinesses.filter(business => business.category === category);
+                displayBusinesses(filtered);
+            }
+        }
+
+        function viewBusinessItems(businessId) {
+            // This would open a modal or navigate to business items page
+            alert(`Viewing items for business: ${businessId}`);
+        }
+    </script>
+</body>
+</html>
+

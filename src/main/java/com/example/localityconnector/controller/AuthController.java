@@ -97,6 +97,7 @@ public class AuthController {
                 response.put("category", business.get().getCategory());
                 // store in session for later use in pages
                 session.setAttribute("loggedInBusinessName", business.get().getBusinessName());
+                session.setAttribute("loggedInBusinessId", business.get().getId());
                 return ResponseEntity.ok(response);
             } else {
                 Map<String, String> error = new HashMap<>();
