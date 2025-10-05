@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Maps Geolocation Test</title>
+    <style>
+        body { font-family: Inter, Arial, sans-serif; margin: 0; background: linear-gradient(135deg, #0f172a, #1e293b); color: #e2e8f0; }
+        .container { max-width: 1100px; margin: 0 auto; padding: 24px; }
+        .card { background: rgba(255, 255, 255, 0.06); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.4); }
+        h1 { margin: 0 0 16px; font-size: 22px; font-weight: 700; }
+        #map { width: 100%; height: 520px; border-radius: 12px; overflow: hidden; }
+        .actions { display: flex; gap: 12px; margin: 16px 0; flex-wrap: wrap; }
+        button { padding: 10px 14px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.08); color: #e2e8f0; cursor: pointer; transition: 0.2s; }
+        button:hover { background: rgba(255,255,255,0.16); }
+        .status { font-size: 14px; opacity: 0.9; }
+        .kv { display: grid; grid-template-columns: 180px 1fr; gap: 6px 12px; margin-top: 12px; }
+        .kv div { padding: 8px 10px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; }
+        .muted { opacity: 0.8; }
+        a { color: #60a5fa; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="card">
+        <h1>Google Maps Geolocation Test</h1>
+        <div class="actions">
+            <button id="btn-locate">Get Current Location (one-time)</button>
+            <button id="btn-watch">Start High-Accuracy Watch</button>
+            <button id="btn-stop-watch">Stop Watch</button>
+            <button id="btn-pick">Enable Map Click to Pick</button>
+            <button id="btn-clear">Clear Markers</button>
+        </div>
+        <div class="status" id="status">Ready. Click "Get Current Location" to test geolocation.</div>
+        <div class="kv">
+            <div class="muted">Google API key present</div>
+            <div id="api-status" th:text="${googleKey != null and googleKey != ''} ? 'Yes' : 'No'"></div>
+            <div class="muted">Detected Latitude</div>
+            <div id="lat">-</div>
+            <div class="muted">Detected Longitude</div>
+            <div id="lon">-</div>
+            <div class="muted">Accuracy (m)</div>
+            <div id="acc">-</div>
+            <div class="muted">Validate in Google Maps</div>
+            <div><a id="gmaps-link" href="#" target="_blank">-</a></div>
+            <div class="muted">Sampling</div>
+            <div>
+                <button id="btn-sample">Start Sampling (10 fixes)</button>
+                <span id="sample-status" class="muted" style="margin-left:8px">-</span>
+            </div>
+            <div class="muted">Best Fix (lat, lon, acc)</div>
+            <div id="best-fix">-</div>
+            <div class="muted">Averaged Fix (lat, lon)</div>
+            <div id="avg-fix">-</div>
+            <div class="muted">Ground Truth (lat, lon)</div>
+            <div>
+                <input id="gt-lat" placeholder="e.g. 18.82250378" style="width:48%"> 
+                <input id="gt-lon" placeholder="e.g. 73.27158203" style="width:48%">
+                <button id="btn-error" style="margin-top:6px">Compute Error</button>
+            </div>
+            <div class="muted">Error Distance (meters)</div>
+            <div id="err-m">-</div>
+        </div>
+        <div id="map"></div>
+        <div class="status" style="margin-top:10px">If you see the map and a marker after allowing browser permission, your key and geolocation are working.</div>
+    </div>
+</div>
+
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    const GOOGLE_KEY = /*[[${googleKey}]]*/ '';
+    /*]]>*/
+</script>
+<script>
+    let map, markers = [];
+    let watchId = null;
+    let mapClickEnabled = false;
+    let lastPositions = [];
+
+    function setStatus(msg) {
+        document.getElementById('status').textContent = msg;
+    }
+
+    function initMap() {
+        map = new google.maps.Map(document.getElementById('map'), {
+            center: { lat: 20.5937, lng: 78.9629 },
+            zoom: 4,
+            mapId: 'DEMO_MAP_ID'
+        });
+        setStatus('Map loaded. Ready to geolocate.');
+    }
+
+    function addMarker(position, title) {
+        const marker = new google.maps.Marker({ position, map, title });
+        markers.push(marker);
+        map.panTo(position);
+        map.setZoom(15);
+        const link = `https://www.google.com/maps?q=${position.lat},${position.lng}`;
+        const a = document.getElementById('gmaps-link');
+        a.textContent = link;
+        a.href = link;
+    }
+
+    function clearMarkers() {
+        markers.forEach(m => m.setMap(null));
+        markers = [];
+    }
+
+    function haversineMeters(lat1, lon1, lat2, lon2) {
+        const R = 6371000; // meters
+        const toRad = d => d * Math.PI / 180;
+        const dLat = toRad(lat2 - lat1);
+        const dLon = toRad(lon2 - lon1);
+        const a = Math.sin(dLat/2)**2 + Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*Math.sin(dLon/2)**2;
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        return R * c;
+    }
+
+    function locate() {
+        if (!navigator.geolocation) {
+            setStatus('Geolocation is not supported by your browser.');
+            return;
+        }
+        setStatus('Requesting location permission...');
+        navigator.geolocation.getCurrentPosition(
+            pos => {
+                const { latitude, longitude, accuracy } = pos.coords;
+                document.getElementById('lat').textContent = latitude.toFixed(6);
+                document.getElementById('lon').textContent = longitude.toFixed(6);
+                document.getElementById('acc').textContent = Math.round(accuracy);
+                addMarker({ lat: latitude, lng: longitude }, 'You are here');
+                setStatus('Location acquired.');
+            },
+            err => {
+                setStatus('Failed to get location: ' + err.message);
+            },
+            { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+        );
+    }
+
+    function startWatch() {
+        if (!navigator.geolocation) {
+            setStatus('Geolocation is not supported by your browser.');
+            return;
+        }
+        if (watchId != null) {
+            setStatus('Watch already running.');
+            return;
+        }
+        setStatus('Starting high-accuracy watch... move slightly to refine.');
+        watchId = navigator.geolocation.watchPosition(
+            pos => {
+                const { latitude, longitude, accuracy } = pos.coords;
+                document.getElementById('lat').textContent = latitude.toFixed(6);
+                document.getElementById('lon').textContent = longitude.toFixed(6);
+                document.getElementById('acc').textContent = Math.round(accuracy);
+                clearMarkers();
+                addMarker({ lat: latitude, lng: longitude }, `Accuracy ~${Math.round(accuracy)}m`);
+                setStatus('Receiving updates...');
+            },
+            err => setStatus('Watch error: ' + err.message),
+            { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+        );
+    }
+
+    function stopWatch() {
+        if (watchId != null) {
+            navigator.geolocation.clearWatch(watchId);
+            watchId = null;
+            setStatus('Watch stopped.');
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('btn-locate').addEventListener('click', locate);
+        document.getElementById('btn-watch').addEventListener('click', startWatch);
+        document.getElementById('btn-stop-watch').addEventListener('click', stopWatch);
+        document.getElementById('btn-pick').addEventListener('click', () => {
+            mapClickEnabled = !mapClickEnabled;
+            setStatus(mapClickEnabled ? 'Click on the map to set a precise marker.' : 'Map click disabled.');
+        });
+        document.getElementById('btn-clear').addEventListener('click', clearMarkers);
+        if (!GOOGLE_KEY) {
+            setStatus('No Google API key configured. Add google.maps.api.key in application-dev.properties');
+        }
+        document.getElementById('btn-sample').addEventListener('click', startSampling);
+        document.getElementById('btn-error').addEventListener('click', computeErrorToGroundTruth);
+    });
+
+    // Allow picking coordinates by clicking the map
+    window.initMap = function() {
+        initMap();
+        map.addListener('click', (e) => {
+            if (!mapClickEnabled) return;
+            const lat = e.latLng.lat();
+            const lng = e.latLng.lng();
+            document.getElementById('lat').textContent = lat.toFixed(6);
+            document.getElementById('lon').textContent = lng.toFixed(6);
+            document.getElementById('acc').textContent = 'manual';
+            clearMarkers();
+            addMarker({ lat, lng }, 'Picked here');
+            setStatus('Picked location from map click.');
+        });
+    }
+
+    function startSampling() {
+        if (!navigator.geolocation) {
+            setStatus('Geolocation is not supported by your browser.');
+            return;
+        }
+        const N = 10;
+        lastPositions = [];
+        document.getElementById('sample-status').textContent = 'Sampling... 0/' + N;
+        let collected = 0;
+        function takeOne() {
+            navigator.geolocation.getCurrentPosition(
+                pos => {
+                    const { latitude, longitude, accuracy } = pos.coords;
+                    lastPositions.push({ latitude, longitude, accuracy });
+                    collected++;
+                    document.getElementById('sample-status').textContent = 'Sampling... ' + collected + '/' + N + ' (acc ~' + Math.round(accuracy) + 'm)';
+                    if (collected < N) {
+                        setTimeout(takeOne, 800);
+                    } else {
+                        summarizeSamples();
+                    }
+                },
+                err => {
+                    document.getElementById('sample-status').textContent = 'Error: ' + err.message;
+                },
+                { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+            );
+        }
+        takeOne();
+    }
+
+    function summarizeSamples() {
+        if (lastPositions.length === 0) {
+            document.getElementById('sample-status').textContent = 'No samples collected.';
+            return;
+        }
+        let best = lastPositions.reduce((a, b) => a.accuracy <= b.accuracy ? a : b);
+        const avgLat = lastPositions.reduce((s, p) => s + p.latitude, 0) / lastPositions.length;
+        const avgLon = lastPositions.reduce((s, p) => s + p.longitude, 0) / lastPositions.length;
+        document.getElementById('best-fix').textContent = `${best.latitude.toFixed(6)}, ${best.longitude.toFixed(6)} (±${Math.round(best.accuracy)}m)`;
+        document.getElementById('avg-fix').textContent = `${avgLat.toFixed(6)}, ${avgLon.toFixed(6)}`;
+        clearMarkers();
+        addMarker({ lat: best.latitude, lng: best.longitude }, `Best (~${Math.round(best.accuracy)}m)`);
+        document.getElementById('sample-status').textContent = 'Sampling complete.';
+    }
+
+    function computeErrorToGroundTruth() {
+        const gtLat = parseFloat(document.getElementById('gt-lat').value);
+        const gtLon = parseFloat(document.getElementById('gt-lon').value);
+        const curLat = parseFloat(document.getElementById('lat').textContent);
+        const curLon = parseFloat(document.getElementById('lon').textContent);
+        if (isNaN(gtLat) || isNaN(gtLon) || isNaN(curLat) || isNaN(curLon)) {
+            document.getElementById('err-m').textContent = 'Enter ground truth and get a fix first.';
+            return;
+        }
+        const meters = Math.round(haversineMeters(gtLat, gtLon, curLat, curLon));
+        document.getElementById('err-m').textContent = String(meters);
+    }
+</script>
+<script th:if="${googleKey != null and googleKey != ''}" th:src="@{'https://maps.googleapis.com/maps/api/js?key=' + ${googleKey} + '&libraries=marker&callback=initMap'}" async defer></script>
+</body>
+</html>
+
+

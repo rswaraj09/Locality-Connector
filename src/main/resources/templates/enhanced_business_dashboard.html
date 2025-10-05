@@ -104,16 +104,17 @@
         .btn {
             background: #f5576c;
             color: white;
-            padding: 8px 16px;
-            border: none;
-            border-radius: 20px;
-            cursor: pointer;
-            text-decoration: none;
-            display: inline-block;
-            margin-top: 10px;
-            margin-right: 5px;
-            transition: all 0.3s;
-            font-size: 0.9rem;
+			padding: 16px 24px;
+			border: none;
+			border-radius: 12px;
+			cursor: pointer;
+			text-decoration: none;
+			display: block;
+			width: 100%;
+			text-align: center;
+			margin-top: 12px;
+			transition: all 0.3s;
+			font-size: 1.1rem;
         }
         .btn:hover {
             background: #e34558;
@@ -159,160 +160,19 @@
         <a href="/business/login" class="logout-btn">Logout</a>
     </div>
 
-    <div class="container">
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-number" id="total-orders">0</div>
-                <div class="stat-label">Total Orders</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number" id="pending-orders">0</div>
-                <div class="stat-label">Pending Orders</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number" id="total-customers">0</div>
-                <div class="stat-label">Total Customers</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number" id="avg-rating">0</div>
-                <div class="stat-label">Average Rating</div>
-            </div>
-        </div>
+	<div class="container">
+		<div class="dashboard-grid">
+			<div class="card">
+				<h3>Quick Actions</h3>
+				<a href="/listing" class="btn">Manage Listings</a>
+				<a href="/addlisting" class="btn">Add New Item</a>
+				<a href="/update-business" class="btn btn-secondary">Update Profile</a>
+				<a href="/feedback" class="btn btn-secondary">View All Feedback</a>
+			</div>
+		</div>
+	</div>
 
-        <div class="dashboard-grid">
-            <div class="card">
-                <h3>Recent Orders</h3>
-                <div id="orders-list">
-                    <div class="loading">Loading orders...</div>
-                </div>
-            </div>
-
-            <div class="card">
-                <h3>Customer Feedback</h3>
-                <div id="feedback-list">
-                    <div class="loading">Loading feedback...</div>
-                </div>
-            </div>
-
-            <div class="card">
-                <h3>Quick Actions</h3>
-                <a href="/listing" class="btn">Manage Listings</a>
-                <a href="/addlisting" class="btn">Add New Item</a>
-                <a href="/update-business" class="btn btn-secondary">Update Profile</a>
-                <a href="/feedback" class="btn btn-secondary">View All Feedback</a>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        // Load data on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            loadOrders();
-            loadFeedback();
-            loadStats();
-        });
-
-        async function loadOrders() {
-            try {
-                const response = await fetch('/api/business/dashboard/orders');
-                const orders = await response.json();
-                displayOrders(orders);
-                updateOrderStats(orders);
-            } catch (error) {
-                document.getElementById('orders-list').innerHTML = '<p>Error loading orders</p>';
-            }
-        }
-
-        async function loadFeedback() {
-            try {
-                const response = await fetch('/api/business/dashboard/feedback');
-                const feedback = await response.json();
-                displayFeedback(feedback);
-                updateRatingStats(feedback);
-            } catch (error) {
-                document.getElementById('feedback-list').innerHTML = '<p>Error loading feedback</p>';
-            }
-        }
-
-        async function loadStats() {
-            try {
-                const response = await fetch('/api/business/dashboard/customers');
-                const customers = await response.json();
-                document.getElementById('total-customers').textContent = customers.length;
-            } catch (error) {
-                console.error('Error loading stats:', error);
-            }
-        }
-
-        function displayOrders(orders) {
-            const container = document.getElementById('orders-list');
-            if (orders.length === 0) {
-                container.innerHTML = '<p>No orders yet</p>';
-                return;
-            }
-
-            container.innerHTML = orders.slice(0, 5).map(order => `
-                <div class="order-item">
-                    <h4>Order #${order.id.substring(0, 8)}</h4>
-                    <p><strong>Customer:</strong> ${order.userName}</p>
-                    <p><strong>Total:</strong> $${order.totalAmount}</p>
-                    <p><strong>Status:</strong> <span class="status ${order.status.toLowerCase()}">${order.status}</span></p>
-                    <p><strong>Date:</strong> ${new Date(order.createdAt).toLocaleDateString()}</p>
-                    <button class="btn" onclick="updateOrderStatus('${order.id}', 'confirmed')">Confirm</button>
-                    <button class="btn btn-secondary" onclick="updateOrderStatus('${order.id}', 'delivered')">Mark Delivered</button>
-                </div>
-            `).join('');
-        }
-
-        function displayFeedback(feedback) {
-            const container = document.getElementById('feedback-list');
-            if (feedback.length === 0) {
-                container.innerHTML = '<p>No feedback yet</p>';
-                return;
-            }
-
-            container.innerHTML = feedback.slice(0, 3).map(fb => `
-                <div class="feedback-item">
-                    <h4>${fb.userName}</h4>
-                    <p><strong>Rating:</strong> ${'★'.repeat(fb.rating)}${'☆'.repeat(5-fb.rating)}</p>
-                    <p><strong>Comment:</strong> ${fb.comment}</p>
-                    <p><strong>Date:</strong> ${new Date(fb.createdAt).toLocaleDateString()}</p>
-                </div>
-            `).join('');
-        }
-
-        function updateOrderStats(orders) {
-            document.getElementById('total-orders').textContent = orders.length;
-            const pendingCount = orders.filter(order => order.status === 'PENDING').length;
-            document.getElementById('pending-orders').textContent = pendingCount;
-        }
-
-        function updateRatingStats(feedback) {
-            if (feedback.length === 0) {
-                document.getElementById('avg-rating').textContent = '0';
-                return;
-            }
-            const avgRating = feedback.reduce((sum, fb) => sum + fb.rating, 0) / feedback.length;
-            document.getElementById('avg-rating').textContent = avgRating.toFixed(1);
-        }
-
-        async function updateOrderStatus(orderId, status) {
-            try {
-                const response = await fetch(`/api/business/dashboard/orders/${orderId}/status?status=${status}`, {
-                    method: 'PUT'
-                });
-                
-                if (response.ok) {
-                    alert('Order status updated successfully!');
-                    loadOrders(); // Reload orders
-                } else {
-                    alert('Error updating order status');
-                }
-            } catch (error) {
-                alert('Error updating order status');
-            }
-        }
-    </script>
+	<script></script>
 </body>
 </html>
 

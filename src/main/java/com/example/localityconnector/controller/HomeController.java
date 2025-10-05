@@ -375,6 +375,11 @@ public class HomeController {
     public String cart() {
         return "cart";
     }
+    
+    @GetMapping("/business-location-setup")
+    public String businessLocationSetup() {
+        return "business-location-setup";
+    }
 
     @GetMapping("/test-api")
     public String testApi() {

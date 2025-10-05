@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Business Location Setup</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .business-card {
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 15px 0;
+            background: #f9f9f9;
+        }
+        
+        .business-card h3 {
+            margin: 0 0 10px 0;
+            color: #333;
+        }
+        
+        .business-info {
+            color: #666;
+            margin: 5px 0;
+        }
+        
+        .coordinates-input {
+            display: flex;
+            gap: 10px;
+            margin: 10px 0;
+            align-items: center;
+        }
+        
+        .coordinates-input input {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            width: 120px;
+        }
+        
+        .btn {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .btn:hover {
+            background: #45a049;
+        }
+        
+        .btn-secondary {
+            background: #2196F3;
+        }
+        
+        .btn-secondary:hover {
+            background: #1976D2;
+        }
+        
+        .status {
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        
+        .test-section {
+            background: #e3f2fd;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        
+        .test-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin: 10px 0;
+        }
+        
+        .test-controls input {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            width: 120px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Business Location Setup</h1>
+        
+        <div id="status-messages"></div>
+        
+        <div class="test-section">
+            <h3>Test Location Filtering</h3>
+            <p>Test the radius filtering with your current location:</p>
+            <div class="test-controls">
+                <button class="btn btn-secondary" onclick="getCurrentLocation()">Use My Location</button>
+                <input type="number" id="test-lat" placeholder="Latitude" step="any">
+                <input type="number" id="test-lon" placeholder="Longitude" step="any">
+                <input type="number" id="test-radius" placeholder="Radius (km)" value="5" step="0.1">
+                <button class="btn" onclick="testRadiusFiltering()">Test Filtering</button>
+            </div>
+            <div id="test-results"></div>
+        </div>
+        
+        <h3>Businesses Without Coordinates</h3>
+        <div id="businesses-list">
+            <div class="status info">Loading businesses...</div>
+        </div>
+        
+        <div style="text-align: center; margin-top: 30px;">
+            <button class="btn btn-secondary" onclick="loadBusinesses()">Refresh List</button>
+            <a href="/enhanced-user-dashboard" class="btn">Go to User Dashboard</a>
+        </div>
+    </div>
+
+    <script>
+        let userLocation = null;
+        
+        // Load businesses on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadBusinesses();
+        });
+        
+        function getCurrentLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    function(position) {
+                        userLocation = {
+                            latitude: position.coords.latitude,
+                            longitude: position.coords.longitude
+                        };
+                        document.getElementById('test-lat').value = userLocation.latitude;
+                        document.getElementById('test-lon').value = userLocation.longitude;
+                        showMessage('Location detected!', 'success');
+                    },
+                    function(error) {
+                        showMessage('Location access denied. Please enter coordinates manually.', 'error');
+                    }
+                );
+            } else {
+                showMessage('Geolocation not supported. Please enter coordinates manually.', 'error');
+            }
+        }
+        
+        async function testRadiusFiltering() {
+            const lat = parseFloat(document.getElementById('test-lat').value);
+            const lon = parseFloat(document.getElementById('test-lon').value);
+            const radius = parseFloat(document.getElementById('test-radius').value);
+            
+            if (isNaN(lat) || isNaN(lon) || isNaN(radius)) {
+                showMessage('Please enter valid coordinates and radius', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/business/location/test-radius?latitude=${lat}&longitude=${lon}&radiusKm=${radius}`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    displayTestResults(data);
+                } else {
+                    showMessage('Error testing radius: ' + data.error, 'error');
+                }
+            } catch (error) {
+                showMessage('Error testing radius: ' + error.message, 'error');
+            }
+        }
+        
+        function displayTestResults(data) {
+            const resultsDiv = document.getElementById('test-results');
+            resultsDiv.innerHTML = `
+                <div class="status info">
+                    <strong>Test Results:</strong><br>
+                    User Location: ${data.userLocation.latitude}, ${data.userLocation.longitude}<br>
+                    Radius: ${data.radiusKm} km<br>
+                    Nearby Businesses: ${data.nearbyBusinesses.length}<br>
+                    Total Businesses: ${data.totalBusinesses}<br>
+                    Businesses with Coordinates: ${data.businessesWithCoords}<br>
+                    Businesses without Coordinates: ${data.businessesWithoutCoords}
+                </div>
+                ${data.nearbyBusinesses.length > 0 ? `
+                    <div style="margin-top: 10px;">
+                        <strong>Nearby Businesses:</strong>
+                        ${data.nearbyBusinesses.map(business => `
+                            <div style="margin: 5px 0; padding: 5px; background: #f0f0f0; border-radius: 3px;">
+                                ${business.businessName} - ${business.category}
+                            </div>
+                        `).join('')}
+                    </div>
+                ` : ''}
+            `;
+        }
+        
+        async function loadBusinesses() {
+            try {
+                const response = await fetch('/api/business/location/without-coordinates');
+                const businesses = await response.json();
+                
+                if (response.ok) {
+                    displayBusinesses(businesses);
+                } else {
+                    showMessage('Error loading businesses: ' + businesses.error, 'error');
+                }
+            } catch (error) {
+                showMessage('Error loading businesses: ' + error.message, 'error');
+            }
+        }
+        
+        function displayBusinesses(businesses) {
+            const container = document.getElementById('businesses-list');
+            
+            if (businesses.length === 0) {
+                container.innerHTML = '<div class="status success">All businesses have coordinates set!</div>';
+                return;
+            }
+            
+            container.innerHTML = businesses.map(business => `
+                <div class="business-card">
+                    <h3>${business.businessName}</h3>
+                    <div class="business-info"><strong>Category:</strong> ${business.category}</div>
+                    <div class="business-info"><strong>Address:</strong> ${business.address}</div>
+                    <div class="business-info"><strong>Phone:</strong> ${business.phoneNumber}</div>
+                    <div class="business-info"><strong>Current Coordinates:</strong> ${business.latitude ?? 'N/A'}, ${business.longitude ?? 'N/A'}</div>
+                    <div class="coordinates-input">
+                        <label>Latitude:</label>
+                        <input type="number" id="lat-${business.id}" placeholder="e.g., 12.9716" step="any">
+                        <label>Longitude:</label>
+                        <input type="number" id="lon-${business.id}" placeholder="e.g., 77.5946" step="any">
+                        <button class="btn" onclick="setCoordinates('${business.id}')">Set Coordinates</button>
+                        <button class="btn btn-secondary" onclick="autoGeocode('${business.id}')">Auto Geocode</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        async function setCoordinates(businessId) {
+            const lat = parseFloat(document.getElementById(`lat-${businessId}`).value);
+            const lon = parseFloat(document.getElementById(`lon-${businessId}`).value);
+            
+            if (isNaN(lat) || isNaN(lon)) {
+                showMessage('Please enter valid coordinates', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/business/location/set-coordinates/${businessId}?latitude=${lat}&longitude=${lon}`, {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showMessage(`Coordinates set for ${data.business.businessName}`, 'success');
+                    loadBusinesses(); // Refresh the list
+                } else {
+                    showMessage('Error setting coordinates: ' + data.error, 'error');
+                }
+            } catch (error) {
+                showMessage('Error setting coordinates: ' + error.message, 'error');
+            }
+        }
+
+        async function autoGeocode(businessId) {
+            try {
+                const response = await fetch(`/api/business/location/geocode/${businessId}`, { method: 'POST' });
+                const data = await response.json();
+                if (response.ok) {
+                    showMessage(`Auto geocoded ${data.business.businessName}`, 'success');
+                    loadBusinesses();
+                } else {
+                    showMessage('Error geocoding: ' + data.error, 'error');
+                }
+            } catch (e) {
+                showMessage('Error geocoding: ' + e.message, 'error');
+            }
+        }
+        
+        function showMessage(message, type) {
+            const statusDiv = document.getElementById('status-messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `status ${type}`;
+            messageDiv.textContent = message;
+            statusDiv.appendChild(messageDiv);
+            
+            setTimeout(() => {
+                messageDiv.remove();
+            }, 5000);
+        }
+    </script>
+</body>
+</html>

@@ -146,6 +146,16 @@
             margin-left: auto;
         }
 
+        .btn-directions {
+            background: #4CAF50;
+            color: white;
+            margin-left: 10px;
+        }
+
+        .btn-directions:hover {
+            background: #45a049;
+        }
+
         /* Modal Styles */
         .modal-overlay {
             position: fixed;
@@ -408,6 +418,7 @@
                         <p><strong>Phone:</strong> ${business.phoneNumber}</p>
                         ${distanceInfo}
                         <button class="btn" onclick="viewBusinessItems('${business.id}')">View Items</button>
+                        <button class="btn btn-directions" onclick="getBusinessDirections('${business.id}', ${business.latitude}, ${business.longitude})">Get Directions</button>
                     </div>
                 `;
             }).join('');
@@ -510,6 +521,7 @@
                         <p class="item-price">₹${item.price.toFixed(2)}</p>
                         <p class="item-description">${item.description || 'No description'}</p>
                         <button class="btn" onclick="viewItemDetails('${item.id}')">View Details</button>
+                        <button class="btn btn-directions" onclick="getDirections('${businessId}', '${item.id}')">Get Directions</button>
                     </div>
                 `).join('');
             }
@@ -524,6 +536,64 @@
 
         function viewItemDetails(itemId) {
             showMessage('Item details feature coming soon!', 'info');
+        }
+
+        async function getBusinessDirections(businessId, businessLat, businessLon) {
+            if (!userLocation) {
+                showMessage('Location not available. Please enable location access.', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/directions/url?startLat=${userLocation.latitude}&startLon=${userLocation.longitude}&endLat=${businessLat}&endLon=${businessLon}`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    // Open directions in new tab
+                    window.open(data.url, '_blank');
+                    showMessage('Opening directions in new tab...', 'success');
+                } else {
+                    showMessage('Error getting directions: ' + data.error, 'error');
+                }
+            } catch (error) {
+                showMessage('Error getting directions: ' + error.message, 'error');
+            }
+        }
+
+        async function getDirections(businessId, itemId) {
+            if (!userLocation) {
+                showMessage('Location not available. Please enable location access.', 'error');
+                return;
+            }
+
+            // For now, we'll get the business location and use that
+            // In a real app, you might want to get the specific item location
+            try {
+                const response = await fetch(`/api/user/dashboard/items/business/${businessId}`);
+                const items = await response.json();
+                
+                if (response.ok && items.length > 0) {
+                    // Get the business location from the first item (assuming all items are at the business location)
+                    const business = items[0];
+                    if (business.businessLatitude && business.businessLongitude) {
+                        const directionsResponse = await fetch(`/api/directions/url?startLat=${userLocation.latitude}&startLon=${userLocation.longitude}&endLat=${business.businessLatitude}&endLon=${business.businessLongitude}`);
+                        const data = await directionsResponse.json();
+                        
+                        if (directionsResponse.ok) {
+                            window.open(data.url, '_blank');
+                            showMessage('Opening directions in new tab...', 'success');
+                        } else {
+                            showMessage('Error getting directions: ' + data.error, 'error');
+                        }
+                    } else {
+                        showMessage('Business location not available', 'error');
+                    }
+                } else {
+                    showMessage('Error loading business information', 'error');
+                }
+            } catch (error) {
+                showMessage('Error getting directions: ' + error.message, 'error');
+            }
         }
 
 

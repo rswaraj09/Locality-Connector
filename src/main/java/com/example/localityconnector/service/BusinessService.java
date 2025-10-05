@@ -17,6 +17,7 @@ import java.util.stream.Collectors;
 public class BusinessService {
     
     private final BusinessRepository businessRepository;
+    private final GeocodingService geocodingService = new GeocodingService();
     
     public Business signup(BusinessSignupRequest request) {
         // Check if business already exists
@@ -39,6 +40,15 @@ public class BusinessService {
         business.setCategory(request.getCategory());
         business.setDescription(request.getDescription());
         business.setBusinessLicense(request.getBusinessLicense());
+        
+        // Geocode address to set coordinates
+        try {
+            var geo = geocodingService.geocodeAddress(request.getAddress()).block();
+            if (geo != null && geo.ok()) {
+                business.setLatitude(geo.lat());
+                business.setLongitude(geo.lon());
+            }
+        } catch (Exception ignored) {}
         
         // Set timestamps
         business.prePersist();
@@ -81,6 +91,19 @@ public class BusinessService {
         business.setCategory(businessDetails.getCategory());
         business.setDescription(businessDetails.getDescription());
         business.setBusinessLicense(businessDetails.getBusinessLicense());
+        
+        // If address changed or coordinates missing, geocode again
+        if (business.getLatitude() == null || business.getLongitude() == null ||
+                !java.util.Objects.equals(business.getAddress(), businessDetails.getAddress())) {
+            try {
+                var geo = geocodingService.geocodeAddress(business.getAddress()).block();
+                if (geo != null && geo.ok()) {
+                    business.setLatitude(geo.lat());
+                    business.setLongitude(geo.lon());
+                }
+            } catch (Exception ignored) {}
+        }
+        
         business.setUpdatedAt(java.time.LocalDateTime.now());
         
         return businessRepository.save(business);
@@ -103,6 +126,24 @@ public class BusinessService {
     public List<Business> getBusinessesWithinRadius(LocationBasedBusinessRequest request) {
         List<Business> allBusinesses = businessRepository.findAll();
         
+        // Check if any businesses have coordinates
+        boolean hasBusinessesWithCoords = allBusinesses.stream()
+                .anyMatch(business -> business.getLatitude() != null && business.getLongitude() != null);
+        
+        // If no businesses have coordinates, return all businesses
+        if (!hasBusinessesWithCoords) {
+            return allBusinesses.stream()
+                    .filter(business -> {
+                        // Apply category filter if specified
+                        if (request.getCategory() != null && !request.getCategory().isEmpty()) {
+                            return business.getCategory().equalsIgnoreCase(request.getCategory());
+                        }
+                        return true;
+                    })
+                    .collect(Collectors.toList());
+        }
+        
+        // Filter businesses with coordinates within radius
         return allBusinesses.stream()
                 .filter(business -> {
                     if (business.getLatitude() == null || business.getLongitude() == null) {
