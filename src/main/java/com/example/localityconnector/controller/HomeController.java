@@ -371,6 +371,11 @@ public class HomeController {
         return "feedback";
     }
 
+    @GetMapping("/cart")
+    public String cart() {
+        return "cart";
+    }
+
     @GetMapping("/test-api")
     public String testApi() {
         return "test-api";

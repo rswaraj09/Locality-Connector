@@ -121,15 +121,158 @@
             color: white;
             font-size: 1.2rem;
         }
+
+        .location-info {
+            margin-bottom: 20px;
+        }
+
+        .location-status {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 15px 20px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .location-icon {
+            font-size: 1.2rem;
+        }
+
+        .btn-small {
+            padding: 5px 15px;
+            font-size: 0.9rem;
+            margin-left: auto;
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 15px;
+            max-width: 800px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            color: #667eea;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #999;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .close-btn:hover {
+            color: #f5576c;
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        .item-card {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .item-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .item-card h4 {
+            margin: 0 0 10px 0;
+            color: #333;
+        }
+
+        .item-price {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #667eea;
+            margin: 5px 0;
+        }
+
+        .item-description {
+            color: #666;
+            margin: 5px 0 10px 0;
+            font-style: italic;
+        }
+
+        .item-card .btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .item-card .btn:hover {
+            background: #5a67d8;
+            transform: translateY(-1px);
+        }
+
+        /* Cart Styles */
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+
     </style>
 </head>
 <body>
     <div class="header">
         <h1>Welcome to Your Dashboard</h1>
-        <a href="/user/login" class="logout-btn">Logout</a>
+        <div class="header-actions">
+            <a href="/user/login" class="logout-btn">Logout</a>
+        </div>
     </div>
 
     <div class="container">
+        <div id="location-info" class="location-info"></div>
+        
         <div class="category-filter">
             <button class="category-btn active" onclick="filterBusinesses('all')">All</button>
             <button class="category-btn" onclick="filterBusinesses('food')">Food</button>
@@ -147,34 +290,68 @@
                 </div>
             </div>
 
-            <div class="card">
-                <h3>My Orders</h3>
-                <div id="orders-list">
-                    <div class="loading">Loading orders...</div>
-                </div>
-            </div>
-
-            <div class="card">
-                <h3>Quick Actions</h3>
-                <a href="/nearby-shops" class="btn">Find Nearby Shops</a>
-                <a href="/nearby-food" class="btn">Find Food Items</a>
-                <a href="/nearby-pharmacy" class="btn">Find Pharmacy</a>
-                <a href="/nearby-hospital" class="btn">Find Hospitals</a>
-            </div>
         </div>
     </div>
+
 
     <script>
         let allBusinesses = [];
         let currentFilter = 'all';
+        let userLocation = null;
 
         // Load businesses on page load
         document.addEventListener('DOMContentLoaded', function() {
-            loadBusinesses();
-            loadOrders();
+            requestLocationPermission();
         });
 
-        async function loadBusinesses() {
+        function requestLocationPermission() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    function(position) {
+                        userLocation = {
+                            latitude: position.coords.latitude,
+                            longitude: position.coords.longitude
+                        };
+                        loadNearbyBusinesses();
+                        showLocationStatus('Location detected! Showing nearby businesses within 5km.', 'success');
+                    },
+                    function(error) {
+                        console.error('Geolocation error:', error);
+                        showLocationStatus('Location access denied. Showing all businesses.', 'warning');
+                        loadAllBusinesses();
+                    },
+                    {
+                        enableHighAccuracy: true,
+                        timeout: 10000,
+                        maximumAge: 300000 // 5 minutes
+                    }
+                );
+            } else {
+                showLocationStatus('Geolocation not supported. Showing all businesses.', 'warning');
+                loadAllBusinesses();
+            }
+        }
+
+        async function loadNearbyBusinesses() {
+            if (!userLocation) {
+                loadAllBusinesses();
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/user/dashboard/businesses/nearby?latitude=${userLocation.latitude}&longitude=${userLocation.longitude}&radiusKm=5`);
+                const businesses = await response.json();
+                allBusinesses = businesses;
+                displayBusinesses(businesses);
+                updateLocationInfo();
+            } catch (error) {
+                console.error('Error loading nearby businesses:', error);
+                showLocationStatus('Error loading nearby businesses. Showing all businesses.', 'error');
+                loadAllBusinesses();
+            }
+        }
+
+        async function loadAllBusinesses() {
             try {
                 const response = await fetch('/api/user/dashboard/businesses');
                 const businesses = await response.json();
@@ -185,51 +362,68 @@
             }
         }
 
-        async function loadOrders() {
-            try {
-                // This would need a user ID from session
-                const response = await fetch('/api/user/dashboard/orders/user123'); // Replace with actual user ID
-                const orders = await response.json();
-                displayOrders(orders);
-            } catch (error) {
-                document.getElementById('orders-list').innerHTML = '<p>No orders yet</p>';
+        function updateLocationInfo() {
+            const locationInfo = document.getElementById('location-info');
+            if (locationInfo && userLocation) {
+                locationInfo.innerHTML = `
+                    <div class="location-status">
+                        <span class="location-icon">📍</span>
+                        <span>Showing businesses within 5km of your location</span>
+                        <button class="btn btn-small" onclick="refreshLocation()">Refresh Location</button>
+                    </div>
+                `;
             }
         }
+
+        function refreshLocation() {
+            showLocationStatus('Refreshing location...', 'info');
+            requestLocationPermission();
+        }
+
 
         function displayBusinesses(businesses) {
             const container = document.getElementById('businesses-list');
             if (businesses.length === 0) {
-                container.innerHTML = '<p>No businesses found</p>';
+                container.innerHTML = '<p>No businesses found within 5km radius</p>';
                 return;
             }
 
-            container.innerHTML = businesses.map(business => `
-                <div class="business-item">
-                    <h4>${business.businessName}</h4>
-                    <p><strong>Category:</strong> ${business.category}</p>
-                    <p><strong>Address:</strong> ${business.address}</p>
-                    <p><strong>Phone:</strong> ${business.phoneNumber}</p>
-                    <button class="btn" onclick="viewBusinessItems('${business.id}')">View Items</button>
-                </div>
-            `).join('');
+            container.innerHTML = businesses.map(business => {
+                let distanceInfo = '';
+                if (userLocation && business.latitude && business.longitude) {
+                    const distance = calculateDistance(
+                        userLocation.latitude, 
+                        userLocation.longitude,
+                        business.latitude, 
+                        business.longitude
+                    );
+                    distanceInfo = `<p><strong>Distance:</strong> ${distance.toFixed(1)} km</p>`;
+                }
+                
+                return `
+                    <div class="business-item">
+                        <h4>${business.businessName}</h4>
+                        <p><strong>Category:</strong> ${business.category}</p>
+                        <p><strong>Address:</strong> ${business.address}</p>
+                        <p><strong>Phone:</strong> ${business.phoneNumber}</p>
+                        ${distanceInfo}
+                        <button class="btn" onclick="viewBusinessItems('${business.id}')">View Items</button>
+                    </div>
+                `;
+            }).join('');
         }
 
-        function displayOrders(orders) {
-            const container = document.getElementById('orders-list');
-            if (orders.length === 0) {
-                container.innerHTML = '<p>No orders yet</p>';
-                return;
-            }
-
-            container.innerHTML = orders.map(order => `
-                <div class="business-item">
-                    <h4>Order #${order.id}</h4>
-                    <p><strong>Business:</strong> ${order.businessName}</p>
-                    <p><strong>Total:</strong> $${order.totalAmount}</p>
-                    <p><strong>Status:</strong> ${order.status}</p>
-                </div>
-            `).join('');
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371; // Earth's radius in kilometers
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                    Math.sin(dLon/2) * Math.sin(dLon/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            return R * c;
         }
+
 
         function filterBusinesses(category) {
             currentFilter = category;
@@ -243,17 +437,135 @@
             if (category === 'all') {
                 displayBusinesses(allBusinesses);
             } else {
+                if (userLocation) {
+                    // Filter nearby businesses by category
+                    loadNearbyBusinessesByCategory(category);
+                } else {
+                    // Filter all businesses by category
+                    const filtered = allBusinesses.filter(business => business.category === category);
+                    displayBusinesses(filtered);
+                }
+            }
+        }
+
+        async function loadNearbyBusinessesByCategory(category) {
+            if (!userLocation) {
+                const filtered = allBusinesses.filter(business => business.category === category);
+                displayBusinesses(filtered);
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/user/dashboard/businesses/nearby?latitude=${userLocation.latitude}&longitude=${userLocation.longitude}&radiusKm=5&category=${category}`);
+                const businesses = await response.json();
+                displayBusinesses(businesses);
+            } catch (error) {
+                console.error('Error loading nearby businesses by category:', error);
                 const filtered = allBusinesses.filter(business => business.category === category);
                 displayBusinesses(filtered);
             }
         }
 
-        function viewBusinessItems(businessId) {
-            // This would open a modal or navigate to business items page
-            alert(`Viewing items for business: ${businessId}`);
+        async function viewBusinessItems(businessId) {
+            try {
+                const response = await fetch(`/api/user/dashboard/items/business/${businessId}`);
+                const items = await response.json();
+                
+                if (response.ok) {
+                    displayBusinessItemsModal(items, businessId);
+                } else {
+                    alert('Error loading items: ' + items.error);
+                }
+            } catch (error) {
+                alert('Error loading items: ' + error.message);
+            }
+        }
+
+        function displayBusinessItemsModal(items, businessId) {
+            // Create modal overlay
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay';
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>Business Items</h3>
+                        <button class="close-btn" onclick="closeModal()">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <div id="items-container">
+                            ${items.length === 0 ? '<p>No items available</p>' : ''}
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            
+            // Display items
+            const itemsContainer = document.getElementById('items-container');
+            if (items.length > 0) {
+                itemsContainer.innerHTML = items.map(item => `
+                    <div class="item-card">
+                        <h4>${item.name}</h4>
+                        <p class="item-price">₹${item.price.toFixed(2)}</p>
+                        <p class="item-description">${item.description || 'No description'}</p>
+                        <button class="btn" onclick="viewItemDetails('${item.id}')">View Details</button>
+                    </div>
+                `).join('');
+            }
+        }
+
+        function closeModal() {
+            const modal = document.querySelector('.modal-overlay');
+            if (modal) {
+                modal.remove();
+            }
+        }
+
+        function viewItemDetails(itemId) {
+            showMessage('Item details feature coming soon!', 'info');
+        }
+
+
+        function showMessage(message, type) {
+            // Create a temporary message element
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}`;
+            messageDiv.textContent = message;
+            messageDiv.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 15px 20px;
+                border-radius: 10px;
+                color: white;
+                font-weight: bold;
+                z-index: 10000;
+                background: ${type === 'success' ? '#4CAF50' : type === 'warning' ? '#ff9800' : type === 'info' ? '#2196F3' : '#f44336'};
+            `;
+            
+            document.body.appendChild(messageDiv);
+            
+            setTimeout(() => {
+                messageDiv.remove();
+            }, 3000);
+        }
+
+        function showLocationStatus(message, type) {
+            const locationInfo = document.getElementById('location-info');
+            if (locationInfo) {
+                locationInfo.innerHTML = `
+                    <div class="location-status">
+                        <span class="location-icon">${type === 'success' ? '📍' : type === 'warning' ? '⚠️' : type === 'info' ? 'ℹ️' : '❌'}</span>
+                        <span>${message}</span>
+                        ${userLocation ? '<button class="btn btn-small" onclick="refreshLocation()">Refresh Location</button>' : ''}
+                    </div>
+                `;
+            }
         }
     </script>
 </body>
 </html>
+
 
 

@@ -1,13 +1,16 @@
 package com.example.localityconnector.service;
 
 import com.example.localityconnector.dto.BusinessSignupRequest;
+import com.example.localityconnector.dto.LocationBasedBusinessRequest;
 import com.example.localityconnector.model.Business;
 import com.example.localityconnector.repository.BusinessRepository;
+import com.example.localityconnector.util.GeolocationUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -95,6 +98,43 @@ public class BusinessService {
     
     public void deleteBusiness(String id) {
         businessRepository.deleteById(id);
+    }
+    
+    public List<Business> getBusinessesWithinRadius(LocationBasedBusinessRequest request) {
+        List<Business> allBusinesses = businessRepository.findAll();
+        
+        return allBusinesses.stream()
+                .filter(business -> {
+                    if (business.getLatitude() == null || business.getLongitude() == null) {
+                        return false; // Skip businesses without coordinates
+                    }
+                    
+                    // Check if within radius
+                    boolean withinRadius = GeolocationUtils.isWithinRadius(
+                            request.getLatitude(), 
+                            request.getLongitude(),
+                            business.getLatitude(), 
+                            business.getLongitude(), 
+                            request.getRadiusKm()
+                    );
+                    
+                    // Apply category filter if specified
+                    if (withinRadius && request.getCategory() != null && !request.getCategory().isEmpty()) {
+                        return business.getCategory().equalsIgnoreCase(request.getCategory());
+                    }
+                    
+                    return withinRadius;
+                })
+                .collect(Collectors.toList());
+    }
+    
+    public List<Business> getBusinessesWithinRadius(double latitude, double longitude, double radiusKm) {
+        LocationBasedBusinessRequest request = new LocationBasedBusinessRequest(latitude, longitude, radiusKm);
+        return getBusinessesWithinRadius(request);
+    }
+    
+    public List<Business> getBusinessesWithinRadius(double latitude, double longitude) {
+        return getBusinessesWithinRadius(latitude, longitude, 5.0);
     }
 }
 
