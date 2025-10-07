@@ -1,7 +1,6 @@
 package com.example.localityconnector.controller;
 
 import com.example.localityconnector.dto.DirectionsRequest;
-import com.example.localityconnector.dto.DirectionsResponse;
 import com.example.localityconnector.service.DirectionsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -14,18 +13,7 @@ public class DirectionsController {
     
     private final DirectionsService directionsService;
     
-    @PostMapping("/route")
-    public ResponseEntity<?> getDirections(@RequestBody DirectionsRequest request) {
-        try {
-            DirectionsResponse response = directionsService.getDirections(request).block();
-            if (response.getError() != null) {
-                return ResponseEntity.badRequest().body(java.util.Map.of("error", response.getError()));
-            }
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(java.util.Map.of("error", e.getMessage()));
-        }
-    }
+    // Removed MapTiler route proxy; client uses URL endpoint below for Mappls
     
     @GetMapping("/url")
     public ResponseEntity<?> getDirectionsUrl(
@@ -42,16 +30,5 @@ public class DirectionsController {
         }
     }
     
-    @GetMapping("/map")
-    public ResponseEntity<?> getMapImage(
-            @RequestParam double lat,
-            @RequestParam double lon,
-            @RequestParam(defaultValue = "15") int zoom) {
-        try {
-            String mapUrl = directionsService.getMapUrl(lat, lon, zoom);
-            return ResponseEntity.ok(java.util.Map.of("mapUrl", mapUrl));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(java.util.Map.of("error", e.getMessage()));
-        }
-    }
+    // Removed static map image endpoint (MapTiler-specific)
 }

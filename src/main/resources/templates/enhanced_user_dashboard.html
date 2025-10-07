@@ -378,7 +378,7 @@
                 locationInfo.innerHTML = `
                     <div class="location-status">
                         <span class="location-icon">📍</span>
-                        <span>Showing businesses within 5km of your location</span>
+                        <span>Lat: ${userLocation.latitude.toFixed(6)}, Lon: ${userLocation.longitude.toFixed(6)} — showing businesses within 5km</span>
                         <button class="btn btn-small" onclick="refreshLocation()">Refresh Location</button>
                     </div>
                 `;

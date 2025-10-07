@@ -17,7 +17,6 @@ import java.util.stream.Collectors;
 public class BusinessService {
     
     private final BusinessRepository businessRepository;
-    private final GeocodingService geocodingService = new GeocodingService();
     
     public Business signup(BusinessSignupRequest request) {
         // Check if business already exists
@@ -41,14 +40,7 @@ public class BusinessService {
         business.setDescription(request.getDescription());
         business.setBusinessLicense(request.getBusinessLicense());
         
-        // Geocode address to set coordinates
-        try {
-            var geo = geocodingService.geocodeAddress(request.getAddress()).block();
-            if (geo != null && geo.ok()) {
-                business.setLatitude(geo.lat());
-                business.setLongitude(geo.lon());
-            }
-        } catch (Exception ignored) {}
+        // Coordinates can be set later; geocoding removed
         
         // Set timestamps
         business.prePersist();
@@ -92,17 +84,7 @@ public class BusinessService {
         business.setDescription(businessDetails.getDescription());
         business.setBusinessLicense(businessDetails.getBusinessLicense());
         
-        // If address changed or coordinates missing, geocode again
-        if (business.getLatitude() == null || business.getLongitude() == null ||
-                !java.util.Objects.equals(business.getAddress(), businessDetails.getAddress())) {
-            try {
-                var geo = geocodingService.geocodeAddress(business.getAddress()).block();
-                if (geo != null && geo.ok()) {
-                    business.setLatitude(geo.lat());
-                    business.setLongitude(geo.lon());
-                }
-            } catch (Exception ignored) {}
-        }
+        // Geocoding removed; keep existing coordinates if present
         
         business.setUpdatedAt(java.time.LocalDateTime.now());
         

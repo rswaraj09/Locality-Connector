@@ -3,7 +3,6 @@ package com.example.localityconnector.controller;
 import com.example.localityconnector.dto.LocationBasedBusinessRequest;
 import com.example.localityconnector.service.BusinessService;
 import com.example.localityconnector.service.ItemService;
-import com.example.localityconnector.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,7 +14,6 @@ public class UserDashboardController {
     
     private final BusinessService businessService;
     private final ItemService itemService;
-    private final OrderService orderService;
     
     @GetMapping("/businesses")
     public ResponseEntity<?> getBusinesses() {
@@ -44,14 +42,7 @@ public class UserDashboardController {
         }
     }
     
-    @GetMapping("/orders/{userId}")
-    public ResponseEntity<?> getUserOrders(@PathVariable String userId) {
-        try {
-            return ResponseEntity.ok(orderService.getOrdersByUserId(userId));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(java.util.Map.of("error", e.getMessage()));
-        }
-    }
+    // Orders endpoints removed
     
     @PostMapping("/businesses/nearby")
     public ResponseEntity<?> getNearbyBusinesses(@RequestBody LocationBasedBusinessRequest request) {
