@@ -29,6 +29,23 @@ public class DirectionsController {
             return ResponseEntity.badRequest().body(java.util.Map.of("error", e.getMessage()));
         }
     }
+
+    @GetMapping("/route")
+    public ResponseEntity<?> getRoute(
+            @RequestParam double startLat,
+            @RequestParam double startLon,
+            @RequestParam double endLat,
+            @RequestParam double endLon) {
+        try {
+            var data = directionsService.getRouteWithMappls(startLat, startLon, endLat, endLon);
+            if (data.containsKey("error")) {
+                return ResponseEntity.badRequest().body(data);
+            }
+            return ResponseEntity.ok(data);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(java.util.Map.of("error", e.getMessage()));
+        }
+    }
     
     // Removed static map image endpoint (MapTiler-specific)
 }

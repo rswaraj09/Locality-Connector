@@ -298,6 +298,7 @@
                 <div id="businesses-list">
                     <div class="loading">Loading businesses...</div>
                 </div>
+                <div id="directions-link" style="margin-top:10px;"></div>
             </div>
 
         </div>
@@ -545,12 +546,19 @@
             }
 
             try {
-                const response = await fetch(`/api/directions/url?startLat=${userLocation.latitude}&startLon=${userLocation.longitude}&endLat=${businessLat}&endLon=${businessLon}`);
+                // Get distance/duration via Mappls backend
+                const response = await fetch(`/api/directions/route?startLat=${userLocation.latitude}&startLon=${userLocation.longitude}&endLat=${businessLat}&endLon=${businessLon}`);
                 const data = await response.json();
                 
                 if (response.ok) {
-                    // Open directions in new tab
-                    window.open(data.url, '_blank');
+                    const navUrl = encodeURI(data.url);
+                    const gUrl = buildGoogleMapsUrl(userLocation.latitude, userLocation.longitude, businessLat, businessLon);
+                    // Prefer Google Maps if Mappls not resolving for you
+                    openExternalUrl(gUrl || navUrl);
+                    showDirectionsLink(navUrl, gUrl);
+                    if (data.distanceKm && data.durationMin) {
+                        showMessage(`Distance: ${data.distanceKm.toFixed(2)} km, ETA: ${Math.ceil(data.durationMin)} min`, 'info');
+                    }
                     showMessage('Opening directions in new tab...', 'success');
                 } else {
                     showMessage('Error getting directions: ' + data.error, 'error');
@@ -580,7 +588,10 @@
                         const data = await directionsResponse.json();
                         
                         if (directionsResponse.ok) {
-                            window.open(data.url, '_blank');
+                            const navUrl = encodeURI(data.url);
+                            const gUrl = buildGoogleMapsUrl(userLocation.latitude, userLocation.longitude, business.businessLatitude, business.businessLongitude);
+                            openExternalUrl(gUrl || navUrl);
+                            showDirectionsLink(navUrl, gUrl);
                             showMessage('Opening directions in new tab...', 'success');
                         } else {
                             showMessage('Error getting directions: ' + data.error, 'error');
@@ -594,6 +605,39 @@
             } catch (error) {
                 showMessage('Error getting directions: ' + error.message, 'error');
             }
+        }
+
+        function openExternalUrl(url) {
+            try {
+                const newWindow = window.open(url, '_blank', 'noopener');
+                if (!newWindow) {
+                    // Popup blocked – fall back to same-tab navigation
+                    window.location.assign(url);
+                }
+            } catch (_) {
+                window.location.assign(url);
+            }
+        }
+
+        function showDirectionsLink(mapplsUrl, googleUrl) {
+            const el = document.getElementById('directions-link');
+            if (el) {
+                el.innerHTML = `
+                    <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;">
+                        <a href="${mapplsUrl}" target="_blank" rel="noopener noreferrer">Open in Mappls</a>
+                        ${googleUrl ? `<span style="color:#666;">·</span><a href="${googleUrl}" target="_blank" rel="noopener noreferrer">Open in Google Maps (fallback)</a>` : ''}
+                    </div>
+                `;
+            }
+        }
+
+        function buildGoogleMapsUrl(sLat, sLon, dLat, dLon) {
+            if ([sLat, sLon, dLat, dLon].some(v => v === undefined || v === null || isNaN(v))) {
+                return null;
+            }
+            const origin = encodeURIComponent(`${sLat},${sLon}`);
+            const destination = encodeURIComponent(`${dLat},${dLon}`);
+            return `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}&travelmode=driving`;
         }
 
 
