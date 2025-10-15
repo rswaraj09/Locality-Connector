@@ -4,6 +4,7 @@ import com.example.localityconnector.dto.UserSignupRequest;
 import com.example.localityconnector.model.User;
 import com.example.localityconnector.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -32,7 +33,12 @@ public class UserService {
         // Set timestamps
         user.prePersist();
         
-        return userRepository.save(user);
+        try {
+            return userRepository.save(user);
+        } catch (DuplicateKeyException ex) {
+            // Handle race condition against unique index on email
+            throw new RuntimeException("Email already exists");
+        }
     }
     
     public Optional<User> login(String email, String password) {

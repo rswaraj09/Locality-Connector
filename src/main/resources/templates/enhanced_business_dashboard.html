@@ -156,7 +156,7 @@
 </head>
 <body>
     <div class="header">
-        <h1>Business Dashboard</h1>
+        <h1>Welcome <span th:text="${session.loggedInBusinessName != null ? session.loggedInBusinessName : 'Business'}"></span></h1>
         <a href="/business/login" class="logout-btn">Logout</a>
     </div>
 

@@ -61,7 +61,7 @@ public class AuthController {
     
     // User Login
     @PostMapping("/user/login")
-    public ResponseEntity<?> userLogin(@RequestParam String email, @RequestParam String password) {
+    public ResponseEntity<?> userLogin(@RequestParam String email, @RequestParam String password, HttpSession session) {
         try {
             var user = userService.login(email, password);
             if (user.isPresent()) {
@@ -70,6 +70,9 @@ public class AuthController {
                 response.put("userId", user.get().getId());
                 response.put("name", user.get().getName());
                 response.put("email", user.get().getEmail());
+                // store in session for UI rendering on dashboards
+                session.setAttribute("loggedInUserName", user.get().getName());
+                session.setAttribute("loggedInUserId", user.get().getId());
                 return ResponseEntity.ok(response);
             } else {
                 Map<String, String> error = new HashMap<>();

@@ -6,6 +6,7 @@ import com.example.localityconnector.model.Business;
 import com.example.localityconnector.repository.BusinessRepository;
 import com.example.localityconnector.util.GeolocationUtils;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -45,7 +46,18 @@ public class BusinessService {
         // Set timestamps
         business.prePersist();
         
-        return businessRepository.save(business);
+        try {
+            return businessRepository.save(business);
+        } catch (DuplicateKeyException ex) {
+            // Handle race conditions against unique indexes (email, businessName)
+            if (ex.getMessage() != null && ex.getMessage().toLowerCase().contains("email")) {
+                throw new RuntimeException("Email already exists");
+            }
+            if (ex.getMessage() != null && ex.getMessage().toLowerCase().contains("businessname")) {
+                throw new RuntimeException("Business name already exists");
+            }
+            throw new RuntimeException("Duplicate key error");
+        }
     }
     
     public Optional<Business> login(String email, String password) {

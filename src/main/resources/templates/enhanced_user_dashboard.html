@@ -274,7 +274,7 @@
 </head>
 <body>
     <div class="header">
-        <h1>Welcome to Your Dashboard</h1>
+        <h1>Welcome <span th:text="${session.loggedInUserName != null ? session.loggedInUserName : 'User'}"></span></h1>
         <div class="header-actions">
             <a href="/user/login" class="logout-btn">Logout</a>
         </div>
@@ -298,7 +298,6 @@
                 <div id="businesses-list">
                     <div class="loading">Loading businesses...</div>
                 </div>
-                <div id="directions-link" style="margin-top:10px;"></div>
             </div>
 
         </div>
@@ -555,7 +554,6 @@
                     const gUrl = buildGoogleMapsUrl(userLocation.latitude, userLocation.longitude, businessLat, businessLon);
                     // Prefer Google Maps if Mappls not resolving for you
                     openExternalUrl(gUrl || navUrl);
-                    showDirectionsLink(navUrl, gUrl);
                     if (data.distanceKm && data.durationMin) {
                         showMessage(`Distance: ${data.distanceKm.toFixed(2)} km, ETA: ${Math.ceil(data.durationMin)} min`, 'info');
                     }
@@ -591,7 +589,6 @@
                             const navUrl = encodeURI(data.url);
                             const gUrl = buildGoogleMapsUrl(userLocation.latitude, userLocation.longitude, business.businessLatitude, business.businessLongitude);
                             openExternalUrl(gUrl || navUrl);
-                            showDirectionsLink(navUrl, gUrl);
                             showMessage('Opening directions in new tab...', 'success');
                         } else {
                             showMessage('Error getting directions: ' + data.error, 'error');
@@ -619,17 +616,7 @@
             }
         }
 
-        function showDirectionsLink(mapplsUrl, googleUrl) {
-            const el = document.getElementById('directions-link');
-            if (el) {
-                el.innerHTML = `
-                    <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;">
-                        <a href="${mapplsUrl}" target="_blank" rel="noopener noreferrer">Open in Mappls</a>
-                        ${googleUrl ? `<span style="color:#666;">·</span><a href="${googleUrl}" target="_blank" rel="noopener noreferrer">Open in Google Maps (fallback)</a>` : ''}
-                    </div>
-                `;
-            }
-        }
+        
 
         function buildGoogleMapsUrl(sLat, sLon, dLat, dLon) {
             if ([sLat, sLon, dLat, dLon].some(v => v === undefined || v === null || isNaN(v))) {

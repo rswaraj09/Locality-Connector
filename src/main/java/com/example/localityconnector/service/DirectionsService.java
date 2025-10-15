@@ -4,6 +4,7 @@ import com.example.localityconnector.dto.DirectionsRequest;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import com.example.localityconnector.util.GeolocationUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
@@ -27,6 +28,10 @@ public class DirectionsService {
     @Value("${mappls.client.secret:}")
     private String clientSecret;
 
+    // For route_adv, Mappls expects REST API key (not OAuth token)
+    @Value("${mappls.api.key:}")
+    private String restApiKey;
+
     private final WebClient webClient = WebClient.builder().build();
 
     public String getDirectionsUrl(DirectionsRequest request) {
@@ -41,15 +46,27 @@ public class DirectionsService {
 
     public Map<String, Object> getRouteWithMappls(double startLat, double startLon, double endLat, double endLon) {
         Map<String, Object> result = new HashMap<>();
-        String accessToken = fetchAccessToken();
-        if (accessToken == null || accessToken.isBlank()) {
-            result.put("error", "Failed to get Mappls access token");
+
+        // Short-circuit when origin and destination are effectively the same (~10 meters)
+        try {
+            boolean sameSpot = GeolocationUtils.isWithinRadius(startLat, startLon, endLat, endLon, 0.01);
+            if (sameSpot) {
+                result.put("distanceKm", 0.0);
+                result.put("durationMin", 0.0);
+                result.put("note", "Origin and destination are the same location");
+                result.put("url", getDirectionsUrl(new DirectionsRequest(startLat, startLon, endLat, endLon, "driving")));
+                return result;
+            }
+        } catch (Exception ignored) { }
+        // Use REST API key for route_adv endpoint
+        if (restApiKey == null || restApiKey.isBlank()) {
+            result.put("error", "Missing Mappls REST API key");
             return result;
         }
 
         String routeUrl = String.format(
                 "https://apis.mappls.com/advancedmaps/v1/%s/route_adv/driving/%s,%s;%s,%s?geometries=polyline&overview=full",
-                urlEncode(accessToken),
+                urlEncode(restApiKey),
                 startLon,
                 startLat,
                 endLon,
@@ -73,6 +90,26 @@ public class DirectionsService {
                     double durationSeconds = first.path("duration").asDouble(0);
                     result.put("distanceKm", distanceMeters / 1000.0);
                     result.put("durationMin", durationSeconds / 60.0);
+                } else {
+                    // No route found: if points are very close, treat as zero-distance
+                    try {
+                        boolean near = com.example.localityconnector.util.GeolocationUtils.isWithinRadius(startLat, startLon, endLat, endLon, 0.02);
+                        if (near) {
+                            result.put("distanceKm", 0.0);
+                            result.put("durationMin", 0.0);
+                            result.put("note", "No route needed: locations are essentially the same");
+                        } else {
+                            // Fallback to straight-line distance/time estimate if no route
+                            double haversineKm = com.example.localityconnector.util.GeolocationUtils.calculateDistance(startLat, startLon, endLat, endLon);
+                            // Simple ETA estimate at 30 km/h average city speed
+                            double etaMin = (haversineKm / 30.0) * 60.0;
+                            result.put("distanceKm", haversineKm);
+                            result.put("durationMin", etaMin);
+                            result.put("note", "Approximate values (straight-line fallback). Routing not available for this pair.");
+                        }
+                    } catch (Exception ignored) {
+                        result.put("error", "Route not found");
+                    }
                 }
             }
         } catch (Exception ex) {
