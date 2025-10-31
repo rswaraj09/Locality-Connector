@@ -18,6 +18,7 @@ import java.util.stream.Collectors;
 public class BusinessService {
     
     private final BusinessRepository businessRepository;
+    private final GooglePlacesService googlePlacesService;
     
     public Business signup(BusinessSignupRequest request) {
         // Check if business already exists

@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - Data Seeding</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+        h1 {
+            color: #667eea;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .btn {
+            background: #667eea;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            margin: 10px;
+            transition: all 0.3s;
+            font-size: 16px;
+        }
+        .btn:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+        .btn-danger {
+            background: #f5576c;
+        }
+        .btn-danger:hover {
+            background: #e34558;
+        }
+        .btn-success {
+            background: #4CAF50;
+        }
+        .btn-success:hover {
+            background: #45a049;
+        }
+        .status {
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 10px;
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            color: #667eea;
+            font-weight: bold;
+        }
+        .form-group {
+            margin: 15px 0;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        .city-form {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Admin Panel - Data Seeding</h1>
+        
+        <div class="status" id="status">
+            <strong>Status:</strong> <span id="statusText">Checking...</span>
+        </div>
+        
+        <div class="loading" id="loading">
+            Processing request... Please wait.
+        </div>
+        
+        <div style="text-align: center;">
+            <button class="btn btn-success" onclick="seedAllData()">Seed All Cities Data</button>
+            <button class="btn" onclick="checkStatus()">Check Status</button>
+            <button class="btn btn-danger" onclick="clearAllData()">Clear All Data</button>
+        </div>
+        
+        <div class="city-form">
+            <h3>Seed Specific City</h3>
+            <div class="form-group">
+                <label for="cityName">City Name:</label>
+                <input type="text" id="cityName" placeholder="e.g., Mumbai">
+            </div>
+            <div class="form-group">
+                <label for="latitude">Latitude:</label>
+                <input type="number" id="latitude" step="any" placeholder="e.g., 19.0760">
+            </div>
+            <div class="form-group">
+                <label for="longitude">Longitude:</label>
+                <input type="number" id="longitude" step="any" placeholder="e.g., 72.8777">
+            </div>
+            <button class="btn" onclick="seedSpecificCity()">Seed This City</button>
+        </div>
+        
+        <div style="margin-top: 30px; text-align: center;">
+            <a href="/" class="btn">Back to Home</a>
+        </div>
+    </div>
+
+    <script>
+        // Check status on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            checkStatus();
+        });
+
+        async function checkStatus() {
+            try {
+                const response = await fetch('/api/admin/status');
+                const data = await response.json();
+                
+                if (response.ok) {
+                    document.getElementById('statusText').textContent = 
+                        `Database contains ${data.businessCount} businesses. Status: ${data.status}`;
+                } else {
+                    document.getElementById('statusText').textContent = 'Error checking status';
+                }
+            } catch (error) {
+                document.getElementById('statusText').textContent = 'Error: ' + error.message;
+            }
+        }
+
+        async function seedAllData() {
+            showLoading(true);
+            try {
+                const response = await fetch('/api/admin/seed-data', {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                
+                if (response.ok) {
+                    alert('Success: ' + data.message);
+                    checkStatus();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        async function seedSpecificCity() {
+            const cityName = document.getElementById('cityName').value;
+            const latitude = parseFloat(document.getElementById('latitude').value);
+            const longitude = parseFloat(document.getElementById('longitude').value);
+            
+            if (!cityName || isNaN(latitude) || isNaN(longitude)) {
+                alert('Please fill in all fields with valid values');
+                return;
+            }
+            
+            showLoading(true);
+            try {
+                const response = await fetch(`/api/admin/seed-city?cityName=${encodeURIComponent(cityName)}&latitude=${latitude}&longitude=${longitude}`, {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                
+                if (response.ok) {
+                    alert('Success: ' + data.message);
+                    checkStatus();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        async function clearAllData() {
+            if (!confirm('Are you sure you want to clear all business data? This action cannot be undone.')) {
+                return;
+            }
+            
+            showLoading(true);
+            try {
+                const response = await fetch('/api/admin/clear-data', {
+                    method: 'DELETE'
+                });
+                const data = await response.json();
+                
+                if (response.ok) {
+                    alert('Success: ' + data.message);
+                    checkStatus();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function showLoading(show) {
+            document.getElementById('loading').style.display = show ? 'block' : 'none';
+        }
+    </script>
+</body>
+</html>
+
+
+

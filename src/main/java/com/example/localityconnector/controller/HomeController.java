@@ -33,6 +33,21 @@ public class HomeController {
     public String home() {
         return "index";
     }
+    
+    @GetMapping("/admin")
+    public String adminPanel() {
+        return "admin-panel";
+    }
+    
+    @GetMapping("/accuracy-test")
+    public String accuracyTest() {
+        return "coordinate-accuracy-test";
+    }
+    
+    @GetMapping("/data-viewer")
+    public String dataViewer() {
+        return "business-data-viewer";
+    }
 
     // NEW: Separate portal entry points
     @GetMapping("/user")
