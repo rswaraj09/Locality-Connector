@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Locality Connector</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Arial', sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; color: #333; }
+        .container { max-width: 1200px; margin: 0 auto; background: rgba(255, 255, 255, 0.95); border-radius: 15px; padding: 30px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2); }
+        h1 { color: #667eea; text-align: center; margin-bottom: 20px; }
+        
+        .tabs { display: flex; justify-content: center; margin-bottom: 20px; gap: 10px; }
+        .tab-btn { background: #e2e8f0; border: none; padding: 10px 20px; border-radius: 20px; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        .tab-btn.active { background: #667eea; color: white; }
+        .tab-btn:hover:not(.active) { background: #cbd5e1; }
+        
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        
+        .btn { padding: 8px 16px; border: none; border-radius: 15px; cursor: pointer; transition: 0.3s; font-size: 14px; font-weight: bold; color: white; margin-right: 5px; }
+        .btn-primary { background: #667eea; }
+        .btn-primary:hover { background: #5568d3; }
+        .btn-success { background: #4CAF50; }
+        .btn-success:hover { background: #45a049; }
+        .btn-warning { background: #ff9800; }
+        .btn-warning:hover { background: #e68a00; }
+        .btn-danger { background: #f44336; }
+        .btn-danger:hover { background: #d32f2f; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        th { background-color: #f8f9fa; color: #667eea; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+        tr:hover { background-color: #f1f1f1; }
+        
+        .badge { padding: 4px 8px; border-radius: 10px; font-size: 12px; font-weight: bold; color: white; }
+        .badge-success { background: #4CAF50; }
+        .badge-danger { background: #f44336; }
+        .badge-warning { background: #ff9800; }
+        
+        /* Seeding Tab Styles */
+        .status { margin: 20px 0; padding: 15px; border-radius: 10px; background: #f8f9fa; border-left: 4px solid #667eea; }
+        .loading { display: none; text-align: center; color: #667eea; font-weight: bold; margin: 10px 0; }
+        .form-group { margin: 15px 0; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
+        .form-group input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; }
+        .city-form { background: #f8f9fa; padding: 20px; border-radius: 10px; margin: 20px 0; }
+        
+        .action-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+    </style>
+    <link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Admin Dashboard</h1>
+        
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('businesses')">Businesses</button>
+            <button class="tab-btn" onclick="switchTab('users')">Users</button>
+            <button class="tab-btn" onclick="switchTab('feedback')">Flagged Feedback</button>
+            <button class="tab-btn" onclick="switchTab('seeding')">Data Seeding</button>
+        </div>
+        
+        <div class="loading" id="mainLoading">Processing request... Please wait.</div>
+
+        <!-- Businesses Tab -->
+        <div id="businesses" class="tab-content active">
+            <div class="action-bar">
+                <h2>Businesses</h2>
+                <div>
+                    <button class="btn btn-primary" onclick="loadBusinesses()">All Businesses</button>
+                    <button class="btn btn-warning" onclick="loadBusinesses('unverified')">Unverified Only</button>
+                </div>
+            </div>
+            <div style="overflow-x:auto;">
+                <table id="businessesTable">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Category</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Users Tab -->
+        <div id="users" class="tab-content">
+            <div class="action-bar">
+                <h2>Users</h2>
+                <button class="btn btn-primary" onclick="loadUsers()">Refresh</button>
+            </div>
+            <div style="overflow-x:auto;">
+                <table id="usersTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Feedback Tab -->
+        <div id="feedback" class="tab-content">
+            <div class="action-bar">
+                <h2>Flagged Feedback</h2>
+                <button class="btn btn-primary" onclick="loadFeedback()">Refresh</button>
+            </div>
+            <div style="overflow-x:auto;">
+                <table id="feedbackTable">
+                    <thead>
+                        <tr>
+                            <th>Business ID</th>
+                            <th>Rating</th>
+                            <th>Comment</th>
+                            <th>Moderation Note</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Seeding Tab -->
+        <div id="seeding" class="tab-content">
+            <h2>Data Seeding from Google Places</h2>
+            <div class="status" id="status">
+                <strong>Status:</strong> <span id="statusText">Checking...</span>
+            </div>
+            
+            <div style="text-align: center; margin: 20px 0;">
+                <button class="btn btn-primary" onclick="checkStatus()">Refresh Status</button>
+            </div>
+            
+            <div class="city-form">
+                <h3>Seed Specific Location</h3>
+                <div class="form-group">
+                    <label for="cityName">Location Name / Reference:</label>
+                    <input type="text" id="cityName" placeholder="e.g., Mumbai Bandra">
+                </div>
+                <div class="form-group">
+                    <label for="latitude">Latitude:</label>
+                    <input type="number" id="latitude" step="any" placeholder="e.g., 19.0760">
+                </div>
+                <div class="form-group">
+                    <label for="longitude">Longitude:</label>
+                    <input type="number" id="longitude" step="any" placeholder="e.g., 72.8777">
+                </div>
+                <div class="form-group">
+                    <label for="radius">Radius (meters):</label>
+                    <input type="number" id="radius" value="5000" placeholder="e.g., 5000">
+                </div>
+                <div class="form-group">
+                    <label for="types">Types (comma-separated):</label>
+                    <input type="text" id="types" value="restaurant,pharmacy,hospital" placeholder="e.g., restaurant,pharmacy">
+                </div>
+                <button class="btn btn-primary" onclick="seedSpecificCity()">Seed This Location</button>
+            </div>
+        </div>
+        
+        <div style="margin-top: 30px; text-align: center;">
+            <a href="/" class="btn btn-primary">Back to Home</a>
+        </div>
+    </div>
+
+    <script src="/js/auth.js"></script>
+    <script>
+        // Ensure Admin Access
+        document.addEventListener('DOMContentLoaded', function() {
+            if (!Auth.isAuthenticated()) {
+                window.location.href = '/user_login';
+                return;
+            }
+            loadBusinesses();
+        });
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            
+            document.getElementById(tabId).classList.add('active');
+            event.target.classList.add('active');
+            
+            if (tabId === 'businesses') loadBusinesses();
+            if (tabId === 'users') loadUsers();
+            if (tabId === 'feedback') loadFeedback();
+            if (tabId === 'seeding') checkStatus();
+        }
+
+        function showLoading(show) {
+            document.getElementById('mainLoading').style.display = show ? 'block' : 'none';
+        }
+        
+        // --- Businesses ---
+        
+        async function loadBusinesses(filter = 'all') {
+            showLoading(true);
+            try {
+                const url = filter === 'unverified' ? '/api/admin/businesses/unverified' : '/api/admin/businesses';
+                const response = await Auth.fetchWithAuth(url);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    const tbody = document.querySelector('#businessesTable tbody');
+                    tbody.innerHTML = '';
+                    
+                    if (data.data && data.data.length > 0) {
+                        data.data.forEach(b => {
+                            const verifiedBadge = b.verified ? '<span class="badge badge-success">Verified</span>' : '<span class="badge badge-warning">Unverified</span>';
+                            const activeBadge = b.active ? '<span class="badge badge-success">Active</span>' : '<span class="badge badge-danger">Suspended</span>';
+                            
+                            let actionBtns = '';
+                            if (!b.verified) {
+                                actionBtns += `<button class="btn btn-success" onclick="verifyBusiness('${b.id}')">Verify</button>`;
+                            }
+                            if (b.active) {
+                                actionBtns += `<button class="btn btn-warning" onclick="suspendBusiness('${b.id}')">Suspend</button>`;
+                            } else {
+                                actionBtns += `<button class="btn btn-success" onclick="activateBusiness('${b.id}')">Activate</button>`;
+                            }
+                            actionBtns += `<button class="btn btn-danger" onclick="deleteBusiness('${b.id}')">Delete</button>`;
+                            
+                            tbody.innerHTML += `
+                                <tr>
+                                    <td>${b.businessName || 'N/A'}</td>
+                                    <td>${b.email || 'N/A'}</td>
+                                    <td>${b.category || 'N/A'}</td>
+                                    <td>${verifiedBadge} ${activeBadge}</td>
+                                    <td>${actionBtns}</td>
+                                </tr>
+                            `;
+                        });
+                    } else {
+                        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No businesses found.</td></tr>';
+                    }
+                } else {
+                    alert('Error loading businesses: ' + (data.message || data.error));
+                }
+            } catch (error) {
+                console.error(error);
+                alert('Error: ' + error.message);
+            } finally {
+                showLoading(false);
+            }
+        }
+        
+        async function verifyBusiness(id) {
+            if(!confirm('Verify this business?')) return;
+            await actionBusiness(`/api/admin/businesses/${id}/verify`, 'PUT');
+        }
+        async function suspendBusiness(id) {
+            if(!confirm('Suspend this business?')) return;
+            await actionBusiness(`/api/admin/businesses/${id}/suspend`, 'PUT');
+        }
+        async function activateBusiness(id) {
+            if(!confirm('Activate this business?')) return;
+            await actionBusiness(`/api/admin/businesses/${id}/activate`, 'PUT');
+        }
+        async function deleteBusiness(id) {
+            if(!confirm('Delete this business permanently? This cascades to items and feedback.')) return;
+            await actionBusiness(`/api/admin/businesses/${id}`, 'DELETE');
+        }
+        
+        async function actionBusiness(url, method) {
+            showLoading(true);
+            try {
+                const res = await Auth.fetchWithAuth(url, { method: method });
+                const data = await res.json();
+                if (res.ok) {
+                    alert(data.data.message || 'Action successful');
+                    loadBusinesses();
+                } else {
+                    alert('Error: ' + (data.message || data.error));
+                }
+            } catch(e) {
+                alert('Error: ' + e.message);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // --- Users ---
+        
+        async function loadUsers() {
+            showLoading(true);
+            try {
+                const response = await Auth.fetchWithAuth('/api/admin/users');
+                const data = await response.json();
+                
+                if (response.ok) {
+                    const tbody = document.querySelector('#usersTable tbody');
+                    tbody.innerHTML = '';
+                    if (data.data && data.data.length > 0) {
+                        data.data.forEach(u => {
+                            tbody.innerHTML += `
+                                <tr>
+                                    <td>${u.id}</td>
+                                    <td>${u.fullName || 'N/A'}</td>
+                                    <td>${u.email}</td>
+                                    <td><span class="badge ${u.roles.includes('ROLE_ADMIN') ? 'badge-danger' : 'badge-primary'}">${u.roles.join(', ')}</span></td>
+                                </tr>
+                            `;
+                        });
+                    } else {
+                        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">No users found.</td></tr>';
+                    }
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // --- Feedback ---
+        
+        async function loadFeedback() {
+            showLoading(true);
+            try {
+                const response = await Auth.fetchWithAuth('/api/admin/feedback/flagged');
+                const data = await response.json();
+                
+                if (response.ok) {
+                    const tbody = document.querySelector('#feedbackTable tbody');
+                    tbody.innerHTML = '';
+                    if (data.data && data.data.length > 0) {
+                        data.data.forEach(f => {
+                            tbody.innerHTML += `
+                                <tr>
+                                    <td>${f.businessId}</td>
+                                    <td>${f.rating}/5</td>
+                                    <td>${f.comment || 'N/A'}</td>
+                                    <td>${f.moderationNote || 'N/A'}</td>
+                                    <td>
+                                        <button class="btn btn-danger" onclick="deleteFeedback('${f.id}')">Remove Review</button>
+                                    </td>
+                                </tr>
+                            `;
+                        });
+                    } else {
+                        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No flagged feedback found.</td></tr>';
+                    }
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            } finally {
+                showLoading(false);
+            }
+        }
+        
+        async function deleteFeedback(id) {
+            if(!confirm('Permanently delete this flagged review?')) return;
+            showLoading(true);
+            try {
+                const res = await Auth.fetchWithAuth(`/api/admin/feedback/${id}`, { method: 'DELETE' });
+                if (res.ok) {
+                    alert('Review deleted.');
+                    loadFeedback();
+                } else {
+                    const data = await res.json();
+                    alert('Error: ' + (data.message || data.error));
+                }
+            } catch(e) {
+                alert('Error: ' + e.message);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // --- Seeding ---
+        
+        async function checkStatus() {
+            try {
+                const resAuth = await Auth.fetchWithAuth('/api/business-data/stats'); 
+                const data = await resAuth.json();
+                if (resAuth.ok) {
+                    document.getElementById('statusText').textContent = 
+                        `Database currently contains ${data.data.totalBusinesses} businesses.`;
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        }
+
+        async function seedSpecificCity() {
+            const latitude = parseFloat(document.getElementById('latitude').value);
+            const longitude = parseFloat(document.getElementById('longitude').value);
+            const radius = parseInt(document.getElementById('radius').value) || 5000;
+            const types = document.getElementById('types').value || 'restaurant,pharmacy,hospital';
+            
+            if (isNaN(latitude) || isNaN(longitude)) {
+                alert('Please provide valid latitude and longitude coordinates.');
+                return;
+            }
+            
+            showLoading(true);
+            try {
+                const url = `/api/admin/seed-from-places?latitude=${latitude}&longitude=${longitude}&radius=${radius}&types=${encodeURIComponent(types)}`;
+                const response = await Auth.fetchWithAuth(url, {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    alert(`Success: Seeded ${data.data.seeded} businesses.`);
+                    checkStatus();
+                } else {
+                    alert('Error: ' + (data.message || data.error));
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            } finally {
+                showLoading(false);
+            }
+        }
+    </script>
+    <script src="/js/notifications.js"></script>
+</body>
+</html>
