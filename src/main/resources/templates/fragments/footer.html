@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head><title>Footer Fragment</title></head>
+<body>
+<footer th:fragment="footer" style="background-color: #0f172a; color: #94a3b8; padding: 30px 20px; text-align: center; border-top: 1px solid rgba(255,255,255,0.1); width: 100%; box-sizing: border-box; margin-top: auto;">
+    <div id="lc-toast-container"></div>
+    <div id="lc-loader" class="hidden"><div class="lc-spinner"></div></div>
+    <p>&copy; 2026 Locality Connector. All Rights Reserved. | <a th:href="@{/}" style="color: #3b82f6; text-decoration: none;">Privacy Policy</a></p>
+    <script th:src="@{/js/auth.js}"></script>
+    <script th:src="@{/js/validation.js}"></script>
+    <script>
+      window.LCToast = {
+        show: function(msg, type) {
+          var container = document.getElementById('lc-toast-container');
+          if (!container) return;
+          var toast = document.createElement('div');
+          toast.className = 'lc-toast ' + (type || '');
+          toast.textContent = msg;
+          container.appendChild(toast);
+          setTimeout(function() { toast.remove(); }, 4000);
+        }
+      };
+      window.LCLoader = {
+        show: function() { var el = document.getElementById('lc-loader'); if(el) el.classList.remove('hidden'); },
+        hide: function() { var el = document.getElementById('lc-loader'); if(el) el.classList.add('hidden'); }
+      };
+      (function () {
+        var link = document.getElementById("lc-logout-link");
+        if (link && window.LCAuth) {
+          if (window.LCAuth.isLoggedIn()) {
+            link.style.display = "inline-block";
+            link.classList.remove("hidden");
+          }
+          link.addEventListener("click", function (e) {
+            e.preventDefault();
+            window.LCAuth.logout("/");
+          });
+        }
+      })();
+    </script>
+</footer>
+</body>
+</html>
