@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head><title>Sidebar Fragment</title></head>
+<body>
+<aside th:fragment="sidebar" class="lc-sidebar" style="background: #1e293b; width: 250px; min-height: calc(100vh - 130px); padding: 20px; border-right: 1px solid rgba(255,255,255,0.1); box-sizing: border-box;">
+    <ul style="list-style: none; display: flex; flex-direction: column; gap: 10px; margin: 0; padding: 0;">
+        <li><a th:href="@{/}" style="color: #f8fafc; text-decoration: none; display: block; padding: 12px 16px; border-radius: 8px; background: rgba(255,255,255,0.05); font-weight: 500;">Dashboard Home</a></li>
+        <li><a th:href="@{/profile}" style="color: #94a3b8; text-decoration: none; display: block; padding: 12px 16px; border-radius: 8px; transition: background 0.2s, color 0.2s;">Profile Settings</a></li>
+        <li><a th:href="@{/feedback}" style="color: #94a3b8; text-decoration: none; display: block; padding: 12px 16px; border-radius: 8px; transition: background 0.2s, color 0.2s;">Feedback & Ratings</a></li>
+    </ul>
+</aside>
+</body>
+</html>

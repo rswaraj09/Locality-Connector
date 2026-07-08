@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User Portal - Locality Connector</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    
+    :root {
+        --bg-base: #0f172a;
+        --bg-card: #1e293b;
+        --primary: #3b82f6;
+        --primary-hover: #2563eb;
+        --accent: #10b981;
+        --text-main: #f8fafc;
+        --text-muted: #94a3b8;
+        --border-color: rgba(255, 255, 255, 0.1);
+    }
+
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: 'Inter', sans-serif;
+    }
+    
+    body {
+        background-color: var(--bg-base);
+        color: var(--text-main);
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        background-image: 
+            radial-gradient(circle at 20% 40%, rgba(59, 130, 246, 0.15), transparent 35%),
+            radial-gradient(circle at 80% 60%, rgba(16, 185, 129, 0.15), transparent 35%);
+    }
+
+    nav {
+        background: rgba(15, 23, 42, 0.8);
+        backdrop-filter: blur(12px);
+        padding: 20px 40px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid var(--border-color);
+        position: sticky;
+        top: 0;
+        z-index: 50;
+    }
+
+    nav h1 {
+        font-weight: 800;
+        font-size: 1.8rem;
+        background: linear-gradient(135deg, #60a5fa, #34d399);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        letter-spacing: -0.5px;
+    }
+
+    .nav-links {
+        display: flex;
+        gap: 30px;
+        align-items: center;
+    }
+
+    .nav-links a {
+        color: var(--text-muted);
+        text-decoration: none;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+
+    .nav-links a:hover {
+        color: var(--text-main);
+        text-shadow: 0 0 10px rgba(255,255,255,0.3);
+    }
+
+    .nav-links .btn-outline {
+        padding: 8px 20px;
+        border: 1px solid var(--border-color);
+        border-radius: 20px;
+        color: var(--text-main);
+    }
+
+    .nav-links .btn-outline:hover {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: var(--text-main);
+    }
+
+    .hero {
+        text-align: center;
+        padding: 80px 20px 60px;
+    }
+
+    .hero h2 {
+        font-size: 3.5rem;
+        font-weight: 800;
+        margin-bottom: 20px;
+        background: linear-gradient(to right, #fff, #94a3b8);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .hero p {
+        font-size: 1.2rem;
+        color: var(--text-muted);
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    .main-content {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 30px;
+        padding: 20px 40px 80px;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .card {
+        background: rgba(30, 41, 59, 0.7);
+        backdrop-filter: blur(16px);
+        border: 1px solid var(--border-color);
+        border-radius: 24px;
+        padding: 40px 30px;
+        text-align: center;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+
+    .card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        border-color: rgba(255,255,255,0.2);
+        background: rgba(30, 41, 59, 0.9);
+    }
+
+    .icon-wrapper {
+        width: 80px;
+        height: 80px;
+        margin: 0 auto 20px;
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(16, 185, 129, 0.2));
+        border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .card h3 {
+        font-size: 1.5rem;
+        margin-bottom: 15px;
+        color: var(--text-main);
+    }
+
+    .card p {
+        color: var(--text-muted);
+        margin-bottom: 30px;
+        line-height: 1.6;
+    }
+
+    .card .btn {
+        display: inline-block;
+        padding: 12px 24px;
+        background: var(--primary);
+        color: white;
+        text-decoration: none;
+        border-radius: 12px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        box-shadow: 0 10px 20px rgba(59, 130, 246, 0.2);
+    }
+
+    .card .btn:hover {
+        background: var(--primary-hover);
+        transform: translateY(-2px);
+        box-shadow: 0 15px 25px rgba(59, 130, 246, 0.4);
+    }
+
+    footer {
+        background: rgba(15, 23, 42, 0.9);
+        border-top: 1px solid var(--border-color);
+        padding: 30px;
+        text-align: center;
+        color: var(--text-muted);
+        margin-top: auto;
+    }
+
+    @media (max-width: 768px) {
+        nav { flex-direction: column; gap: 20px; padding: 20px; }
+        .hero h2 { font-size: 2.5rem; }
+        .main-content { padding: 20px; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <h1>Locality Connector</h1>
+  <div class="nav-links">
+    <a href="/">Home</a>
+    <a href="/dashboard/user">Dashboard</a>
+    <a href="/user/profile" class="btn-outline">Profile</a>
+  </div>
+</nav>
+
+<div class="hero">
+  <h2>Discover Your Locality</h2>
+  <p>Find the best shops, vendors, and essential services right in your neighborhood.</p>
+</div>
+
+<div class="main-content">
+  <div class="card">
+    <div class="icon-wrapper">🛍️</div>
+    <h3>Local Shops</h3>
+    <p>Discover top-rated local shops around you. From groceries to clothing, find everything you need.</p>
+    <a href="/dashboard/user?category=shops" class="btn">Explore Shops</a>
+  </div>
+  
+  <div class="card">
+    <div class="icon-wrapper">🛠️</div>
+    <h3>Vendors & Services</h3>
+    <p>Connect with reliable nearby vendors for home services, repairs, and daily needs.</p>
+    <a href="/dashboard/user?category=vendors" class="btn">Find Vendors</a>
+  </div>
+  
+  <div class="card">
+    <div class="icon-wrapper">🏥</div>
+    <h3>Health & Hospitals</h3>
+    <p>Quickly locate nearby hospitals, clinics, and pharmacies in case of emergencies.</p>
+    <a href="/dashboard/user?category=hospitals" class="btn">Find Hospitals</a>
+  </div>
+</div>
+
+<footer>
+  <p>&copy; 2024 Locality Connector. Built for seamless local living.</p>
+</footer>
+
+</body>
+</html>

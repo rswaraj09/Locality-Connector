@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Business Management Dashboard with Geolocation</title>
+  <style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+    
+    body {
+        font-family: 'Arial', sans-serif;
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        min-height: 100vh;
+        color: #333;
+    }
+    
+    .header {
+        background: rgba(255, 255, 255, 0.95);
+        padding: 20px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .header h1 {
+        color: #f5576c;
+        font-size: 2rem;
+    }
+    
+    .profile-dropdown {
+        position: relative;
+        display: inline-block;
+    }
+    
+    .profile-icon {
+        width: 40px;
+        height: 40px;
+        background: #f5576c;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        cursor: pointer;
+        transition: all 0.3s;
+        font-size: 18px;
+    }
+    
+    .profile-icon:hover {
+        background: #e34558;
+        transform: translateY(-2px);
+    }
+    
+    .dropdown-content {
+        display: none;
+        position: absolute;
+        right: 0;
+        background-color: white;
+        min-width: 200px;
+        box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+        border-radius: 10px;
+        z-index: 1000;
+        overflow: hidden;
+    }
+    
+    .dropdown-content a {
+        color: #333;
+        padding: 12px 16px;
+        text-decoration: none;
+        display: block;
+        transition: background-color 0.3s;
+    }
+    
+    .dropdown-content a:hover {
+        background-color: #f1f1f1;
+    }
+    
+    .dropdown-content a:last-child {
+        color: #f5576c;
+        border-top: 1px solid #eee;
+    }
+    
+    .navbar {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        padding: 15px;
+        text-align: center;
+        margin: 20px;
+        border-radius: 15px;
+    }
+    
+    .navbar a {
+        color: white;
+        text-decoration: none;
+        margin: 0 20px;
+        padding: 10px 20px;
+        border-radius: 25px;
+        transition: all 0.3s;
+    }
+    
+    .navbar a:hover {
+        background: rgba(255, 255, 255, 0.2);
+        transform: translateY(-2px);
+    }
+    .container {
+        max-width: 1200px;
+        margin: 40px auto;
+        background: rgba(255, 255, 255, 0.95);
+        padding: 30px;
+        border-radius: 20px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        backdrop-filter: blur(10px);
+    }
+    
+    h1 {
+        text-align: center;
+        margin-bottom: 40px;
+        color: #f5576c;
+        font-size: 2.5rem;
+    }
+    .grid-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 20px;
+    }
+    .grid-item {
+        padding: 20px;
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 15px;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        text-align: center;
+        transition: transform 0.3s, box-shadow 0.3s;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    .grid-item:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    }
+    .grid-item h3 {
+        margin-bottom: 20px;
+    }
+    .grid-item button {
+        padding: 12px 24px;
+        background: #f5576c;
+        color: white;
+        border: none;
+        border-radius: 25px;
+        cursor: pointer;
+        margin: 5px;
+        transition: all 0.3s;
+        font-weight: bold;
+    }
+    
+    .grid-item button:hover {
+        background: #e34558;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(245, 87, 108, 0.4);
+    }
+    form {
+        margin-top: 20px;
+    }
+    input, textarea {
+        width: 100%;
+        padding: 10px;
+        margin: 10px 0;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+    }
+    textarea {
+        height: 80px;
+    }
+    .submit-btn {
+        background-color: #4CAF50;
+        color: white;
+        padding: 10px 15px;
+        border: none;
+        cursor: pointer;
+        border-radius: 5px;
+        width: 100%;
+    }
+    .submit-btn:hover {
+        background-color: #45a049;
+    }
+    .location-btn {
+        background-color: #4CAF50;
+        color: white;
+        padding: 10px 20px;
+        text-align: center;
+        text-decoration: none;
+        border-radius: 4px;
+        cursor: pointer;
+        margin: 10px 0;
+        display: inline-block;
+    }
+    .location-btn:hover {
+        background-color: #45a049;
+    }
+  </style>
+  <link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+
+<div class="header" role="banner">
+    <h1>Business Management Dashboard</h1>
+    <div class="profile-dropdown">
+        <div class="profile-icon" role="button" tabindex="0" aria-label="Open profile menu" onclick="toggleDropdown()">👤</div>
+        <div class="dropdown-content" id="dropdown">
+            <a href="/update-business">Settings</a>
+            <a href="/update-business">Update Profile</a>
+            <a href="/feedback">View Feedback</a>
+            <a href="/business/login">Logout</a>
+        </div>
+    </div>
+</div>
+
+<!-- Navbar removed as requested -->
+
+<div class="container" role="main">
+
+  <div class="grid-container">
+    <!-- Manage Items -->
+    <div class="grid-item">
+      <h3>Manage Items</h3>
+      <p>Add, update, or remove items from your inventory.</p>
+      <button onclick="showItemForm()">Manage Items</button>
+
+<!--      <form id="item-form" style="display:none;">-->
+<!--        <h4>Add/Update Item</h4>-->
+<!--        <input type="text" name="itemName" placeholder="Item Name" required>-->
+<!--        <input type="number" step="0.01" name="itemPrice" placeholder="Price" required>-->
+<!--        <textarea name="itemDescription" placeholder="Description"></textarea>-->
+<!--        <button class="submit-btn" type="submit">Save Item</button>-->
+<!--      </form>-->
+
+      <form id="item-form" style="display:none;">
+        <h4>Add/Update Item</h4>
+        <input type="hidden" name="businessName" value="${sessionScope.loggedInBusinessName}">
+        <input type="text" id="itemName" name="itemName" placeholder="Item Name" required>
+        <input type="number" step="0.01" id="itemPrice" name="itemPrice" placeholder="Price" required>
+        <textarea id="itemDescription" name="itemDescription" placeholder="Description"></textarea>
+        <button class="submit-btn" type="submit">Save Item</button>
+      </form>
+
+
+
+    </div>
+
+
+    <div class="grid-item">
+      <h3>Fetch Location</h3>
+      <p>Fetch and save your business's current location.</p>
+      <button type="button" onclick="showLocationForm()">Fetch Location</button>
+
+      <form id="location-form" style="display:none;">
+        <h4>Fetch and Save Location</h4>
+
+        <!-- Fetch Latitude and Longitude Button -->
+        <div>
+          <button class="location-btn" id="fetchLocation" type="button">Fetch Longitude and Latitude via Current Location</button>
+        </div>
+
+        <!-- Latitude and Longitude Input Fields -->
+        <input type="hidden" name="businessName"  value="${sessionScope.loggedInBusinessName}"> <!-- Assuming session attribute is stored as 'loggedInBusinessName' -->
+        <input type="text" id="latitude" name="businessLatitude" placeholder="Latitude" readonly required>
+        <input type="text" id="longitude" name="businessLongitude" placeholder="Longitude" readonly required>
+
+        <button class="submit-btn" type="submit">Save Location</button>
+      </form>
+    </div>
+
+
+    <!-- Manage Orders -->
+    <div class="grid-item">
+      <h3>Manage Orders</h3>
+      <p>View and manage customer orders.</p>
+      <button onclick="window.location.href='/orders'">Manage Orders</button>
+    </div>
+
+    <!-- Analytics Section -->
+    <div class="grid-item">
+      <h3>View Analytics</h3>
+      <p>Check performance and insights into your business.</p>
+      <button onclick="alert('Analytics coming soon!')">View Analytics</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Toggle Item Form
+  function showItemForm() {
+      var itemForm = document.getElementById('item-form');
+      if (itemForm.style.display === "none") {
+          itemForm.style.display = "block";
+      } else {
+          itemForm.style.display = "none";
+      }
+  }
+
+  // Toggle Location Form
+  function showLocationForm() {
+      var locationForm = document.getElementById('location-form');
+      if (locationForm.style.display === "none") {
+          locationForm.style.display = "block";
+      } else {
+          locationForm.style.display = "none";
+      }
+  }
+
+  // Fetching latitude and longitude
+  const fetchLocationBtn = document.getElementById('fetchLocation');
+
+  fetchLocationBtn.addEventListener('click', function(event) {
+      event.preventDefault();  // Prevent the form submission
+
+      if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(showPosition, showError);
+      } else {
+          alert("Geolocation is not supported by this browser.");
+      }
+  });
+
+  function showPosition(position) {
+      // Populate the fetched latitude and longitude into the input fields
+      document.getElementById('latitude').value = position.coords.latitude;
+      document.getElementById('longitude').value = position.coords.longitude;
+  }
+
+  function showError(error) {
+      switch(error.code) {
+          case error.PERMISSION_DENIED:
+              alert("User denied the request for Geolocation.");
+              break;
+          case error.POSITION_UNAVAILABLE:
+              alert("Location information is unavailable.");
+              break;
+          case error.TIMEOUT:
+              alert("The request to get user location timed out.");
+              break;
+          case error.UNKNOWN_ERROR:
+              alert("An unknown error occurred.");
+              break;
+      }
+  }
+
+const locationForm = document.getElementById('location-form');
+locationForm.addEventListener('submit', function(event) {
+    event.preventDefault(); // Prevent the default form submission
+
+    // Gather form data
+    const businessName = document.querySelector('input[name="businessName"]').value; // Get the business name
+    const latitude = document.getElementById('latitude').value;
+    const longitude = document.getElementById('longitude').value;
+
+    // Simple validation
+    if (!latitude || !longitude) {
+        displayMessage("Please fetch your location before saving.", "error");
+        return;
+    }
+
+    // Prepare data to send to the canonical API endpoint
+    const data = {
+        businessName: businessName, // Include business name
+        businessLatitude: parseFloat(latitude),
+        businessLongitude: parseFloat(longitude)
+    };
+
+    console.log("Data being sent:", data); // Log the data
+
+    // Send data to the canonical business dashboard API (JWT-protected, BUSINESS role)
+    fetch('/api/business/dashboard/location', {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + (localStorage.getItem('lc_token') || '')
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.success) {
+            displayMessage("Location saved successfully.", "success");
+            locationForm.reset();
+            locationForm.style.display = "none";
+        } else {
+            displayMessage(result.error || "Failed to save location.", "error");
+        }
+    })
+    .catch((error) => {
+        console.error('Error:', error);
+        displayMessage("An error occurred while saving the location.", "error");
+    });
+});
+
+// Submit Item Form via JSON to the canonical /api/items endpoint
+const itemForm = document.getElementById('item-form');
+itemForm.addEventListener('submit', function(event) {
+    event.preventDefault();
+
+    const businessName = itemForm.querySelector('input[name="businessName"]').value;
+    const itemName = document.getElementById('itemName').value;
+    const itemPrice = document.getElementById('itemPrice').value;
+    const itemDescription = document.getElementById('itemDescription').value;
+
+    if (!itemName || !itemPrice) {
+        displayMessage("Please enter item name and price.", "error");
+        return;
+    }
+
+    fetch('/api/items', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + (localStorage.getItem('lc_token') || '')
+        },
+        body: JSON.stringify({ itemName: itemName, itemPrice: parseFloat(itemPrice), itemDescription: itemDescription })
+    })
+    .then(r => r.json())
+    .then(res => {
+        if (res.success) {
+            // Redirect to addlisting page to manage items
+            const target = '/addlisting' + (businessName ? ('?businessName=' + encodeURIComponent(businessName)) : '');
+            window.location.href = target;
+        } else {
+            displayMessage(res.error || 'Failed to save item.', 'error');
+        }
+    })
+    .catch(err => {
+        console.error('Error:', err);
+        displayMessage('An error occurred while saving the item.', 'error');
+    });
+});
+
+  function displayMessage(message, type) {
+        // Create a div element to hold the message
+        const messageDiv = document.createElement('div');
+        messageDiv.textContent = message;
+
+        // Add a class based on the message type (e.g., success or error)
+        messageDiv.className = type === "success" ? "success-message" : "error-message";
+
+        // Append the message div to the container or body
+        document.body.appendChild(messageDiv);
+
+        // Set a timeout to remove the message after 3 seconds
+        setTimeout(() => {
+            messageDiv.remove();
+        }, 3000);
+    }
+
+    // Style for the messages
+    const style = document.createElement('style');
+    style.innerHTML = `
+        .success-message {
+            background-color: #d4edda;
+            color: #155724;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #c3e6cb;
+            border-radius: 5px;
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+        .error-message {
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #f5c6cb;
+            border-radius: 5px;
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+    `;
+    document.head.appendChild(style);
+
+    // Profile dropdown functionality
+    function toggleDropdown() {
+        const dropdown = document.getElementById('dropdown');
+        dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+    }
+
+    // Close dropdown when clicking outside
+    window.onclick = function(event) {
+        if (!event.target.matches('.profile-icon')) {
+            const dropdown = document.getElementById('dropdown');
+            if (dropdown.style.display === 'block') {
+                dropdown.style.display = 'none';
+            }
+        }
+    }
+
+</script>
+
+  <script src="/js/auth.js"></script>
+  <script src="/js/validation.js"></script>
+</body>
+</html>
+
+
