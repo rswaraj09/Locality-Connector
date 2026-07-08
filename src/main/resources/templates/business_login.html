@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Business Login - Locality Connector</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Poppins', 'Arial', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+        @keyframes slideIn {
+            0% {
+                transform: translateX(120%);
+                opacity: 0;
+                filter: blur(10px);
+            }
+            100% {
+                transform: translateX(0%);
+                opacity: 1;
+                filter: blur(0px);
+            }
+        }
+        .container {
+            position: relative;
+            width: 100%;
+            max-width: 900px;
+            height: 500px;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 20px;
+            animation: slideIn 0.7s ease;
+        }
+        .login-container {
+            background: transparent;
+            padding: 40px 50px;
+            text-align: center;
+            max-width: 400px;
+            width: 100%;
+        }
+        h1 {
+            color: white;
+            margin-bottom: 30px;
+            font-size: 2rem;
+            font-weight: 700;
+        }
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        label {
+            display: block;
+            margin-bottom: 10px;
+            color: #ffffff;
+            font-weight: 700;
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        input[type="email"], input[type="password"] {
+            width: 100%;
+            padding: 12px 0;
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid #888;
+            color: #ffffff;
+            font-size: 1rem;
+            transition: all 0.3s;
+            outline: none;
+        }
+        input[type="email"]:focus, input[type="password"]:focus {
+            border-bottom-color: #ff6b35;
+            box-shadow: 0 5px 15px rgba(255, 107, 53, 0.2);
+        }
+        input::placeholder {
+            color: #aaa;
+        }
+        .btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #ff6b35 0%, #f94c57 100%);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 20px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(255, 107, 53, 0.3);
+        }
+        .link {
+            color: #ff6b35;
+            text-decoration: none;
+            display: block;
+            margin-top: 15px;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+        }
+        .link:hover {
+            color: #f94c57;
+            text-decoration: underline;
+        }
+        .back-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 107, 53, 0.2);
+            color: #ff6b35;
+            padding: 10px 20px;
+            border-radius: 25px;
+            text-decoration: none;
+            transition: all 0.3s;
+            border: 1px solid #ff6b35;
+            font-weight: 600;
+        }
+        .back-btn:hover {
+            background: rgba(255, 107, 53, 0.3);
+            transform: translateY(-2px);
+        }
+        .message {
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: none;
+            animation: slideIn 0.5s ease;
+        }
+        .message.success {
+            background: #4CAF50;
+            color: white;
+            border: 1px solid #45a049;
+        }
+        .message.error {
+            background: #ff6b35;
+            color: white;
+            border: 1px solid #f94c57;
+        }
+    </style>
+  <link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+    <a href="/business" class="back-btn">← Back</a>
+    <div class="container">
+        <div class="login-section">
+            <h1>Login</h1>
+            <div id="message" class="message"></div>
+            <form id="business-login-form">
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" placeholder="username" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" placeholder="password" required>
+                </div>
+                <button type="submit" class="btn">Login</button>
+            </form>
+            <a href="/business/signup" class="link">Don't have an account? Sign up</a>
+        </div>
+        <div class="message-section">
+            <div class="message-content">
+                <div class="welcome-title">WELCOME BACK!</div>
+                <div class="welcome-text">We are happy to have you with us again. If you need anything, we are here to help.</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('business-login-form');
+        const messageDiv = document.getElementById('message');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            try {
+                const response = await fetch(`/api/auth/business/login?email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}`, {
+                    method: 'POST'
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    showMessage('Login successful! Redirecting...', 'success');
+                    setTimeout(() => {
+                        window.location.href = '/enhanced-business-dashboard';
+                    }, 2000);
+                } else {
+                    showMessage(result.error || 'Login failed. Please check your credentials.', 'error');
+                }
+            } catch (error) {
+                showMessage('Network error. Please check your connection.', 'error');
+            }
+        });
+
+        function showMessage(text, type) {
+            messageDiv.textContent = text;
+            messageDiv.className = `message ${type}`;
+            messageDiv.style.display = 'block';
+            
+            setTimeout(() => {
+                messageDiv.style.display = 'none';
+            }, 5000);
+        }
+    </script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/validation.js"></script>
+</body>
+</html>
