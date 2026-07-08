@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<!--
+  Reusable Thymeleaf fragments for Locality Connector.
+  Usage in a page template:
+    <head th:replace="~{fragments/layout :: head('Page title')}"></head>
+    <body>
+      <div th:replace="~{fragments/layout :: navbar}"></div>
+      ...page content...
+      <div th:replace="~{fragments/layout :: scripts}"></div>
+    </body>
+-->
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:fragment="head(title)">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title th:text="${title} ?: 'Locality Connector'">Locality Connector</title>
+  <link rel="stylesheet" th:href="@{/css/main.css}" href="/css/main.css" />
+</head>
+<body>
+
+  <!-- Shared top navigation -->
+  <header th:fragment="navbar" class="lc-navbar">
+    <a class="brand" th:href="@{/}" href="/">Locality Connector</a>
+    <nav>
+      <a th:href="@{/user}" href="/user">For Users</a>
+      <a th:href="@{/business}" href="/business">For Business</a>
+      <a href="#" id="lc-logout-link" class="hidden">Logout</a>
+    </nav>
+  </header>
+
+  <!-- Shared footer scripts: auth + validation helpers -->
+  <th:block th:fragment="scripts">
+    <div id="lc-toast-container"></div>
+    <div id="lc-loader" class="hidden"><div class="lc-spinner"></div></div>
+    <script th:src="@{/js/auth.js}" src="/js/auth.js"></script>
+    <script th:src="@{/js/validation.js}" src="/js/validation.js"></script>
+    <script>
+      // Global Toast helper
+      window.LCToast = {
+        show: function(msg, type) {
+          var container = document.getElementById('lc-toast-container');
+          if (!container) return;
+          var toast = document.createElement('div');
+          toast.className = 'lc-toast ' + (type || '');
+          toast.textContent = msg;
+          container.appendChild(toast);
+          setTimeout(function() { toast.remove(); }, 4000);
+        }
+      };
+      // Global Loader helper
+      window.LCLoader = {
+        show: function() { var el = document.getElementById('lc-loader'); if(el) el.classList.remove('hidden'); },
+        hide: function() { var el = document.getElementById('lc-loader'); if(el) el.classList.add('hidden'); }
+      };
+
+      // Wire up the shared logout link if present.
+      (function () {
+        var link = document.getElementById("lc-logout-link");
+        if (link && window.LCAuth) {
+          if (window.LCAuth.isLoggedIn()) {
+            link.classList.remove("hidden");
+          }
+          link.addEventListener("click", function (e) {
+            e.preventDefault();
+            window.LCAuth.logout("/");
+          });
+        }
+      })();
+    </script>
+  </th:block>
+
+</body>
+</html>
