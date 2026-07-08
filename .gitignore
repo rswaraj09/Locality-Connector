@@ -68,3 +68,4 @@ apache-maven-3.9.6
 
 src/main/resources/serviceAccountKey.json
 untracked_files_list.txt
+test.bat
