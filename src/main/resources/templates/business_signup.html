@@ -40,7 +40,7 @@
             display:flex;
             justify-content:center;
             align-items:center;
-            padding: 28px;
+            padding: 16px;
             position:relative;
             overflow-x:hidden;
         }
@@ -64,7 +64,9 @@
             position:relative;
             z-index:1;
             width:100%;
-            max-width:1080px;
+            max-width:1180px;
+            min-height:86vh;
+            max-height:94vh;
             background: #141815;
             border:1px solid var(--line-strong);
             border-radius:22px;
@@ -76,13 +78,14 @@
 
         /* ============ FORM SIDE ============ */
         .signup-section{
-            flex:1;
+            flex:1.15;
             min-width:0;
-            padding: 52px 56px 40px;
+            padding: 44px 56px;
             display:flex;
             flex-direction:column;
-            justify-content:center;
-            max-height:88vh;
+            justify-content:flex-start;
+            height:100%;
+            max-height:94vh;
             overflow-y:auto;
         }
         .signup-section::-webkit-scrollbar{ width:5px; }
@@ -320,14 +323,15 @@
 
         /* ============ MAP / SIGNATURE SIDE ============ */
         .message-section{
-            flex:1;
+            flex:0.95;
             min-width:0;
             position:relative;
             background: #0a0e0c;
             display:flex;
             flex-direction:column;
             justify-content:flex-end;
-            min-height:88vh;
+            height:100%;
+            min-height:94vh;
             overflow:hidden;
             border-left:1px solid var(--line);
         }
