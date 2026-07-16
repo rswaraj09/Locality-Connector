@@ -4,345 +4,665 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Add Listing</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Sora:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        /* ============================================================
+           TOKENS
+           A market-at-dusk palette: deep plum night, warm shop-light
+           gold for value/price, and a soft rose ember accent — the
+           colors of a lit stall counter after the sun goes down.
+           ============================================================ */
+        :root {
+            --bg-0: #0d0817;
+            --bg-1: #170f28;
+            --bg-2: #201336;
+            --glass: rgba(255, 255, 255, 0.055);
+            --glass-border: rgba(255, 255, 255, 0.12);
+            --glass-strong: rgba(255, 255, 255, 0.09);
+            --gold: #f0b429;
+            --gold-soft: #ffd580;
+            --rose: #f5576c;
+            --rose-soft: #ff8fa3;
+            --violet: #9b7bf0;
+            --text-hi: #f6f2ff;
+            --text-mid: #c9bfe0;
+            --text-low: #8a7fa8;
+            --danger: #ef5b5b;
+            --ok: #4ade80;
+            --radius-lg: 22px;
+            --radius-md: 14px;
+            --radius-sm: 9px;
+            --ease-spring: cubic-bezier(.34, 1.56, .64, 1);
+            --ease-smooth: cubic-bezier(.22, 1, .36, 1);
         }
-        
-        body { 
-            font-family: 'Arial', sans-serif; 
-            margin: 0; 
-            padding: 0; 
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html { scroll-behavior: smooth; }
+
+        @media (prefers-reduced-motion: reduce) {
+            html { scroll-behavior: auto; }
+            *, *::before, *::after {
+                animation-duration: 0.001ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.001ms !important;
+            }
+        }
+
+        body {
+            font-family: 'Sora', sans-serif;
+            background: radial-gradient(120% 140% at 15% -10%, #2a1a45 0%, transparent 55%),
+                        radial-gradient(100% 120% at 100% 10%, #3a1530 0%, transparent 50%),
+                        linear-gradient(180deg, var(--bg-0), var(--bg-1) 45%, var(--bg-0));
+            color: var(--text-hi);
             min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
         }
-        
+
+        /* ============================================================
+           AMBIENT BACKGROUND — canvas aurora, lightweight, no WebGL
+           dependency needed; costs little GPU, honors reduced motion.
+           ============================================================ */
+        #aurora {
+            position: fixed;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            opacity: 0.55;
+            pointer-events: none;
+        }
+
+        .grain {
+            position: fixed;
+            inset: 0;
+            z-index: 1;
+            pointer-events: none;
+            opacity: 0.035;
+            mix-blend-mode: overlay;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+        }
+
+        /* ============================================================
+           HEADER
+           ============================================================ */
         .header {
-            background: rgba(255, 255, 255, 0.95);
-            padding: 20px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 40;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            padding: 18px 34px;
+            background: rgba(13, 8, 23, 0.55);
+            backdrop-filter: blur(18px) saturate(140%);
+            -webkit-backdrop-filter: blur(18px) saturate(140%);
+            border-bottom: 1px solid var(--glass-border);
+            transition: background 0.4s var(--ease-smooth);
         }
-        
-        .header h1 {
-            color: #f5576c;
-            font-size: 2rem;
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 14px;
         }
-        
-        .profile-dropdown {
-            position: relative;
-            display: inline-block;
-        }
-        
-        .profile-icon {
-            width: 40px;
-            height: 40px;
-            background: #f5576c;
-            border-radius: 50%;
+
+        .brand-mark {
+            width: 38px;
+            height: 38px;
+            border-radius: 11px;
+            background: linear-gradient(135deg, var(--gold), var(--rose));
             display: flex;
             align-items: center;
             justify-content: center;
-            color: white;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 600;
+            font-size: 15px;
+            color: #180b12;
+            box-shadow: 0 4px 20px rgba(240, 180, 41, 0.35);
+        }
+
+        .header h1 {
+            font-family: 'Fraunces', serif;
+            font-weight: 600;
+            font-size: 1.5rem;
+            letter-spacing: -0.01em;
+            color: var(--text-hi);
+        }
+
+        .header .eyebrow {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--text-low);
+            display: block;
+            margin-bottom: 2px;
+        }
+
+        .profile-dropdown { position: relative; }
+
+        .profile-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: var(--glass-strong);
+            border: 1px solid var(--glass-border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-hi);
             cursor: pointer;
-            transition: all 0.3s;
             font-size: 18px;
+            transition: transform 0.35s var(--ease-spring), box-shadow 0.35s var(--ease-smooth), border-color 0.3s;
         }
-        
+
         .profile-icon:hover {
-            background: #e34558;
-            transform: translateY(-2px);
+            transform: translateY(-3px) scale(1.05);
+            border-color: var(--gold);
+            box-shadow: 0 8px 24px rgba(240, 180, 41, 0.25);
         }
-        
+
         .dropdown-content {
             display: none;
             position: absolute;
             right: 0;
-            background-color: white;
-            min-width: 200px;
-            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
-            border-radius: 10px;
-            z-index: 1000;
+            top: calc(100% + 12px);
+            min-width: 210px;
+            background: rgba(23, 15, 40, 0.92);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+            border-radius: var(--radius-md);
             overflow: hidden;
+            animation: dropIn 0.22s var(--ease-spring);
         }
-        
+
+        @keyframes dropIn {
+            from { opacity: 0; transform: translateY(-6px) scale(0.97); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
         .dropdown-content a {
-            color: #333;
-            padding: 12px 16px;
+            color: var(--text-mid);
+            padding: 13px 18px;
             text-decoration: none;
             display: block;
-            transition: background-color 0.3s;
+            font-size: 14px;
+            position: relative;
+            transition: color 0.2s, background 0.2s, padding-left 0.2s;
         }
-        
+
         .dropdown-content a:hover {
-            background-color: #f1f1f1;
+            background: rgba(255, 255, 255, 0.06);
+            color: var(--text-hi);
+            padding-left: 22px;
         }
-        
+
         .dropdown-content a:last-child {
-            color: #f5576c;
-            border-top: 1px solid #eee;
+            color: var(--rose-soft);
+            border-top: 1px solid var(--glass-border);
         }
-        
-        .container { 
-            max-width: 900px; 
-            margin: 32px auto; 
-            background: rgba(255, 255, 255, 0.95); 
-            padding: 24px; 
-            border-radius: 20px; 
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            backdrop-filter: blur(10px);
+
+        /* ============================================================
+           HERO — the signature element: a floating glass price-tag,
+           gently swinging on its string, rotating in 3D space.
+           It's the one literal object in the room: the thing this
+           whole page exists to create.
+           ============================================================ */
+        .hero {
+            position: relative;
+            z-index: 2;
+            max-width: 1180px;
+            margin: 0 auto;
+            padding: 56px 34px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 40px;
         }
-        
-        h1 { 
-            margin: 0 0 16px; 
-            font-size: 2.5rem; 
-            color: #f5576c;
+
+        .hero-copy h2 {
+            font-family: 'Fraunces', serif;
+            font-weight: 600;
+            font-size: clamp(2.1rem, 4vw, 3.2rem);
+            line-height: 1.05;
+            letter-spacing: -0.02em;
+            color: var(--text-hi);
+            max-width: 520px;
+        }
+
+        .hero-copy h2 em {
+            font-style: italic;
+            background: linear-gradient(100deg, var(--gold-soft), var(--rose-soft));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .hero-copy p {
+            margin-top: 14px;
+            color: var(--text-mid);
+            font-size: 15px;
+            max-width: 440px;
+            line-height: 1.6;
+        }
+
+        .tag-stage {
+            width: 220px;
+            height: 260px;
+            flex-shrink: 0;
+            perspective: 900px;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+        }
+
+        .tag-string {
+            width: 2px;
+            height: 46px;
+            margin-top: 4px;
+            background: linear-gradient(180deg, transparent, var(--text-low));
+            transform-origin: top center;
+            animation: swing 5s ease-in-out infinite;
+        }
+
+        .tag {
+            width: 168px;
+            height: 168px;
+            margin-top: -2px;
+            transform-style: preserve-3d;
+            animation: swing 5s ease-in-out infinite, float 6s ease-in-out infinite;
+            transform-origin: top center;
+        }
+
+        .tag-face {
+            position: absolute;
+            inset: 0;
+            border-radius: 20px;
+            background: linear-gradient(150deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.02));
+            border: 1px solid rgba(255, 255, 255, 0.22);
+            backdrop-filter: blur(6px);
+            box-shadow:
+                0 30px 60px -15px rgba(155, 123, 240, 0.45),
+                inset 0 1px 1px rgba(255, 255, 255, 0.4);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .tag-hole {
+            position: absolute;
+            top: 14px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: var(--bg-0);
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.6);
+        }
+
+        .tag-symbol {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 40px;
+            font-weight: 600;
+            background: linear-gradient(160deg, var(--gold-soft), var(--gold));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-top: 8px;
+        }
+
+        .tag-label {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: var(--text-low);
+        }
+
+        @keyframes swing {
+            0%, 100% { transform: rotate(-4deg); }
+            50% { transform: rotate(4deg); }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotateY(-8deg); }
+            50% { transform: translateY(-8px) rotateY(8deg); }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .tag, .tag-string { animation: none; }
+        }
+
+        @media (max-width: 860px) {
+            .tag-stage { display: none; }
+        }
+
+        /* ============================================================
+           MAIN CONTAINER
+           ============================================================ */
+        .container {
+            position: relative;
+            z-index: 2;
+            max-width: 1180px;
+            margin: 8px auto 80px;
+            padding: 0 34px;
+        }
+
+        #msg {
+            margin: 0 0 20px;
+            padding: 16px 20px;
+            border-radius: var(--radius-md);
+            display: none;
+            font-size: 14.5px;
+            font-weight: 600;
             text-align: center;
+            border: 1px solid transparent;
+            animation: msgIn 0.35s var(--ease-spring);
         }
-        
-        .row { 
-            display: grid; 
-            grid-template-columns: 1fr 1fr; 
-            gap: 24px; 
+
+        @keyframes msgIn {
+            from { opacity: 0; transform: translateY(-8px); }
+            to { opacity: 1; transform: translateY(0); }
         }
-        
-        .card { 
-            background: rgba(255, 255, 255, 0.9); 
-            border: 1px solid rgba(255, 255, 255, 0.2); 
-            border-radius: 15px; 
-            padding: 20px; 
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+
+        #msg.success {
+            background: rgba(74, 222, 128, 0.12);
+            border-color: rgba(74, 222, 128, 0.35);
+            color: var(--ok);
         }
-        
-        label { 
-            display: block; 
-            font-weight: 600; 
-            margin: 8px 0 4px; 
-            color: #333;
+
+        #msg.error {
+            background: rgba(239, 91, 91, 0.12);
+            border-color: rgba(239, 91, 91, 0.35);
+            color: var(--danger);
         }
-        
-        input, textarea { 
-            width: 100%; 
-            padding: 15px; 
-            border: 2px solid #ddd; 
-            border-radius: 10px; 
-            background: #fff; 
-            transition: border-color 0.3s;
+
+        .row {
+            display: grid;
+            grid-template-columns: 0.9fr 1.1fr;
+            gap: 26px;
+            align-items: start;
         }
-        
-        input:focus, textarea:focus {
+
+        @media (max-width: 860px) {
+            .row { grid-template-columns: 1fr; }
+        }
+
+        /* ============================================================
+           GLASS CARDS
+           ============================================================ */
+        .card {
+            position: relative;
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-lg);
+            padding: 28px;
+            backdrop-filter: blur(22px) saturate(130%);
+            -webkit-backdrop-filter: blur(22px) saturate(130%);
+            box-shadow: 0 20px 50px -20px rgba(0, 0, 0, 0.55);
+            transition: transform 0.5s var(--ease-smooth), box-shadow 0.5s var(--ease-smooth), border-color 0.4s;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            inset: -1px;
+            padding: 1px;
+            border-radius: inherit;
+            background: linear-gradient(120deg, rgba(240, 180, 41, 0), rgba(240, 180, 41, 0.5), rgba(245, 87, 108, 0));
+            background-size: 220% 220%;
+            -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            opacity: 0;
+            transition: opacity 0.5s;
+            pointer-events: none;
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 30px 70px -20px rgba(155, 123, 240, 0.3);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .card:hover::before {
+            opacity: 1;
+            animation: sheen 3s linear infinite;
+        }
+
+        @keyframes sheen {
+            0% { background-position: 0% 50%; }
+            100% { background-position: 200% 50%; }
+        }
+
+        .card h3 {
+            font-family: 'Fraunces', serif;
+            font-weight: 600;
+            font-size: 1.3rem;
+            margin-bottom: 18px;
+            color: var(--text-hi);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card h3::before {
+            content: '';
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--gold);
+            box-shadow: 0 0 12px 2px rgba(240, 180, 41, 0.7);
+        }
+
+        /* ============================================================
+           FORM — floating labels, glow focus
+           ============================================================ */
+        .field {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .field label {
+            position: absolute;
+            left: 16px;
+            top: 15px;
+            font-size: 14.5px;
+            color: var(--text-low);
+            pointer-events: none;
+            transform-origin: left top;
+            transition: transform 0.22s var(--ease-smooth), color 0.22s, top 0.22s;
+            background: transparent;
+            padding: 0 4px;
+        }
+
+        .field input,
+        .field textarea {
+            width: 100%;
+            padding: 20px 16px 8px;
+            background: rgba(0, 0, 0, 0.18);
+            border: 1.5px solid var(--glass-border);
+            border-radius: var(--radius-sm);
+            color: var(--text-hi);
+            font-family: 'Sora', sans-serif;
+            font-size: 15px;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        .field textarea { height: 92px; padding-top: 22px; resize: vertical; }
+
+        .field input:focus,
+        .field textarea:focus {
             outline: none;
-            border-color: #f5576c;
+            border-color: var(--gold);
+            box-shadow: 0 0 0 4px rgba(240, 180, 41, 0.14), 0 0 24px rgba(240, 180, 41, 0.12);
         }
-        
-        textarea { 
-            height: 90px; 
+
+        .field input:focus + label,
+        .field input:not(:placeholder-shown) + label,
+        .field textarea:focus + label,
+        .field textarea:not(:placeholder-shown) + label {
+            top: 6px;
+            font-size: 11px;
+            color: var(--gold-soft);
+            letter-spacing: 0.04em;
         }
-        
-        .btn { 
-            background: #f5576c; 
-            color: #fff; 
-            border: none; 
-            border-radius: 25px; 
-            padding: 12px 24px; 
-            cursor: pointer; 
-            transition: all 0.3s;
-            font-weight: bold;
+
+        /* ============================================================
+           BUTTONS — magnetic, ripple, sweep
+           ============================================================ */
+        .btn {
+            position: relative;
+            overflow: hidden;
+            border: none;
+            border-radius: 999px;
+            padding: 13px 26px;
+            cursor: pointer;
+            font-family: 'Sora', sans-serif;
+            font-weight: 600;
+            font-size: 14.5px;
+            color: #1a0f0a;
+            background: linear-gradient(120deg, var(--gold-soft), var(--gold));
+            box-shadow: 0 10px 30px -8px rgba(240, 180, 41, 0.5);
+            transition: transform 0.25s var(--ease-spring), box-shadow 0.3s;
+            will-change: transform;
         }
-        
-        .btn:hover { 
-            background: #e34558; 
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(245, 87, 108, 0.4);
+
+        .btn:hover {
+            box-shadow: 0 14px 36px -6px rgba(240, 180, 41, 0.6);
         }
-        
-        .list { 
-            margin-top: 12px; 
+
+        .btn:active { transform: scale(0.96) !important; }
+
+        .btn-secondary {
+            background: var(--glass-strong);
+            color: var(--text-hi);
+            border: 1px solid var(--glass-border);
+            box-shadow: none;
         }
-        
-        .item { 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: start; 
-            gap: 12px; 
-            padding: 15px; 
-            background: rgba(255, 255, 255, 0.9); 
-            border: 1px solid rgba(255, 255, 255, 0.2); 
-            border-radius: 10px; 
-            margin-bottom: 10px; 
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+
+        .btn-secondary:hover { border-color: var(--violet); box-shadow: 0 8px 24px -8px rgba(155, 123, 240, 0.45); }
+
+        .btn-danger {
+            background: rgba(239, 91, 91, 0.14);
+            color: var(--rose-soft);
+            border: 1px solid rgba(239, 91, 91, 0.35);
+            box-shadow: none;
         }
-        
-        .price { 
-            font-weight: 700; 
-            color: #f5576c; 
+
+        .btn-danger:hover { background: rgba(239, 91, 91, 0.22); box-shadow: 0 8px 24px -8px rgba(239, 91, 91, 0.45); }
+
+        .btn .ripple {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.5);
+            transform: scale(0);
+            animation: rippleAnim 0.6s var(--ease-smooth);
+            pointer-events: none;
         }
-        
-        .muted { 
-            color: #6b7280; 
-            font-size: 13px; 
+
+        @keyframes rippleAnim {
+            to { transform: scale(2.6); opacity: 0; }
         }
-        
-        .actions { 
-            display: flex; 
-            gap: 8px; 
+
+        /* ============================================================
+           ITEMS LIST
+           ============================================================ */
+        .list { display: flex; flex-direction: column; gap: 12px; margin-top: 4px; }
+
+        .item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            padding: 16px 18px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-md);
+            transition: transform 0.35s var(--ease-spring), border-color 0.3s, background 0.3s;
+            animation: itemIn 0.4s var(--ease-smooth) both;
         }
-        
-        .btn-secondary { 
-            background: #6b7280; 
+
+        @keyframes itemIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
-        
-        .btn-danger { 
-            background: #dc2626; 
+
+        .item:hover {
+            transform: translateX(4px);
+            border-color: rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.065);
         }
-        
-        .btn-secondary:hover { 
-            background: #565d69; 
-        }
-        
-        .btn-danger:hover { 
-            background: #b91c1c; 
-        }
-        
-        .msg { 
-            margin: 12px 0; 
-            padding: 20px; 
-            border-radius: 10px; 
-            display: none; 
+
+        .item strong {
+            font-family: 'Fraunces', serif;
+            font-weight: 500;
             font-size: 16px;
-            font-weight: bold;
+            color: var(--text-hi);
+        }
+
+        .muted { color: var(--text-low); font-size: 12.5px; margin-top: 3px; }
+
+        .price {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 600;
+            font-size: 16px;
+            color: var(--gold-soft);
+            letter-spacing: -0.02em;
+        }
+
+        .actions { display: flex; gap: 8px; margin-top: 8px; }
+        .actions .btn { padding: 8px 16px; font-size: 13px; }
+
+        .empty-state {
+            padding: 40px 20px;
             text-align: center;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            color: var(--text-low);
+            font-size: 14px;
         }
-        
-        .msg.success { 
-            background: #4CAF50; 
-            color: white; 
-            border: 2px solid #45a049; 
+
+        .empty-state .glyph {
+            font-size: 28px;
+            margin-bottom: 10px;
+            opacity: 0.6;
         }
-        
-        .msg.error { 
-            background: #f44336; 
-            color: white; 
-            border: 2px solid #d32f2f; 
+
+        /* scrollbar polish */
+        ::-webkit-scrollbar { width: 10px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--glass-strong); border-radius: 10px; }
+
+        /* keyboard focus visibility */
+        a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible {
+            outline: 2px solid var(--gold);
+            outline-offset: 2px;
         }
     </style>
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            loadItems();
-
-            document.getElementById('itemForm').addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const itemName = document.getElementById('itemName').value.trim();
-                const itemPrice = document.getElementById('itemPrice').value;
-                const itemDescription = document.getElementById('itemDescription').value.trim();
-
-                if (!itemName || !itemPrice) {
-                    return showMsg('Please fill item name and price.', true);
-                }
-                try {
-                    const res = await fetch('/api/items', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ itemName, itemPrice, itemDescription })
-                    });
-                    const data = await res.json();
-                    if (!res.ok || data.error) throw new Error(data.error || 'Failed to save');
-                    showMsg('Item saved', false);
-                    (document.getElementById('itemForm')).reset();
-                    loadItems();
-                } catch (err) {
-                    showMsg(err.message, true);
-                }
-            });
-        });
-
-        async function loadItems() {
-            const list = document.getElementById('itemsList');
-            list.innerHTML = '<div class="muted">Loading...</div>';
-            try {
-                const res = await fetch('/api/items');
-                const data = await res.json();
-                if (!res.ok || data.error) throw new Error(data.error || 'Failed to load items');
-                if (!Array.isArray(data) || data.length === 0) {
-                    list.innerHTML = '<div class="muted">No items yet.</div>';
-                    return;
-                }
-                list.innerHTML = '';
-                data.forEach(it => {
-                    const div = document.createElement('div');
-                    div.className = 'item';
-                    div.innerHTML = `
-                        <div>
-                            <div><strong>${it.name}</strong></div>
-                            <div class="muted">${it.description ? it.description : ''}</div>
-                        </div>
-                        <div style="text-align:right">
-                          <div class="price">₹ ${Number(it.price).toFixed(2)}</div>
-                          <div class="actions">
-                            <button class="btn btn-secondary" onclick="editItem('${it.id || it._id}', '${it.businessName}', '${encodeURIComponent(it.name)}', ${Number(it.price)}, '${encodeURIComponent(it.description || '')}')\">Edit</button>
-                            <button class="btn btn-danger" onclick="deleteItem('${it.id || it._id}')\">Delete</button>
-                          </div>
-                        </div>
-                    `;
-                    list.appendChild(div);
-                });
-            } catch (err) {
-                list.innerHTML = '<div class="muted">' + (err.message || 'Failed to load') + '</div>';
-            }
-        }
-
-        function showMsg(text, isError) {
-            const m = document.getElementById('msg');
-            m.textContent = text; m.className = 'msg ' + (isError ? 'error' : 'success'); m.style.display = 'block';
-            setTimeout(() => m.style.display = 'none', 2500);
-        }
-
-        async function deleteItem(id) {
-            if (!confirm('Delete this item?')) return;
-            try {
-                const res = await fetch('/api/items/' + encodeURIComponent(id), { method: 'DELETE' });
-                const data = await res.json();
-                if (!res.ok || data.error) throw new Error(data.error || 'Delete failed');
-                showMsg('Item deleted', false);
-                loadItems();
-            } catch (e) {
-                showMsg(e.message, true);
-            }
-        }
-
-        async function editItem(id, businessName, name, price, desc) {
-            const newName = prompt('Item name:', decodeURIComponent(name));
-            if (newName === null) return;
-            const newPriceStr = prompt('Price:', String(price));
-            if (newPriceStr === null) return;
-            const newDesc = prompt('Description:', decodeURIComponent(desc));
-            try {
-                const res = await fetch('/api/items/' + encodeURIComponent(id), {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ itemName: newName, itemPrice: parseFloat(newPriceStr), itemDescription: newDesc })
-                });
-                const data = await res.json();
-                if (!res.ok || data.error) throw new Error(data.error || 'Update failed');
-                showMsg('Item updated', false);
-                loadItems();
-            } catch (e) {
-                showMsg(e.message, true);
-            }
-        }
-    </script>
-  <link rel="stylesheet" href="/css/main.css">
 </head>
 <body>
 
+<canvas id="aurora" aria-hidden="true"></canvas>
+<div class="grain" aria-hidden="true"></div>
+
 <div class="header">
-    <h1>Add Listing</h1>
+    <div class="brand">
+        <div class="brand-mark">₹</div>
+        <div>
+            <span class="eyebrow">Storefront console</span>
+            <h1>Add Listing</h1>
+        </div>
+    </div>
     <div class="profile-dropdown">
-        <div class="profile-icon" onclick="toggleDropdown()">👤</div>
+        <div class="profile-icon" onclick="toggleDropdown()" role="button" tabindex="0" aria-label="Open account menu" onkeydown="if(event.key==='Enter'||event.key===' '){toggleDropdown()}">👤</div>
         <div class="dropdown-content" id="dropdown">
             <a href="/update-business">Settings</a>
             <a href="/update-business">Update Profile</a>
@@ -352,30 +672,244 @@
     </div>
 </div>
 
+<section class="hero">
+    <div class="hero-copy">
+        <h2>Every item starts <em>as a tag</em>.</h2>
+        <p>Name it, price it, describe it — and it's live on your storefront. Add, edit, or remove listings below; changes save straight to your shop.</p>
+    </div>
+    <div class="tag-stage" aria-hidden="true">
+        <div class="tag-string"></div>
+        <div class="tag">
+            <div class="tag-face">
+                <div class="tag-hole"></div>
+                <div class="tag-symbol">₹</div>
+                <div class="tag-label">New Item</div>
+            </div>
+        </div>
+    </div>
+</section>
+
 <div class="container">
-    <div id="msg" class="msg"></div>
+    <div id="msg" role="status" aria-live="polite"></div>
     <div class="row">
         <div class="card">
             <h3>Add Item</h3>
             <form id="itemForm">
-                <label>Item Name</label>
-                <input id="itemName" name="itemName" type="text" placeholder="e.g., Sugar" required>
-                <label>Price</label>
-                <input id="itemPrice" name="itemPrice" type="number" step="0.01" min="0" placeholder="e.g., 20" required>
-                <label>Description</label>
-                <textarea id="itemDescription" name="itemDescription" placeholder="Optional"></textarea>
-                <div style="margin-top:12px"><button class="btn" type="submit">Save Item</button></div>
+                <div class="field">
+                    <input id="itemName" name="itemName" type="text" placeholder=" " required autocomplete="off">
+                    <label for="itemName">Item name — e.g. Sugar</label>
+                </div>
+                <div class="field">
+                    <input id="itemPrice" name="itemPrice" type="number" step="0.01" min="0" placeholder=" " required>
+                    <label for="itemPrice">Price (₹)</label>
+                </div>
+                <div class="field">
+                    <textarea id="itemDescription" name="itemDescription" placeholder=" "></textarea>
+                    <label for="itemDescription">Description (optional)</label>
+                </div>
+                <button class="btn" type="submit">Save Item</button>
             </form>
         </div>
         <div class="card">
             <h3>Items</h3>
             <div class="list" id="itemsList"></div>
-            <div style="margin-top:12px"><button class="btn" onclick="loadItems()">Refresh</button></div>
+            <div style="margin-top:16px">
+                <button class="btn btn-secondary" onclick="loadItems()">Refresh</button>
+            </div>
         </div>
     </div>
 </div>
 
 <script>
+    /* ============================================================
+       AMBIENT AURORA BACKGROUND
+       A handful of soft blurred blobs drifting on a canvas —
+       cheaper than WebGL, still reads as "alive," and freezes
+       entirely under prefers-reduced-motion.
+       ============================================================ */
+    (function initAurora() {
+        const canvas = document.getElementById('aurora');
+        const ctx = canvas.getContext('2d');
+        const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        let w, h, dpr;
+
+        function resize() {
+            dpr = Math.min(window.devicePixelRatio || 1, 2);
+            w = canvas.width = window.innerWidth * dpr;
+            h = canvas.height = window.innerHeight * dpr;
+            canvas.style.width = window.innerWidth + 'px';
+            canvas.style.height = window.innerHeight + 'px';
+        }
+        resize();
+        window.addEventListener('resize', resize);
+
+        const blobs = [
+            { x: 0.15, y: 0.1, r: 0.35, hue: [155, 123, 240], vx: 0.00012, vy: 0.00009, t: 0 },
+            { x: 0.85, y: 0.25, r: 0.30, hue: [245, 87, 108], vx: -0.00010, vy: 0.00013, t: 2 },
+            { x: 0.5, y: 0.75, r: 0.40, hue: [240, 180, 41], vx: 0.00008, vy: -0.00011, t: 4 },
+        ];
+
+        function draw(time) {
+            ctx.clearRect(0, 0, w, h);
+            blobs.forEach((b) => {
+                const bx = (b.x + Math.sin(time * b.vx + b.t) * 0.06) * w;
+                const by = (b.y + Math.cos(time * b.vy + b.t) * 0.06) * h;
+                const rad = b.r * Math.max(w, h);
+                const grad = ctx.createRadialGradient(bx, by, 0, bx, by, rad);
+                grad.addColorStop(0, `rgba(${b.hue[0]},${b.hue[1]},${b.hue[2]},0.35)`);
+                grad.addColorStop(1, `rgba(${b.hue[0]},${b.hue[1]},${b.hue[2]},0)`);
+                ctx.fillStyle = grad;
+                ctx.beginPath();
+                ctx.arc(bx, by, rad, 0, Math.PI * 2);
+                ctx.fill();
+            });
+            if (!reduceMotion) requestAnimationFrame(draw);
+        }
+        requestAnimationFrame(draw);
+    })();
+
+    /* ============================================================
+       MAGNETIC BUTTONS + RIPPLE
+       ============================================================ */
+    document.addEventListener('mousemove', (e) => {
+        document.querySelectorAll('.btn').forEach((btn) => {
+            const rect = btn.getBoundingClientRect();
+            const dx = e.clientX - (rect.left + rect.width / 2);
+            const dy = e.clientY - (rect.top + rect.height / 2);
+            const dist = Math.hypot(dx, dy);
+            const radius = 90;
+            if (dist < radius) {
+                const pull = (1 - dist / radius) * 0.25;
+                btn.style.transform = `translate(${dx * pull}px, ${dy * pull}px)`;
+            } else {
+                btn.style.transform = '';
+            }
+        });
+    });
+
+    document.addEventListener('click', (e) => {
+        const btn = e.target.closest('.btn');
+        if (!btn) return;
+        const rect = btn.getBoundingClientRect();
+        const ripple = document.createElement('span');
+        const size = Math.max(rect.width, rect.height);
+        ripple.className = 'ripple';
+        ripple.style.width = ripple.style.height = size + 'px';
+        ripple.style.left = (e.clientX - rect.left - size / 2) + 'px';
+        ripple.style.top = (e.clientY - rect.top - size / 2) + 'px';
+        btn.appendChild(ripple);
+        setTimeout(() => ripple.remove(), 650);
+    });
+
+    /* ============================================================
+       APPLICATION LOGIC — unchanged behavior, same endpoints,
+       same element IDs, same functions the rest of the app expects.
+       ============================================================ */
+    document.addEventListener('DOMContentLoaded', () => {
+        loadItems();
+
+        document.getElementById('itemForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const itemName = document.getElementById('itemName').value.trim();
+            const itemPrice = document.getElementById('itemPrice').value;
+            const itemDescription = document.getElementById('itemDescription').value.trim();
+
+            if (!itemName || !itemPrice) {
+                return showMsg('Please fill item name and price.', true);
+            }
+            try {
+                const res = await fetch('/api/items', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ itemName, itemPrice, itemDescription })
+                });
+                const data = await res.json();
+                if (!res.ok || data.error) throw new Error(data.error || 'Failed to save');
+                showMsg('Item saved', false);
+                (document.getElementById('itemForm')).reset();
+                loadItems();
+            } catch (err) {
+                showMsg(err.message, true);
+            }
+        });
+    });
+
+    async function loadItems() {
+        const list = document.getElementById('itemsList');
+        list.innerHTML = '<div class="muted">Loading...</div>';
+        try {
+            const res = await fetch('/api/items');
+            const data = await res.json();
+            if (!res.ok || data.error) throw new Error(data.error || 'Failed to load items');
+            if (!Array.isArray(data) || data.length === 0) {
+                list.innerHTML = '<div class="empty-state"><div class="glyph">🏷️</div>No items yet — add your first one.</div>';
+                return;
+            }
+            list.innerHTML = '';
+            data.forEach((it, i) => {
+                const div = document.createElement('div');
+                div.className = 'item';
+                div.style.animationDelay = (i * 0.05) + 's';
+                div.innerHTML = `
+                    <div>
+                        <div><strong>${it.name}</strong></div>
+                        <div class="muted">${it.description ? it.description : ''}</div>
+                    </div>
+                    <div style="text-align:right">
+                      <div class="price">₹ ${Number(it.price).toFixed(2)}</div>
+                      <div class="actions">
+                        <button class="btn btn-secondary" onclick="editItem('${it.id || it._id}', '${it.businessName}', '${encodeURIComponent(it.name)}', ${Number(it.price)}, '${encodeURIComponent(it.description || '')}')\">Edit</button>
+                        <button class="btn btn-danger" onclick="deleteItem('${it.id || it._id}')\">Delete</button>
+                      </div>
+                    </div>
+                `;
+                list.appendChild(div);
+            });
+        } catch (err) {
+            list.innerHTML = '<div class="muted">' + (err.message || 'Failed to load') + '</div>';
+        }
+    }
+
+    function showMsg(text, isError) {
+        const m = document.getElementById('msg');
+        m.textContent = text; m.className = (isError ? 'error' : 'success'); m.style.display = 'block';
+        setTimeout(() => m.style.display = 'none', 2500);
+    }
+
+    async function deleteItem(id) {
+        if (!confirm('Delete this item?')) return;
+        try {
+            const res = await fetch('/api/items/' + encodeURIComponent(id), { method: 'DELETE' });
+            const data = await res.json();
+            if (!res.ok || data.error) throw new Error(data.error || 'Delete failed');
+            showMsg('Item deleted', false);
+            loadItems();
+        } catch (e) {
+            showMsg(e.message, true);
+        }
+    }
+
+    async function editItem(id, businessName, name, price, desc) {
+        const newName = prompt('Item name:', decodeURIComponent(name));
+        if (newName === null) return;
+        const newPriceStr = prompt('Price:', String(price));
+        if (newPriceStr === null) return;
+        const newDesc = prompt('Description:', decodeURIComponent(desc));
+        try {
+            const res = await fetch('/api/items/' + encodeURIComponent(id), {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ itemName: newName, itemPrice: parseFloat(newPriceStr), itemDescription: newDesc })
+            });
+            const data = await res.json();
+            if (!res.ok || data.error) throw new Error(data.error || 'Update failed');
+            showMsg('Item updated', false);
+            loadItems();
+        } catch (e) {
+            showMsg(e.message, true);
+        }
+    }
+
     // Profile dropdown functionality
     function toggleDropdown() {
         const dropdown = document.getElementById('dropdown');
@@ -383,21 +917,18 @@
     }
 
     // Close dropdown when clicking outside
-    window.onclick = function(event) {
+    window.onclick = function (event) {
         if (!event.target.matches('.profile-icon')) {
             const dropdown = document.getElementById('dropdown');
             if (dropdown.style.display === 'block') {
                 dropdown.style.display = 'none';
             }
         }
-    }
+    };
 </script>
 
+  <link rel="stylesheet" href="/css/main.css">
   <script src="/js/auth.js"></script>
   <script src="/js/validation.js"></script>
 </body>
 </html>
-
-
-
-
