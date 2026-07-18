@@ -4,210 +4,440 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Business Management Dashboard with Geolocation</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Sora:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
-    * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
+    /* ============================================================
+       TOKENS — same market-at-dusk brand system as Add Listing and
+       the Welcome dashboard: this is the third page in the same
+       business portal, so it inherits the family look.
+       ============================================================ */
+    :root {
+        --bg-0: #0d0817;
+        --bg-1: #170f28;
+        --glass: rgba(255, 255, 255, 0.055);
+        --glass-border: rgba(255, 255, 255, 0.12);
+        --glass-strong: rgba(255, 255, 255, 0.09);
+        --gold: #f0b429;
+        --gold-soft: #ffd580;
+        --rose: #f5576c;
+        --rose-soft: #ff8fa3;
+        --violet: #9b7bf0;
+        --text-hi: #f6f2ff;
+        --text-mid: #c9bfe0;
+        --text-low: #8a7fa8;
+        --ok: #4ade80;
+        --err: #ef5b5b;
+        --radius-lg: 22px;
+        --radius-md: 14px;
+        --radius-sm: 9px;
+        --ease-spring: cubic-bezier(.34, 1.56, .64, 1);
+        --ease-smooth: cubic-bezier(.22, 1, .36, 1);
     }
-    
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after {
+            animation-duration: 0.001ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: 0.001ms !important;
+        }
+    }
+
     body {
-        font-family: 'Arial', sans-serif;
-        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        font-family: 'Sora', sans-serif;
+        background:
+            radial-gradient(120% 140% at 15% -10%, #2a1a45 0%, transparent 55%),
+            radial-gradient(100% 120% at 100% 10%, #3a1530 0%, transparent 50%),
+            linear-gradient(180deg, var(--bg-0), var(--bg-1) 45%, var(--bg-0));
         min-height: 100vh;
-        color: #333;
+        color: var(--text-hi);
+        position: relative;
+        overflow-x: hidden;
     }
-    
+
+    #aurora { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; opacity: 0.55; pointer-events: none; }
+
+    .grain {
+        position: fixed; inset: 0; z-index: 1; pointer-events: none; opacity: 0.035; mix-blend-mode: overlay;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    }
+
+    /* ============================================================
+       HEADER
+       ============================================================ */
     .header {
-        background: rgba(255, 255, 255, 0.95);
-        padding: 20px;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        position: sticky;
+        top: 0;
+        z-index: 40;
         display: flex;
         justify-content: space-between;
         align-items: center;
+        padding: 18px 34px;
+        background: rgba(13, 8, 23, 0.55);
+        backdrop-filter: blur(18px) saturate(140%);
+        -webkit-backdrop-filter: blur(18px) saturate(140%);
+        border-bottom: 1px solid var(--glass-border);
     }
-    
+
     .header h1 {
-        color: #f5576c;
-        font-size: 2rem;
+        font-family: 'Fraunces', serif;
+        font-weight: 600;
+        font-size: 1.6rem;
+        letter-spacing: -0.01em;
+        color: var(--text-hi);
     }
-    
-    .profile-dropdown {
-        position: relative;
-        display: inline-block;
+
+    .header .eyebrow {
+        display: block;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 11px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--text-low);
+        margin-bottom: 2px;
     }
-    
+
+    .profile-dropdown { position: relative; display: inline-block; }
+
     .profile-icon {
-        width: 40px;
-        height: 40px;
-        background: #f5576c;
+        width: 42px;
+        height: 42px;
         border-radius: 50%;
+        background: var(--glass-strong);
+        border: 1px solid var(--glass-border);
         display: flex;
         align-items: center;
         justify-content: center;
-        color: white;
+        color: var(--text-hi);
         cursor: pointer;
-        transition: all 0.3s;
         font-size: 18px;
+        transition: transform 0.35s var(--ease-spring), box-shadow 0.35s var(--ease-smooth), border-color 0.3s;
     }
-    
+
     .profile-icon:hover {
-        background: #e34558;
-        transform: translateY(-2px);
+        transform: translateY(-3px) scale(1.05);
+        border-color: var(--gold);
+        box-shadow: 0 8px 24px rgba(240, 180, 41, 0.25);
     }
-    
+
     .dropdown-content {
         display: none;
         position: absolute;
         right: 0;
-        background-color: white;
-        min-width: 200px;
-        box-shadow: 0 8px 16px rgba(0,0,0,0.2);
-        border-radius: 10px;
-        z-index: 1000;
+        top: calc(100% + 12px);
+        min-width: 210px;
+        background: rgba(23, 15, 40, 0.92);
+        backdrop-filter: blur(20px);
+        border: 1px solid var(--glass-border);
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+        border-radius: var(--radius-md);
         overflow: hidden;
+        animation: dropIn 0.22s var(--ease-spring);
+        z-index: 1000;
     }
-    
+
+    @keyframes dropIn {
+        from { opacity: 0; transform: translateY(-6px) scale(0.97); }
+        to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
     .dropdown-content a {
-        color: #333;
-        padding: 12px 16px;
+        color: var(--text-mid);
+        padding: 13px 18px;
         text-decoration: none;
         display: block;
-        transition: background-color 0.3s;
+        font-size: 14px;
+        transition: color 0.2s, background 0.2s, padding-left 0.2s;
     }
-    
-    .dropdown-content a:hover {
-        background-color: #f1f1f1;
-    }
-    
-    .dropdown-content a:last-child {
-        color: #f5576c;
-        border-top: 1px solid #eee;
-    }
-    
-    .navbar {
-        background: rgba(255, 255, 255, 0.1);
-        backdrop-filter: blur(10px);
-        padding: 15px;
-        text-align: center;
-        margin: 20px;
-        border-radius: 15px;
-    }
-    
-    .navbar a {
-        color: white;
-        text-decoration: none;
-        margin: 0 20px;
-        padding: 10px 20px;
-        border-radius: 25px;
-        transition: all 0.3s;
-    }
-    
-    .navbar a:hover {
-        background: rgba(255, 255, 255, 0.2);
-        transform: translateY(-2px);
-    }
-    .container {
+
+    .dropdown-content a:hover { background: rgba(255, 255, 255, 0.06); color: var(--text-hi); padding-left: 22px; }
+    .dropdown-content a:last-child { color: var(--rose-soft); border-top: 1px solid var(--glass-border); }
+
+    /* ============================================================
+       HERO — a compass signature, since geolocation pinning is the
+       feature that sets this dashboard apart from the others.
+       ============================================================ */
+    .hero {
+        position: relative;
+        z-index: 2;
         max-width: 1200px;
-        margin: 40px auto;
-        background: rgba(255, 255, 255, 0.95);
-        padding: 30px;
-        border-radius: 20px;
-        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-        backdrop-filter: blur(10px);
+        margin: 0 auto;
+        padding: 50px 34px 10px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 30px;
     }
-    
-    h1 {
-        text-align: center;
-        margin-bottom: 40px;
-        color: #f5576c;
-        font-size: 2.5rem;
+
+    .hero-copy h2 {
+        font-family: 'Fraunces', serif;
+        font-weight: 600;
+        font-size: clamp(2rem, 4vw, 2.9rem);
+        line-height: 1.08;
+        letter-spacing: -0.02em;
+        max-width: 560px;
     }
+
+    .hero-copy h2 em {
+        font-style: italic;
+        background: linear-gradient(100deg, var(--gold-soft), var(--rose-soft));
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+    }
+
+    .hero-copy p {
+        margin-top: 12px;
+        color: var(--text-mid);
+        font-size: 15px;
+        max-width: 480px;
+        line-height: 1.6;
+    }
+
+    .compass {
+        position: relative;
+        width: 110px;
+        height: 110px;
+        flex-shrink: 0;
+        border-radius: 50%;
+        background: linear-gradient(150deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.02));
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(6px);
+        box-shadow: 0 20px 50px -15px rgba(240, 180, 41, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.35);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .compass::before {
+        content: '';
+        position: absolute;
+        inset: 10px;
+        border-radius: 50%;
+        border: 1px dashed rgba(255, 213, 128, 0.35);
+    }
+
+    .compass-needle {
+        width: 3px;
+        height: 62px;
+        background: linear-gradient(180deg, var(--rose) 0%, var(--rose) 48%, var(--gold) 52%, var(--gold) 100%);
+        border-radius: 3px;
+        animation: needleSpin 7s ease-in-out infinite;
+        transform-origin: center;
+        box-shadow: 0 0 12px rgba(240, 180, 41, 0.5);
+    }
+
+    @keyframes needleSpin {
+        0%, 100% { transform: rotate(-16deg); }
+        50% { transform: rotate(16deg); }
+    }
+
+    @media (prefers-reduced-motion: reduce) { .compass-needle { animation: none; } }
+    @media (max-width: 760px) { .compass { display: none; } }
+
+    /* ============================================================
+       CONTAINER + GRID
+       ============================================================ */
+    .container {
+        position: relative;
+        z-index: 2;
+        max-width: 1200px;
+        margin: 8px auto 60px;
+        padding: 0 34px;
+    }
+
     .grid-container {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-        gap: 20px;
+        gap: 22px;
     }
+
+    /* ============================================================
+       GLASS CARDS
+       ============================================================ */
     .grid-item {
-        padding: 20px;
-        background: rgba(255, 255, 255, 0.9);
-        border-radius: 15px;
-        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        position: relative;
         text-align: center;
-        transition: transform 0.3s, box-shadow 0.3s;
-        border: 1px solid rgba(255, 255, 255, 0.2);
+        background: var(--glass);
+        border: 1px solid var(--glass-border);
+        border-radius: var(--radius-lg);
+        padding: 26px;
+        backdrop-filter: blur(22px) saturate(130%);
+        -webkit-backdrop-filter: blur(22px) saturate(130%);
+        box-shadow: 0 20px 50px -20px rgba(0, 0, 0, 0.55);
+        transition: transform 0.5s var(--ease-smooth), box-shadow 0.5s var(--ease-smooth), border-color 0.4s;
+        overflow: hidden;
     }
-    
-    .grid-item:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+
+    .grid-item::before {
+        content: '';
+        position: absolute;
+        inset: -1px;
+        padding: 1px;
+        border-radius: inherit;
+        background: linear-gradient(120deg, rgba(240, 180, 41, 0), rgba(240, 180, 41, 0.5), rgba(245, 87, 108, 0));
+        background-size: 220% 220%;
+        -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+        -webkit-mask-composite: xor;
+        mask-composite: exclude;
+        opacity: 0;
+        transition: opacity 0.5s;
+        pointer-events: none;
     }
+
+    .grid-item:hover { transform: translateY(-5px); box-shadow: 0 30px 70px -20px rgba(155, 123, 240, 0.3); border-color: rgba(255, 255, 255, 0.2); }
+    .grid-item:hover::before { opacity: 1; animation: sheen 3s linear infinite; }
+
+    @keyframes sheen { 0% { background-position: 0% 50%; } 100% { background-position: 200% 50%; } }
+
+    .grid-item .icon {
+        width: 44px;
+        height: 44px;
+        margin: 0 auto 14px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        background: linear-gradient(135deg, var(--gold-soft), var(--rose));
+        box-shadow: 0 8px 22px -8px rgba(240, 180, 41, 0.5);
+    }
+
     .grid-item h3 {
-        margin-bottom: 20px;
+        font-family: 'Fraunces', serif;
+        font-weight: 600;
+        font-size: 1.2rem;
+        margin-bottom: 8px;
+        color: var(--text-hi);
     }
-    .grid-item button {
-        padding: 12px 24px;
-        background: #f5576c;
-        color: white;
+
+    .grid-item p { color: var(--text-mid); font-size: 13.5px; margin-bottom: 16px; line-height: 1.5; }
+
+    /* ============================================================
+       BUTTONS
+       ============================================================ */
+    .btn, .grid-item button, .submit-btn, .location-btn {
+        position: relative;
+        overflow: hidden;
         border: none;
-        border-radius: 25px;
+        border-radius: 999px;
+        padding: 12px 22px;
         cursor: pointer;
+        font-family: 'Sora', sans-serif;
+        font-weight: 700;
+        font-size: 14px;
+        color: #1a0f0a;
+        background: linear-gradient(120deg, var(--gold-soft), var(--gold));
+        box-shadow: 0 10px 26px -10px rgba(240, 180, 41, 0.5);
+        transition: transform 0.22s var(--ease-spring), box-shadow 0.3s, filter 0.2s;
+        will-change: transform;
         margin: 5px;
-        transition: all 0.3s;
-        font-weight: bold;
     }
-    
-    .grid-item button:hover {
-        background: #e34558;
-        transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(245, 87, 108, 0.4);
-    }
-    form {
-        margin-top: 20px;
-    }
-    input, textarea {
-        width: 100%;
-        padding: 10px;
-        margin: 10px 0;
-        border: 1px solid #ccc;
-        border-radius: 5px;
-    }
-    textarea {
-        height: 80px;
-    }
-    .submit-btn {
-        background-color: #4CAF50;
-        color: white;
-        padding: 10px 15px;
-        border: none;
-        cursor: pointer;
-        border-radius: 5px;
-        width: 100%;
-    }
-    .submit-btn:hover {
-        background-color: #45a049;
-    }
+
+    .grid-item button:hover, .location-btn:hover { filter: brightness(1.06); box-shadow: 0 14px 32px -8px rgba(240, 180, 41, 0.6); }
+    .grid-item button:active, .location-btn:active, .submit-btn:active { transform: scale(0.96) !important; }
+
     .location-btn {
-        background-color: #4CAF50;
-        color: white;
-        padding: 10px 20px;
+        display: inline-block;
         text-align: center;
         text-decoration: none;
-        border-radius: 4px;
-        cursor: pointer;
         margin: 10px 0;
-        display: inline-block;
+        width: auto;
+        color: #1a0f0a;
     }
-    .location-btn:hover {
-        background-color: #45a049;
+
+    .submit-btn {
+        width: 100%;
+        margin: 14px 0 0;
+        border-radius: var(--radius-sm);
+        background: linear-gradient(120deg, #7ef0b3, var(--ok));
+        box-shadow: 0 10px 26px -10px rgba(74, 222, 128, 0.5);
+        color: #062915;
+    }
+
+    .submit-btn:hover { filter: brightness(1.06); }
+
+    .ripple {
+        position: absolute;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.5);
+        transform: scale(0);
+        animation: rippleAnim 0.6s var(--ease-smooth);
+        pointer-events: none;
+    }
+
+    @keyframes rippleAnim { to { transform: scale(2.6); opacity: 0; } }
+
+    /* ============================================================
+       FORMS — floating labels, glow focus
+       ============================================================ */
+    form { margin-top: 18px; text-align: left; }
+
+    form h4 {
+        font-family: 'Fraunces', serif;
+        font-weight: 600;
+        font-size: 1rem;
+        margin-bottom: 14px;
+        color: var(--text-hi);
+        text-align: center;
+    }
+
+    input, textarea {
+        width: 100%;
+        padding: 14px 14px;
+        margin: 8px 0;
+        background: rgba(0, 0, 0, 0.18);
+        border: 1.5px solid var(--glass-border);
+        border-radius: var(--radius-sm);
+        color: var(--text-hi);
+        font-family: 'Sora', sans-serif;
+        font-size: 14.5px;
+        transition: border-color 0.3s, box-shadow 0.3s;
+    }
+
+    input::placeholder, textarea::placeholder { color: var(--text-low); }
+
+    textarea { height: 80px; resize: vertical; }
+
+    input:focus, textarea:focus {
+        outline: none;
+        border-color: var(--gold);
+        box-shadow: 0 0 0 4px rgba(240, 180, 41, 0.14), 0 0 22px rgba(240, 180, 41, 0.12);
+    }
+
+    input[readonly] { background: rgba(0, 0, 0, 0.3); color: var(--gold-soft); font-family: 'JetBrains Mono', monospace; font-size: 13px; }
+
+    /* keyboard focus */
+    a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible {
+        outline: 2px solid var(--gold);
+        outline-offset: 2px;
+    }
+
+    ::-webkit-scrollbar { width: 10px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--glass-strong); border-radius: 10px; }
+
+    @media (max-width: 600px) {
+        .header { padding: 16px 20px; }
+        .hero { padding: 36px 20px 6px; }
+        .container { padding: 0 20px; }
     }
   </style>
   <link rel="stylesheet" href="/css/main.css">
 </head>
 <body>
 
+<canvas id="aurora" aria-hidden="true"></canvas>
+<div class="grain" aria-hidden="true"></div>
+
 <div class="header" role="banner">
-    <h1>Business Management Dashboard</h1>
+    <div>
+        <span class="eyebrow">Locality Connector · Business Portal</span>
+        <h1>Business Management Dashboard</h1>
+    </div>
     <div class="profile-dropdown">
         <div class="profile-icon" role="button" tabindex="0" aria-label="Open profile menu" onclick="toggleDropdown()">👤</div>
         <div class="dropdown-content" id="dropdown">
@@ -219,24 +449,25 @@
     </div>
 </div>
 
-<!-- Navbar removed as requested -->
+<section class="hero">
+    <div class="hero-copy">
+        <h2>Run the shop, <em>find your spot</em>.</h2>
+        <p>Manage your items, pin your business on the map, and keep an eye on orders — all from one hub.</p>
+    </div>
+    <div class="compass" aria-hidden="true">
+        <div class="compass-needle"></div>
+    </div>
+</section>
 
 <div class="container" role="main">
 
   <div class="grid-container">
     <!-- Manage Items -->
     <div class="grid-item">
+      <div class="icon">🏷️</div>
       <h3>Manage Items</h3>
       <p>Add, update, or remove items from your inventory.</p>
       <button onclick="showItemForm()">Manage Items</button>
-
-<!--      <form id="item-form" style="display:none;">-->
-<!--        <h4>Add/Update Item</h4>-->
-<!--        <input type="text" name="itemName" placeholder="Item Name" required>-->
-<!--        <input type="number" step="0.01" name="itemPrice" placeholder="Price" required>-->
-<!--        <textarea name="itemDescription" placeholder="Description"></textarea>-->
-<!--        <button class="submit-btn" type="submit">Save Item</button>-->
-<!--      </form>-->
 
       <form id="item-form" style="display:none;">
         <h4>Add/Update Item</h4>
@@ -246,13 +477,11 @@
         <textarea id="itemDescription" name="itemDescription" placeholder="Description"></textarea>
         <button class="submit-btn" type="submit">Save Item</button>
       </form>
-
-
-
     </div>
 
 
     <div class="grid-item">
+      <div class="icon">📍</div>
       <h3>Fetch Location</h3>
       <p>Fetch and save your business's current location.</p>
       <button type="button" onclick="showLocationForm()">Fetch Location</button>
@@ -261,12 +490,12 @@
         <h4>Fetch and Save Location</h4>
 
         <!-- Fetch Latitude and Longitude Button -->
-        <div>
+        <div style="text-align:center;">
           <button class="location-btn" id="fetchLocation" type="button">Fetch Longitude and Latitude via Current Location</button>
         </div>
 
         <!-- Latitude and Longitude Input Fields -->
-        <input type="hidden" name="businessName"  value="${sessionScope.loggedInBusinessName}"> <!-- Assuming session attribute is stored as 'loggedInBusinessName' -->
+        <input type="hidden" name="businessName" value="${sessionScope.loggedInBusinessName}"> <!-- Assuming session attribute is stored as 'loggedInBusinessName' -->
         <input type="text" id="latitude" name="businessLatitude" placeholder="Latitude" readonly required>
         <input type="text" id="longitude" name="businessLongitude" placeholder="Longitude" readonly required>
 
@@ -277,6 +506,7 @@
 
     <!-- Manage Orders -->
     <div class="grid-item">
+      <div class="icon">📦</div>
       <h3>Manage Orders</h3>
       <p>View and manage customer orders.</p>
       <button onclick="window.location.href='/orders'">Manage Orders</button>
@@ -284,6 +514,7 @@
 
     <!-- Analytics Section -->
     <div class="grid-item">
+      <div class="icon">📊</div>
       <h3>View Analytics</h3>
       <p>Check performance and insights into your business.</p>
       <button onclick="alert('Analytics coming soon!')">View Analytics</button>
@@ -292,6 +523,91 @@
 </div>
 
 <script>
+  /* ============================================================
+     AMBIENT AURORA BACKGROUND — same technique used across the
+     business portal, for visual consistency.
+     ============================================================ */
+  (function initAurora() {
+      const canvas = document.getElementById('aurora');
+      const ctx = canvas.getContext('2d');
+      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      let w, h, dpr;
+
+      function resize() {
+          dpr = Math.min(window.devicePixelRatio || 1, 2);
+          w = canvas.width = window.innerWidth * dpr;
+          h = canvas.height = window.innerHeight * dpr;
+          canvas.style.width = window.innerWidth + 'px';
+          canvas.style.height = window.innerHeight + 'px';
+      }
+      resize();
+      window.addEventListener('resize', resize);
+
+      const blobs = [
+          { x: 0.15, y: 0.1, r: 0.35, hue: [155, 123, 240], vx: 0.00012, vy: 0.00009, t: 0 },
+          { x: 0.85, y: 0.25, r: 0.30, hue: [245, 87, 108], vx: -0.00010, vy: 0.00013, t: 2 },
+          { x: 0.5, y: 0.85, r: 0.40, hue: [240, 180, 41], vx: 0.00008, vy: -0.00011, t: 4 },
+      ];
+
+      function draw(time) {
+          ctx.clearRect(0, 0, w, h);
+          blobs.forEach((b) => {
+              const bx = (b.x + Math.sin(time * b.vx + b.t) * 0.06) * w;
+              const by = (b.y + Math.cos(time * b.vy + b.t) * 0.06) * h;
+              const rad = b.r * Math.max(w, h);
+              const grad = ctx.createRadialGradient(bx, by, 0, bx, by, rad);
+              grad.addColorStop(0, `rgba(${b.hue[0]},${b.hue[1]},${b.hue[2]},0.35)`);
+              grad.addColorStop(1, `rgba(${b.hue[0]},${b.hue[1]},${b.hue[2]},0)`);
+              ctx.fillStyle = grad;
+              ctx.beginPath();
+              ctx.arc(bx, by, rad, 0, Math.PI * 2);
+              ctx.fill();
+          });
+          if (!reduceMotion) requestAnimationFrame(draw);
+      }
+      requestAnimationFrame(draw);
+  })();
+
+  /* ============================================================
+     MAGNETIC BUTTONS + RIPPLE
+     ============================================================ */
+  document.addEventListener('mousemove', (e) => {
+      document.querySelectorAll('.grid-item button, .location-btn, .submit-btn').forEach((btn) => {
+          const rect = btn.getBoundingClientRect();
+          const dx = e.clientX - (rect.left + rect.width / 2);
+          const dy = e.clientY - (rect.top + rect.height / 2);
+          const dist = Math.hypot(dx, dy);
+          const radius = 80;
+          if (dist < radius) {
+              const pull = (1 - dist / radius) * 0.16;
+              btn.style.transform = `translate(${dx * pull}px, ${dy * pull}px)`;
+          } else {
+              btn.style.transform = '';
+          }
+      });
+  });
+
+  document.addEventListener('click', (e) => {
+      const btn = e.target.closest('.grid-item button, .location-btn, .submit-btn');
+      if (!btn) return;
+      const rect = btn.getBoundingClientRect();
+      const ripple = document.createElement('span');
+      const size = Math.max(rect.width, rect.height);
+      ripple.className = 'ripple';
+      ripple.style.width = ripple.style.height = size + 'px';
+      ripple.style.left = (e.clientX - rect.left - size / 2) + 'px';
+      ripple.style.top = (e.clientY - rect.top - size / 2) + 'px';
+      btn.style.position = btn.style.position || 'relative';
+      btn.style.overflow = 'hidden';
+      btn.appendChild(ripple);
+      setTimeout(() => ripple.remove(), 650);
+  });
+
+  /* ============================================================
+     APPLICATION LOGIC — unchanged behavior, same element IDs,
+     same endpoints, same request/response handling.
+     ============================================================ */
+
   // Toggle Item Form
   function showItemForm() {
       var itemForm = document.getElementById('item-form');
@@ -457,28 +773,44 @@ itemForm.addEventListener('submit', function(event) {
     const style = document.createElement('style');
     style.innerHTML = `
         .success-message {
-            background-color: #d4edda;
-            color: #155724;
-            padding: 10px;
+            background: rgba(74, 222, 128, 0.14);
+            color: #4ade80;
+            border: 1px solid rgba(74, 222, 128, 0.4);
+            backdrop-filter: blur(14px);
+            padding: 14px 18px;
             margin: 10px 0;
-            border: 1px solid #c3e6cb;
-            border-radius: 5px;
+            border-radius: 12px;
             position: fixed;
             top: 20px;
             right: 20px;
             z-index: 1000;
+            font-family: 'Sora', sans-serif;
+            font-weight: 600;
+            font-size: 14px;
+            box-shadow: 0 12px 30px -10px rgba(74, 222, 128, 0.4);
+            animation: msgSlideIn 0.35s cubic-bezier(.34,1.56,.64,1);
         }
         .error-message {
-            background-color: #f8d7da;
-            color: #721c24;
-            padding: 10px;
+            background: rgba(239, 91, 91, 0.14);
+            color: #ef5b5b;
+            border: 1px solid rgba(239, 91, 91, 0.4);
+            backdrop-filter: blur(14px);
+            padding: 14px 18px;
             margin: 10px 0;
-            border: 1px solid #f5c6cb;
-            border-radius: 5px;
+            border-radius: 12px;
             position: fixed;
             top: 20px;
             right: 20px;
             z-index: 1000;
+            font-family: 'Sora', sans-serif;
+            font-weight: 600;
+            font-size: 14px;
+            box-shadow: 0 12px 30px -10px rgba(239, 91, 91, 0.4);
+            animation: msgSlideIn 0.35s cubic-bezier(.34,1.56,.64,1);
+        }
+        @keyframes msgSlideIn {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
         }
     `;
     document.head.appendChild(style);
@@ -505,5 +837,3 @@ itemForm.addEventListener('submit', function(event) {
   <script src="/js/validation.js"></script>
 </body>
 </html>
-
-
