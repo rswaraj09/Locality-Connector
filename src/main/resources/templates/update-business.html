@@ -4,189 +4,386 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Business Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Sora:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        /* ============================================================
+           TOKENS — same market-at-dusk brand system as the rest of the
+           business portal (Add Listing, Welcome dashboard, Geolocation
+           dashboard): this is where a business tunes its own identity,
+           so the signature leans on that idea directly.
+           ============================================================ */
+        :root {
+            --bg-0: #0d0817;
+            --bg-1: #170f28;
+            --glass: rgba(255, 255, 255, 0.055);
+            --glass-border: rgba(255, 255, 255, 0.12);
+            --glass-strong: rgba(255, 255, 255, 0.09);
+            --gold: #f0b429;
+            --gold-soft: #ffd580;
+            --rose: #f5576c;
+            --rose-soft: #ff8fa3;
+            --violet: #9b7bf0;
+            --text-hi: #f6f2ff;
+            --text-mid: #c9bfe0;
+            --text-low: #8a7fa8;
+            --ok: #4ade80;
+            --err: #ef5b5b;
+            --radius-lg: 22px;
+            --radius-md: 14px;
+            --radius-sm: 9px;
+            --ease-spring: cubic-bezier(.34, 1.56, .64, 1);
+            --ease-smooth: cubic-bezier(.22, 1, .36, 1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.001ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.001ms !important;
+            }
         }
 
         body {
-            font-family: 'Arial', sans-serif;
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            font-family: 'Sora', sans-serif;
+            background:
+                radial-gradient(120% 140% at 15% -10%, #2a1a45 0%, transparent 55%),
+                radial-gradient(100% 120% at 100% 10%, #3a1530 0%, transparent 50%),
+                linear-gradient(180deg, var(--bg-0), var(--bg-1) 45%, var(--bg-0));
             min-height: 100vh;
-            color: #333;
+            color: var(--text-hi);
+            position: relative;
+            overflow-x: hidden;
         }
-        
+
+        #aurora { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; opacity: 0.55; pointer-events: none; }
+
+        .grain {
+            position: fixed; inset: 0; z-index: 1; pointer-events: none; opacity: 0.035; mix-blend-mode: overlay;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+        }
+
+        /* ============================================================
+           HEADER
+           ============================================================ */
         .header {
-            background: rgba(255, 255, 255, 0.95);
-            padding: 20px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 40;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            padding: 18px 34px;
+            background: rgba(13, 8, 23, 0.55);
+            backdrop-filter: blur(18px) saturate(140%);
+            -webkit-backdrop-filter: blur(18px) saturate(140%);
+            border-bottom: 1px solid var(--glass-border);
         }
-        
+
         .header h1 {
-            color: #f5576c;
-            font-size: 2rem;
+            font-family: 'Fraunces', serif;
+            font-weight: 600;
+            font-size: 1.6rem;
+            letter-spacing: -0.01em;
+            color: var(--text-hi);
         }
-        
-        .profile-dropdown {
-            position: relative;
-            display: inline-block;
+
+        .header .eyebrow {
+            display: block;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--text-low);
+            margin-bottom: 2px;
         }
-        
+
+        .profile-dropdown { position: relative; display: inline-block; }
+
         .profile-icon {
-            width: 40px;
-            height: 40px;
-            background: #f5576c;
+            width: 42px;
+            height: 42px;
             border-radius: 50%;
+            background: var(--glass-strong);
+            border: 1px solid var(--glass-border);
             display: flex;
             align-items: center;
             justify-content: center;
-            color: white;
+            color: var(--text-hi);
             cursor: pointer;
-            transition: all 0.3s;
             font-size: 18px;
+            transition: transform 0.35s var(--ease-spring), box-shadow 0.35s var(--ease-smooth), border-color 0.3s;
         }
-        
+
         .profile-icon:hover {
-            background: #e34558;
-            transform: translateY(-2px);
+            transform: translateY(-3px) scale(1.05);
+            border-color: var(--gold);
+            box-shadow: 0 8px 24px rgba(240, 180, 41, 0.25);
         }
-        
+
         .dropdown-content {
             display: none;
             position: absolute;
             right: 0;
-            background-color: white;
-            min-width: 200px;
-            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
-            border-radius: 10px;
-            z-index: 1000;
+            top: calc(100% + 12px);
+            min-width: 210px;
+            background: rgba(23, 15, 40, 0.92);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+            border-radius: var(--radius-md);
             overflow: hidden;
+            animation: dropIn 0.22s var(--ease-spring);
+            z-index: 1000;
         }
-        
+
+        @keyframes dropIn {
+            from { opacity: 0; transform: translateY(-6px) scale(0.97); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
         .dropdown-content a {
-            color: #333;
-            padding: 12px 16px;
+            color: var(--text-mid);
+            padding: 13px 18px;
             text-decoration: none;
             display: block;
-            transition: background-color 0.3s;
-        }
-        
-        .dropdown-content a:hover {
-            background-color: #f1f1f1;
-        }
-        
-        .dropdown-content a:last-child {
-            color: #f5576c;
-            border-top: 1px solid #eee;
+            font-size: 14px;
+            transition: color 0.2s, background 0.2s, padding-left 0.2s;
         }
 
+        .dropdown-content a:hover { background: rgba(255, 255, 255, 0.06); color: var(--text-hi); padding-left: 22px; }
+        .dropdown-content a:last-child { color: var(--rose-soft); border-top: 1px solid var(--glass-border); }
+
+        /* ============================================================
+           HERO — a folded "ID card" signature: this page is where a
+           business's own identity gets written down.
+           ============================================================ */
+        .hero {
+            position: relative;
+            z-index: 2;
+            max-width: 820px;
+            margin: 0 auto;
+            padding: 44px 34px 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 24px;
+        }
+
+        .id-card {
+            width: 56px;
+            height: 56px;
+            flex-shrink: 0;
+            border-radius: 14px;
+            background: linear-gradient(150deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.02));
+            border: 1px solid rgba(255, 255, 255, 0.22);
+            backdrop-filter: blur(6px);
+            box-shadow: 0 16px 40px -14px rgba(240, 180, 41, 0.45), inset 0 1px 1px rgba(255, 255, 255, 0.35);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            animation: cardFloat 5.5s ease-in-out infinite;
+        }
+
+        @keyframes cardFloat {
+            0%, 100% { transform: translateY(0) rotate(-3deg); }
+            50% { transform: translateY(-7px) rotate(3deg); }
+        }
+
+        @media (prefers-reduced-motion: reduce) { .id-card { animation: none; } }
+
+        .hero-copy h2 {
+            font-family: 'Fraunces', serif;
+            font-weight: 600;
+            font-size: clamp(1.8rem, 3.6vw, 2.5rem);
+            letter-spacing: -0.02em;
+        }
+
+        .hero-copy h2 em {
+            font-style: italic;
+            background: linear-gradient(100deg, var(--gold-soft), var(--rose-soft));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .hero-copy p { margin-top: 6px; color: var(--text-mid); font-size: 14px; }
+
+        /* ============================================================
+           CARD / FORM
+           ============================================================ */
         .dashboard-container {
-            background: rgba(255, 255, 255, 0.95);
-            padding: 40px;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            max-width: 800px;
-            margin: 40px auto;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            position: relative;
+            z-index: 2;
+            max-width: 720px;
+            margin: 16px auto 70px;
+            padding: 34px;
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-lg);
+            backdrop-filter: blur(22px) saturate(130%);
+            -webkit-backdrop-filter: blur(22px) saturate(130%);
+            box-shadow: 0 20px 50px -20px rgba(0, 0, 0, 0.55);
         }
 
-        .dashboard-container h2 {
-            text-align: center;
-            margin-bottom: 20px;
-            font-size: 2rem;
-            color: #f5576c;
-        }
+        .dashboard-container h2 { display: none; } /* title now lives in the hero */
 
         .dashboard-container form {
             display: flex;
             flex-direction: column;
         }
 
+        .field { position: relative; margin-bottom: 20px; }
+
+        .field label {
+            display: block;
+            font-size: 11.5px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--gold-soft);
+            margin-bottom: 8px;
+        }
+
         .dashboard-container form input[type="text"],
         .dashboard-container form textarea,
         .dashboard-container form select {
-            background: #fff;
-            border: 2px solid #ddd;
-            padding: 15px;
-            margin-bottom: 20px;
-            border-radius: 10px;
-            color: #333;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1.5px solid var(--glass-border);
+            padding: 15px 16px;
+            border-radius: var(--radius-sm);
+            color: var(--text-hi);
+            font-family: 'Sora', sans-serif;
             font-size: 1rem;
-            transition: border-color 0.3s;
+            transition: border-color 0.3s, box-shadow 0.3s;
         }
 
         .dashboard-container form input[type="text"]::placeholder,
         .dashboard-container form textarea::placeholder {
-            color: #999;
+            color: var(--text-low);
         }
 
         .dashboard-container form select {
-            color: #333;
+            color: var(--text-hi);
+            appearance: none;
+            -webkit-appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='9' viewBox='0 0 14 9'%3E%3Cpath d='M1 1l6 6 6-6' stroke='%23ffd580' stroke-width='2' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 16px center;
+            padding-right: 40px;
         }
 
         .dashboard-container form select option {
-            background-color: #fff;
-            color: #333;
+            background-color: #1a1030;
+            color: var(--text-hi);
         }
 
         .dashboard-container form input:focus,
         .dashboard-container form textarea:focus,
         .dashboard-container form select:focus {
             outline: none;
-            border-color: #f5576c;
+            border-color: var(--gold);
+            box-shadow: 0 0 0 4px rgba(240, 180, 41, 0.14), 0 0 22px rgba(240, 180, 41, 0.12);
         }
 
+        .dashboard-container form textarea { resize: vertical; }
+
         .dashboard-container form button {
-            background: #f5576c;
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(120deg, var(--gold-soft), var(--gold));
             border: none;
-            padding: 15px;
-            border-radius: 25px;
-            color: white;
-            font-weight: bold;
-            transition: all 0.3s;
+            padding: 16px;
+            border-radius: 999px;
+            color: #1a0f0a;
+            font-weight: 700;
+            font-size: 15px;
+            cursor: pointer;
+            margin-top: 4px;
+            box-shadow: 0 10px 28px -10px rgba(240, 180, 41, 0.5);
+            transition: transform 0.22s var(--ease-spring), box-shadow 0.3s, filter 0.2s;
+            will-change: transform;
         }
-        
+
         .dashboard-container form button:hover {
-            background: #e34558;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(245, 87, 108, 0.4);
+            filter: brightness(1.06);
+            box-shadow: 0 14px 34px -8px rgba(240, 180, 41, 0.6);
         }
-        
+
+        .dashboard-container form button:active { transform: scale(0.97) !important; }
+
+        .ripple {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.5);
+            transform: scale(0);
+            animation: rippleAnim 0.6s var(--ease-smooth);
+            pointer-events: none;
+        }
+
+        @keyframes rippleAnim { to { transform: scale(2.6); opacity: 0; } }
+
+        /* ============================================================
+           MESSAGES
+           ============================================================ */
         .message {
-            margin: 20px 0;
-            padding: 20px;
-            border-radius: 10px;
+            margin: 0 0 22px;
+            padding: 16px 20px;
+            border-radius: var(--radius-md);
             display: block;
-            font-size: 16px;
-            font-weight: bold;
+            font-size: 14.5px;
+            font-weight: 600;
             text-align: center;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            border: 1px solid transparent;
+            animation: msgIn 0.35s var(--ease-spring);
         }
-        
+
+        @keyframes msgIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+
         .message.success {
-            background: #4CAF50;
-            color: white;
-            border: 2px solid #45a049;
+            background: rgba(74, 222, 128, 0.12);
+            border-color: rgba(74, 222, 128, 0.35);
+            color: var(--ok);
         }
-        
+
         .message.error {
-            background: #f44336;
-            color: white;
-            border: 2px solid #d32f2f;
+            background: rgba(239, 91, 91, 0.12);
+            border-color: rgba(239, 91, 91, 0.35);
+            color: var(--err);
+        }
+
+        a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible {
+            outline: 2px solid var(--gold);
+            outline-offset: 2px;
+        }
+
+        ::-webkit-scrollbar { width: 10px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--glass-strong); border-radius: 10px; }
+
+        @media (max-width: 600px) {
+            .header { padding: 16px 20px; }
+            .hero { padding: 32px 20px 4px; flex-direction: column; text-align: center; }
+            .dashboard-container { padding: 26px 22px; margin: 12px 16px 50px; }
         }
     </style>
   <link rel="stylesheet" href="/css/main.css">
 </head>
 <body>
 
+<canvas id="aurora" aria-hidden="true"></canvas>
+<div class="grain" aria-hidden="true"></div>
+
 <div class="header">
-    <h1>Update Business Profile</h1>
+    <div>
+        <span class="eyebrow">Locality Connector · Business Portal</span>
+        <h1>Update Business Profile</h1>
+    </div>
     <div class="profile-dropdown">
         <div class="profile-icon" onclick="toggleDropdown()">👤</div>
         <div class="dropdown-content" id="dropdown">
@@ -198,49 +395,149 @@
     </div>
 </div>
 
+<section class="hero">
+    <div class="id-card" aria-hidden="true">🪪</div>
+    <div class="hero-copy">
+        <h2>Tell customers <em>who you are</em>.</h2>
+        <p>Keep your name, category, and details accurate and current.</p>
+    </div>
+</section>
+
 <div class="dashboard-container">
     <h2>Update Business Profile</h2>
-    
+
     <!-- Success/Error Messages -->
     <div th:if="${success}" class="message success" th:text="${success}"></div>
     <div th:if="${error}" class="message error" th:text="${error}"></div>
-    
+
     <form action="/update-business" method="POST" th:object="${business}">
-        <label for="business-name">Business Name:</label>
-        <input type="text" id="business-name" name="business_name" 
-               th:value="${business?.businessName}" 
-               placeholder="Enter your business name" required>
+        <div class="field">
+            <label for="business-name">Business Name</label>
+            <input type="text" id="business-name" name="business_name"
+                   th:value="${business?.businessName}"
+                   placeholder="Enter your business name" required>
+        </div>
 
-        <label for="business-type">Business Type:</label>
-        <select id="business-type" name="business_type" required>
-            <option value="grocery" th:selected="${business?.category == 'grocery'}">Grocery Store</option>
-            <option value="pharmacy" th:selected="${business?.category == 'pharmacy'}">Pharmacy</option>
-            <option value="fooditem" th:selected="${business?.category == 'fooditem'}">Fooditem</option>
-            <option value="hardware" th:selected="${business?.category == 'hardware'}">Hardware Store</option>
-            <option value="clothing" th:selected="${business?.category == 'clothing'}">Clothing Store</option>
-            <option value="other" th:selected="${business?.category == 'other'}">Other</option>
-        </select>
+        <div class="field">
+            <label for="business-type">Business Type</label>
+            <select id="business-type" name="business_type" required>
+                <option value="grocery" th:selected="${business?.category == 'grocery'}">Grocery Store</option>
+                <option value="pharmacy" th:selected="${business?.category == 'pharmacy'}">Pharmacy</option>
+                <option value="fooditem" th:selected="${business?.category == 'fooditem'}">Fooditem</option>
+                <option value="hardware" th:selected="${business?.category == 'hardware'}">Hardware Store</option>
+                <option value="clothing" th:selected="${business?.category == 'clothing'}">Clothing Store</option>
+                <option value="other" th:selected="${business?.category == 'other'}">Other</option>
+            </select>
+        </div>
 
-        <label for="business-description">Business Description:</label>
-        <textarea id="business-description" name="business_description" 
-                  th:text="${business?.description}"
-                  placeholder="Describe your business" rows="4" required></textarea>
+        <div class="field">
+            <label for="business-description">Business Description</label>
+            <textarea id="business-description" name="business_description"
+                      th:text="${business?.description}"
+                      placeholder="Describe your business" rows="4" required></textarea>
+        </div>
 
-        <label for="business-address">Business Address:</label>
-        <input type="text" id="business-address" name="business_address" 
-               th:value="${business?.address}"
-               placeholder="Enter your business address" required>
+        <div class="field">
+            <label for="business-address">Business Address</label>
+            <input type="text" id="business-address" name="business_address"
+                   th:value="${business?.address}"
+                   placeholder="Enter your business address" required>
+        </div>
 
-        <label for="contact-number">Contact Number:</label>
-        <input type="text" id="contact-number" name="contact_number" 
-               th:value="${business?.phoneNumber}"
-               placeholder="Enter your contact number" required>
+        <div class="field">
+            <label for="contact-number">Contact Number</label>
+            <input type="text" id="contact-number" name="contact_number"
+                   th:value="${business?.phoneNumber}"
+                   placeholder="Enter your contact number" required>
+        </div>
 
         <button type="submit">Update Profile</button>
     </form>
 </div>
 
 <script>
+    /* ============================================================
+       AMBIENT AURORA BACKGROUND — same technique used across the
+       business portal, for visual consistency.
+       ============================================================ */
+    (function initAurora() {
+        const canvas = document.getElementById('aurora');
+        const ctx = canvas.getContext('2d');
+        const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        let w, h, dpr;
+
+        function resize() {
+            dpr = Math.min(window.devicePixelRatio || 1, 2);
+            w = canvas.width = window.innerWidth * dpr;
+            h = canvas.height = window.innerHeight * dpr;
+            canvas.style.width = window.innerWidth + 'px';
+            canvas.style.height = window.innerHeight + 'px';
+        }
+        resize();
+        window.addEventListener('resize', resize);
+
+        const blobs = [
+            { x: 0.15, y: 0.1, r: 0.35, hue: [155, 123, 240], vx: 0.00012, vy: 0.00009, t: 0 },
+            { x: 0.85, y: 0.25, r: 0.30, hue: [245, 87, 108], vx: -0.00010, vy: 0.00013, t: 2 },
+            { x: 0.5, y: 0.85, r: 0.40, hue: [240, 180, 41], vx: 0.00008, vy: -0.00011, t: 4 },
+        ];
+
+        function draw(time) {
+            ctx.clearRect(0, 0, w, h);
+            blobs.forEach((b) => {
+                const bx = (b.x + Math.sin(time * b.vx + b.t) * 0.06) * w;
+                const by = (b.y + Math.cos(time * b.vy + b.t) * 0.06) * h;
+                const rad = b.r * Math.max(w, h);
+                const grad = ctx.createRadialGradient(bx, by, 0, bx, by, rad);
+                grad.addColorStop(0, `rgba(${b.hue[0]},${b.hue[1]},${b.hue[2]},0.35)`);
+                grad.addColorStop(1, `rgba(${b.hue[0]},${b.hue[1]},${b.hue[2]},0)`);
+                ctx.fillStyle = grad;
+                ctx.beginPath();
+                ctx.arc(bx, by, rad, 0, Math.PI * 2);
+                ctx.fill();
+            });
+            if (!reduceMotion) requestAnimationFrame(draw);
+        }
+        requestAnimationFrame(draw);
+    })();
+
+    /* ============================================================
+       MAGNETIC BUTTON + RIPPLE
+       ============================================================ */
+    document.addEventListener('mousemove', (e) => {
+        const btn = document.querySelector('.dashboard-container form button');
+        if (!btn) return;
+        const rect = btn.getBoundingClientRect();
+        const dx = e.clientX - (rect.left + rect.width / 2);
+        const dy = e.clientY - (rect.top + rect.height / 2);
+        const dist = Math.hypot(dx, dy);
+        const radius = 90;
+        if (dist < radius) {
+            const pull = (1 - dist / radius) * 0.16;
+            btn.style.transform = `translate(${dx * pull}px, ${dy * pull}px)`;
+        } else {
+            btn.style.transform = '';
+        }
+    });
+
+    document.addEventListener('click', (e) => {
+        const btn = e.target.closest('.dashboard-container form button');
+        if (!btn) return;
+        const rect = btn.getBoundingClientRect();
+        const ripple = document.createElement('span');
+        const size = Math.max(rect.width, rect.height);
+        ripple.className = 'ripple';
+        ripple.style.width = ripple.style.height = size + 'px';
+        ripple.style.left = (e.clientX - rect.left - size / 2) + 'px';
+        ripple.style.top = (e.clientY - rect.top - size / 2) + 'px';
+        btn.appendChild(ripple);
+        setTimeout(() => ripple.remove(), 650);
+    });
+
+    /* ============================================================
+       APPLICATION LOGIC — unchanged behavior
+       ============================================================ */
+
     // Profile dropdown functionality
     function toggleDropdown() {
         const dropdown = document.getElementById('dropdown');
