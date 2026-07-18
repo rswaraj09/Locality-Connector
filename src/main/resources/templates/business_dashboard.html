@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Business Dashboard - Locality Connector</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Sora:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        /* ============================================================
+           TOKENS — same market-at-dusk system as the Add Listing page,
+           since this dashboard is the home base of the same business
+           portal: deep plum night, warm gold for value, rose ember
+           for the brand accent.
+           ============================================================ */
+        :root {
+            --bg-0: #0d0817;
+            --bg-1: #170f28;
+            --glass: rgba(255, 255, 255, 0.055);
+            --glass-border: rgba(255, 255, 255, 0.12);
+            --glass-strong: rgba(255, 255, 255, 0.09);
+            --gold: #f0b429;
+            --gold-soft: #ffd580;
+            --rose: #f5576c;
+            --rose-soft: #ff8fa3;
+            --violet: #9b7bf0;
+            --text-hi: #f6f2ff;
+            --text-mid: #c9bfe0;
+            --text-low: #8a7fa8;
+            --ok: #4ade80;
+            --err: #ef5b5b;
+            --radius-lg: 22px;
+            --radius-md: 14px;
+            --radius-sm: 9px;
+            --ease-spring: cubic-bezier(.34, 1.56, .64, 1);
+            --ease-smooth: cubic-bezier(.22, 1, .36, 1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.001ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.001ms !important;
+            }
+        }
+
+        body {
+            font-family: 'Sora', sans-serif;
+            background:
+                radial-gradient(120% 140% at 15% -10%, #2a1a45 0%, transparent 55%),
+                radial-gradient(100% 120% at 100% 10%, #3a1530 0%, transparent 50%),
+                linear-gradient(180deg, var(--bg-0), var(--bg-1) 45%, var(--bg-0));
+            color: var(--text-hi);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        #aurora { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; opacity: 0.55; pointer-events: none; }
+
+        .grain {
+            position: fixed; inset: 0; z-index: 1; pointer-events: none; opacity: 0.035; mix-blend-mode: overlay;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+        }
+
+        /* ============================================================
+           HEADER
+           ============================================================ */
+        .header {
+            position: sticky;
+            top: 0;
+            z-index: 40;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 18px 34px;
+            background: rgba(13, 8, 23, 0.55);
+            backdrop-filter: blur(18px) saturate(140%);
+            -webkit-backdrop-filter: blur(18px) saturate(140%);
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .header h1 {
+            font-family: 'Fraunces', serif;
+            font-weight: 600;
+            font-size: 1.7rem;
+            letter-spacing: -0.01em;
+            color: var(--text-hi);
+        }
+
+        .header h1 span {
+            background: linear-gradient(100deg, var(--gold-soft), var(--rose-soft));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            font-style: italic;
+        }
+
+        .header .eyebrow {
+            display: block;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--text-low);
+            margin-bottom: 2px;
+        }
+
+        .logout-btn {
+            position: relative;
+            overflow: hidden;
+            background: var(--glass-strong);
+            color: var(--text-hi);
+            border: 1px solid var(--glass-border);
+            padding: 11px 22px;
+            border-radius: 999px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+            transition: transform 0.25s var(--ease-spring), border-color 0.3s, box-shadow 0.3s;
+            will-change: transform;
+        }
+
+        .logout-btn:hover {
+            border-color: var(--rose);
+            box-shadow: 0 8px 24px -8px rgba(245, 87, 108, 0.45);
+        }
+
+        /* ============================================================
+           HERO — a warm welcome, framed like a shop's storefront sign
+           ============================================================ */
+        .hero {
+            position: relative;
+            z-index: 2;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 50px 34px 10px;
+        }
+
+        .hero-eyebrow {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: var(--gold-soft);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .hero-eyebrow::before {
+            content: '';
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--ok);
+            box-shadow: 0 0 10px 2px rgba(74, 222, 128, 0.7);
+            animation: pulseDot 1.6s ease-in-out infinite;
+        }
+
+        @keyframes pulseDot { 0%, 100% { opacity: 0.5; transform: scale(0.85); } 50% { opacity: 1; transform: scale(1.15); } }
+
+        .hero h2 {
+            font-family: 'Fraunces', serif;
+            font-weight: 600;
+            font-size: clamp(2.1rem, 4.2vw, 3.1rem);
+            line-height: 1.08;
+            letter-spacing: -0.02em;
+            margin-top: 10px;
+            max-width: 640px;
+        }
+
+        .hero h2 .biz-name {
+            background: linear-gradient(100deg, var(--gold-soft), var(--rose-soft));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            font-style: italic;
+        }
+
+        .hero p {
+            margin-top: 14px;
+            color: var(--text-mid);
+            font-size: 15px;
+            max-width: 480px;
+            line-height: 1.6;
+        }
+
+        /* ============================================================
+           MAIN CONTAINER + GRID
+           ============================================================ */
+        .container {
+            position: relative;
+            z-index: 2;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 30px 34px 80px;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+        }
+
+        /* ============================================================
+           GLASS CARDS
+           ============================================================ */
+        .card {
+            position: relative;
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-lg);
+            padding: 28px;
+            backdrop-filter: blur(22px) saturate(130%);
+            -webkit-backdrop-filter: blur(22px) saturate(130%);
+            box-shadow: 0 20px 50px -20px rgba(0, 0, 0, 0.55);
+            transition: transform 0.5s var(--ease-smooth), box-shadow 0.5s var(--ease-smooth), border-color 0.4s;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            inset: -1px;
+            padding: 1px;
+            border-radius: inherit;
+            background: linear-gradient(120deg, rgba(240, 180, 41, 0), rgba(240, 180, 41, 0.5), rgba(245, 87, 108, 0));
+            background-size: 220% 220%;
+            -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            opacity: 0;
+            transition: opacity 0.5s;
+            pointer-events: none;
+        }
+
+        .card:hover { transform: translateY(-5px); box-shadow: 0 30px 70px -20px rgba(155, 123, 240, 0.3); border-color: rgba(255, 255, 255, 0.2); }
+        .card:hover::before { opacity: 1; animation: sheen 3s linear infinite; }
+
+        @keyframes sheen { 0% { background-position: 0% 50%; } 100% { background-position: 200% 50%; } }
+
+        .card h3 {
+            font-family: 'Fraunces', serif;
+            font-weight: 600;
+            font-size: 1.3rem;
+            margin-bottom: 18px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card h3::before {
+            content: '';
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--gold);
+            box-shadow: 0 0 12px 2px rgba(240, 180, 41, 0.7);
+        }
+
+        /* ============================================================
+           BUTTONS — magnetic, ripple, sweep
+           ============================================================ */
+        .btn {
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(120deg, var(--gold-soft), var(--gold));
+            color: #1a0f0a;
+            padding: 15px 22px;
+            border: none;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            text-decoration: none;
+            display: block;
+            width: 100%;
+            text-align: center;
+            margin-top: 12px;
+            font-size: 1rem;
+            font-weight: 700;
+            box-shadow: 0 10px 26px -10px rgba(240, 180, 41, 0.5);
+            transition: transform 0.25s var(--ease-spring), box-shadow 0.3s;
+            will-change: transform;
+        }
+
+        .btn:hover { box-shadow: 0 14px 32px -8px rgba(240, 180, 41, 0.6); }
+        .btn:active { transform: scale(0.97) !important; }
+
+        .btn-secondary {
+            background: var(--glass-strong);
+            color: var(--text-hi);
+            border: 1px solid var(--glass-border);
+            box-shadow: none;
+        }
+
+        .btn-secondary:hover { border-color: var(--violet); box-shadow: 0 8px 24px -8px rgba(155, 123, 240, 0.45); }
+
+        .btn .ripple {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.5);
+            transform: scale(0);
+            animation: rippleAnim 0.6s var(--ease-smooth);
+            pointer-events: none;
+        }
+
+        @keyframes rippleAnim { to { transform: scale(2.6); opacity: 0; } }
+
+        /* ============================================================
+           LOGO CARD — framed like a lit shop plaque
+           ============================================================ */
+        .logo-frame {
+            position: relative;
+            width: 168px;
+            height: 168px;
+            margin: 0 auto 18px;
+            border-radius: 18px;
+            padding: 6px;
+            background: linear-gradient(150deg, rgba(240, 180, 41, 0.5), rgba(245, 87, 108, 0.25), rgba(240, 180, 41, 0.5));
+            background-size: 220% 220%;
+            animation: sheen 5s linear infinite;
+            box-shadow: 0 20px 50px -18px rgba(240, 180, 41, 0.4);
+        }
+
+        .logo-frame img {
+            width: 100%;
+            height: 100%;
+            border-radius: 14px;
+            object-fit: cover;
+            display: block;
+            background: var(--bg-1);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        #uploadStatus {
+            margin-top: 12px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 13.5px;
+            min-height: 18px;
+        }
+
+        /* keyboard focus */
+        a:focus-visible, button:focus-visible, input:focus-visible {
+            outline: 2px solid var(--gold);
+            outline-offset: 2px;
+        }
+
+        ::-webkit-scrollbar { width: 10px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--glass-strong); border-radius: 10px; }
+
+        @media (max-width: 600px) {
+            .header { padding: 16px 20px; }
+            .hero { padding: 36px 20px 6px; }
+            .container { padding: 24px 20px 60px; }
+        }
+    </style>
+  <link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+
+<canvas id="aurora" aria-hidden="true"></canvas>
+<div class="grain" aria-hidden="true"></div>
+
+<div class="header">
+    <div>
+        <span class="eyebrow">Locality Connector · Business Portal</span>
+        <h1>Welcome <span th:text="${session.loggedInBusinessName != null ? session.loggedInBusinessName : 'Business'}"></span></h1>
+    </div>
+    <a href="/business/login" class="logout-btn">Logout</a>
+</div>
+
+<section class="hero">
+    <div class="hero-eyebrow">Storefront live</div>
+    <h2>Your counter, <span class="biz-name">open for business</span>.</h2>
+    <p>Manage what's on your shelves, keep your profile current, and see what customers are saying — all from one place.</p>
+</section>
+
+<div class="container">
+    <div class="dashboard-grid">
+        <div class="card">
+            <h3>Quick Actions</h3>
+            <a href="/listing" class="btn">Manage Listings</a>
+            <a href="/addlisting" class="btn">Add New Item</a>
+            <a href="/update-business" class="btn btn-secondary">Update Profile</a>
+            <a href="/feedback" class="btn btn-secondary">View All Feedback</a>
+        </div>
+        <div class="card">
+            <h3>Business Logo</h3>
+            <div class="logo-frame">
+                <img id="currentLogo" src="https://via.placeholder.com/150?text=No+Logo" alt="Business Logo">
+            </div>
+            <input type="file" id="logoFileInput" accept="image/jpeg,image/png,image/webp,image/gif" style="display: none;" onchange="uploadLogoFile()">
+            <button type="button" class="btn" onclick="document.getElementById('logoFileInput').click()">Upload New Logo</button>
+            <div id="uploadStatus"></div>
+        </div>
+    </div>
+</div>
+
+<script src="/js/auth.js"></script>
+<script src="/js/validation.js"></script>
+<script>
+    /* ============================================================
+       AMBIENT AURORA BACKGROUND — same lightweight canvas technique
+       used across the business portal, for a consistent feel.
+       ============================================================ */
+    (function initAurora() {
+        const canvas = document.getElementById('aurora');
+        const ctx = canvas.getContext('2d');
+        const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        let w, h, dpr;
+
+        function resize() {
+            dpr = Math.min(window.devicePixelRatio || 1, 2);
+            w = canvas.width = window.innerWidth * dpr;
+            h = canvas.height = window.innerHeight * dpr;
+            canvas.style.width = window.innerWidth + 'px';
+            canvas.style.height = window.innerHeight + 'px';
+        }
+        resize();
+        window.addEventListener('resize', resize);
+
+        const blobs = [
+            { x: 0.15, y: 0.1, r: 0.35, hue: [155, 123, 240], vx: 0.00012, vy: 0.00009, t: 0 },
+            { x: 0.85, y: 0.25, r: 0.30, hue: [245, 87, 108], vx: -0.00010, vy: 0.00013, t: 2 },
+            { x: 0.5, y: 0.8, r: 0.40, hue: [240, 180, 41], vx: 0.00008, vy: -0.00011, t: 4 },
+        ];
+
+        function draw(time) {
+            ctx.clearRect(0, 0, w, h);
+            blobs.forEach((b) => {
+                const bx = (b.x + Math.sin(time * b.vx + b.t) * 0.06) * w;
+                const by = (b.y + Math.cos(time * b.vy + b.t) * 0.06) * h;
+                const rad = b.r * Math.max(w, h);
+                const grad = ctx.createRadialGradient(bx, by, 0, bx, by, rad);
+                grad.addColorStop(0, `rgba(${b.hue[0]},${b.hue[1]},${b.hue[2]},0.35)`);
+                grad.addColorStop(1, `rgba(${b.hue[0]},${b.hue[1]},${b.hue[2]},0)`);
+                ctx.fillStyle = grad;
+                ctx.beginPath();
+                ctx.arc(bx, by, rad, 0, Math.PI * 2);
+                ctx.fill();
+            });
+            if (!reduceMotion) requestAnimationFrame(draw);
+        }
+        requestAnimationFrame(draw);
+    })();
+
+    /* ============================================================
+       MAGNETIC BUTTONS + RIPPLE
+       ============================================================ */
+    document.addEventListener('mousemove', (e) => {
+        document.querySelectorAll('.btn, .logout-btn').forEach((btn) => {
+            const rect = btn.getBoundingClientRect();
+            const dx = e.clientX - (rect.left + rect.width / 2);
+            const dy = e.clientY - (rect.top + rect.height / 2);
+            const dist = Math.hypot(dx, dy);
+            const radius = 80;
+            if (dist < radius) {
+                const pull = (1 - dist / radius) * 0.15;
+                btn.style.transform = `translate(${dx * pull}px, ${dy * pull}px)`;
+            } else {
+                btn.style.transform = '';
+            }
+        });
+    });
+
+    document.addEventListener('click', (e) => {
+        const btn = e.target.closest('.btn, .logout-btn');
+        if (!btn) return;
+        const rect = btn.getBoundingClientRect();
+        const ripple = document.createElement('span');
+        const size = Math.max(rect.width, rect.height);
+        ripple.className = 'ripple';
+        ripple.style.width = ripple.style.height = size + 'px';
+        ripple.style.left = (e.clientX - rect.left - size / 2) + 'px';
+        ripple.style.top = (e.clientY - rect.top - size / 2) + 'px';
+        btn.style.position = btn.style.position || 'relative';
+        btn.style.overflow = 'hidden';
+        btn.appendChild(ripple);
+        setTimeout(() => ripple.remove(), 650);
+    });
+
+    /* ============================================================
+       APPLICATION LOGIC — unchanged behavior, same endpoints,
+       same element IDs, same globals the rest of the app expects.
+       ============================================================ */
+    document.addEventListener("DOMContentLoaded", function() {
+        if (typeof LCAuth === 'undefined') {
+            // /js/auth.js wasn't loaded (e.g. standalone preview outside the real
+            // app server). In production LCAuth is always defined by this point,
+            // so the block below is what actually runs there.
+            console.warn('LCAuth module not found — skipping auth check (standalone preview mode).');
+            return;
+        }
+        if (window.LCAuth) {
+            LCAuth.requireRole("business", "/business/login");
+            loadBusinessProfile();
+        }
+    });
+
+    function loadBusinessProfile() {
+        LCAuth.authFetch("/api/business/dashboard/profile")
+            .then(res => res.json())
+            .then(data => {
+                if (data && data.success && data.data && data.data.logoUrl) {
+                    document.getElementById("currentLogo").src = data.data.logoUrl;
+                }
+            })
+            .catch(err => console.error("Failed to load profile:", err));
+    }
+
+    function uploadLogoFile() {
+        const fileInput = document.getElementById("logoFileInput");
+        const statusDiv = document.getElementById("uploadStatus");
+        if (!fileInput.files || fileInput.files.length === 0) return;
+
+        const file = fileInput.files[0];
+        const formData = new FormData();
+        formData.append("file", file);
+
+        statusDiv.style.color = "#c9bfe0";
+        statusDiv.textContent = "Uploading...";
+
+        const headers = {};
+        const token = LCAuth.getToken();
+        if (token) {
+            headers["Authorization"] = "Bearer " + token;
+        }
+
+        fetch("/api/business/dashboard/logo", {
+            method: "POST",
+            headers: headers,
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data && data.success) {
+                statusDiv.style.color = "#4ade80";
+                statusDiv.textContent = "Logo uploaded successfully!";
+                if (data.data && data.data.logoUrl) {
+                    document.getElementById("currentLogo").src = data.data.logoUrl;
+                } else {
+                    loadBusinessProfile();
+                }
+            } else {
+                statusDiv.style.color = "#ef5b5b";
+                statusDiv.textContent = (data && data.error) ? data.error : "Upload failed.";
+            }
+        })
+        .catch(err => {
+            console.error("Upload error:", err);
+            statusDiv.style.color = "#ef5b5b";
+            statusDiv.textContent = "Error occurred during upload.";
+        });
+    }
+</script>
+<script src="/js/notifications.js"></script>
+</body>
+</html>
