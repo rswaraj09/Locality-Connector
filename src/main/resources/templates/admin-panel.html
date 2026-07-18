@@ -4,432 +4,966 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard - Locality Connector</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
+        /* ============================================================
+           TOKENS
+           This is an ops console for a location-driven network: real
+           businesses, real people, real map coordinates being moderated
+           and seeded from Google Places. The palette reads as a night
+           control room watching a map — graphite dark, radar-cyan for
+           live data, amber/coral/green for status states.
+           ============================================================ */
+        :root {
+            --bg-0: #060a12;
+            --bg-1: #0b1220;
+            --panel: rgba(255, 255, 255, 0.045);
+            --panel-strong: rgba(255, 255, 255, 0.08);
+            --border: rgba(255, 255, 255, 0.10);
+            --border-hi: rgba(255, 255, 255, 0.20);
+            --cyan: #3fe1c8;
+            --cyan-soft: #9df3e6;
+            --amber: #ffb648;
+            --coral: #ff6b6b;
+            --green: #46d98c;
+            --text-hi: #edf3f7;
+            --text-mid: #9db0c4;
+            --text-low: #5c7086;
+            --radius-lg: 20px;
+            --radius-md: 13px;
+            --radius-sm: 9px;
+            --ease-spring: cubic-bezier(.34, 1.56, .64, 1);
+            --ease-smooth: cubic-bezier(.22, 1, .36, 1);
+        }
+
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Arial', sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; color: #333; }
-        .container { max-width: 1200px; margin: 0 auto; background: rgba(255, 255, 255, 0.95); border-radius: 15px; padding: 30px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2); }
-        h1 { color: #667eea; text-align: center; margin-bottom: 20px; }
-        
-        .tabs { display: flex; justify-content: center; margin-bottom: 20px; gap: 10px; }
-        .tab-btn { background: #e2e8f0; border: none; padding: 10px 20px; border-radius: 20px; cursor: pointer; font-weight: bold; transition: 0.3s; }
-        .tab-btn.active { background: #667eea; color: white; }
-        .tab-btn:hover:not(.active) { background: #cbd5e1; }
-        
-        .tab-content { display: none; }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.001ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.001ms !important;
+            }
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background:
+                radial-gradient(90% 60% at 50% -10%, rgba(63, 225, 200, 0.10), transparent 60%),
+                linear-gradient(180deg, var(--bg-0), var(--bg-1) 55%, var(--bg-0));
+            min-height: 100vh;
+            padding: 28px 20px 60px;
+            color: var(--text-hi);
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        #radar {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        .grain {
+            position: fixed;
+            inset: 0;
+            z-index: 1;
+            pointer-events: none;
+            opacity: 0.03;
+            mix-blend-mode: overlay;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+        }
+
+        .container {
+            position: relative;
+            z-index: 2;
+            max-width: 1240px;
+            margin: 0 auto;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 26px;
+            padding: 34px 32px 42px;
+            backdrop-filter: blur(22px) saturate(130%);
+            -webkit-backdrop-filter: blur(22px) saturate(130%);
+            box-shadow: 0 30px 80px -30px rgba(0, 0, 0, 0.6);
+        }
+
+        .brand-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+            margin-bottom: 26px;
+        }
+
+        .brand-mark {
+            width: 40px;
+            height: 40px;
+            border-radius: 11px;
+            background: linear-gradient(135deg, var(--cyan), #1a7f8f);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 600;
+            color: #04211d;
+            box-shadow: 0 0 24px rgba(63, 225, 200, 0.4);
+            flex-shrink: 0;
+        }
+
+        h1 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 600;
+            font-size: 2rem;
+            letter-spacing: -0.01em;
+            text-align: center;
+            color: var(--text-hi);
+        }
+
+        .eyebrow {
+            display: block;
+            text-align: center;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: var(--text-low);
+            margin-bottom: -2px;
+        }
+
+        /* ============================================================
+           TABS — glass segmented control
+           ============================================================ */
+        .tabs {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 26px;
+            gap: 8px;
+            flex-wrap: wrap;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--border);
+            border-radius: 999px;
+            padding: 6px;
+            width: fit-content;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .tab-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-mid);
+            padding: 10px 20px;
+            border-radius: 999px;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            font-size: 13.5px;
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            transition: color 0.25s, background 0.3s var(--ease-smooth), transform 0.3s var(--ease-spring);
+        }
+
+        .tab-btn:hover:not(.active) {
+            color: var(--text-hi);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(120deg, var(--cyan), #1e9e8f);
+            color: #04211d;
+            box-shadow: 0 6px 20px -4px rgba(63, 225, 200, 0.5);
+            transform: translateY(-1px);
+        }
+
+        .tab-content { display: none; animation: fadeUp 0.4s var(--ease-smooth); }
         .tab-content.active { display: block; }
-        
-        .btn { padding: 8px 16px; border: none; border-radius: 15px; cursor: pointer; transition: 0.3s; font-size: 14px; font-weight: bold; color: white; margin-right: 5px; }
-        .btn-primary { background: #667eea; }
-        .btn-primary:hover { background: #5568d3; }
-        .btn-success { background: #4CAF50; }
-        .btn-success:hover { background: #45a049; }
-        .btn-warning { background: #ff9800; }
-        .btn-warning:hover { background: #e68a00; }
-        .btn-danger { background: #f44336; }
-        .btn-danger:hover { background: #d32f2f; }
-        
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
-        th { background-color: #f8f9fa; color: #667eea; }
-        tr:nth-child(even) { background-color: #f9f9f9; }
-        tr:hover { background-color: #f1f1f1; }
-        
-        .badge { padding: 4px 8px; border-radius: 10px; font-size: 12px; font-weight: bold; color: white; }
-        .badge-success { background: #4CAF50; }
-        .badge-danger { background: #f44336; }
-        .badge-warning { background: #ff9800; }
-        
-        /* Seeding Tab Styles */
-        .status { margin: 20px 0; padding: 15px; border-radius: 10px; background: #f8f9fa; border-left: 4px solid #667eea; }
-        .loading { display: none; text-align: center; color: #667eea; font-weight: bold; margin: 10px 0; }
-        .form-group { margin: 15px 0; }
-        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
-        .form-group input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; }
-        .city-form { background: #f8f9fa; padding: 20px; border-radius: 10px; margin: 20px 0; }
-        
-        .action-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ============================================================
+           LOADING
+           ============================================================ */
+        .loading {
+            display: none;
+            text-align: center;
+            color: var(--cyan);
+            font-weight: 600;
+            font-size: 13.5px;
+            margin: 6px 0 18px;
+            font-family: 'JetBrains Mono', monospace;
+            letter-spacing: 0.02em;
+        }
+
+        .loading::before {
+            content: '';
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--cyan);
+            margin-right: 8px;
+            box-shadow: 0 0 10px 2px rgba(63, 225, 200, 0.8);
+            animation: pulseDot 1s ease-in-out infinite;
+        }
+
+        @keyframes pulseDot {
+            0%, 100% { opacity: 0.4; transform: scale(0.8); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+
+        /* ============================================================
+           PANELS / ACTION BAR
+           ============================================================ */
+        .action-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .action-bar h2 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 600;
+            font-size: 1.35rem;
+            color: var(--text-hi);
+        }
+
+        /* ============================================================
+           BUTTONS — magnetic + ripple + glow
+           ============================================================ */
+        .btn {
+            position: relative;
+            overflow: hidden;
+            padding: 9px 18px;
+            border: none;
+            border-radius: 999px;
+            cursor: pointer;
+            font-size: 13.5px;
+            font-weight: 600;
+            color: #061218;
+            margin-right: 6px;
+            transition: transform 0.22s var(--ease-spring), box-shadow 0.3s, filter 0.2s;
+            will-change: transform;
+        }
+
+        .btn:active { transform: scale(0.95) !important; }
+
+        .btn-primary { background: linear-gradient(120deg, var(--cyan-soft), var(--cyan)); box-shadow: 0 8px 20px -6px rgba(63, 225, 200, 0.5); }
+        .btn-primary:hover { filter: brightness(1.08); }
+
+        .btn-success { background: linear-gradient(120deg, #7ef0b3, var(--green)); box-shadow: 0 8px 20px -6px rgba(70, 217, 140, 0.5); }
+        .btn-success:hover { filter: brightness(1.08); }
+
+        .btn-warning { background: linear-gradient(120deg, #ffd08a, var(--amber)); box-shadow: 0 8px 20px -6px rgba(255, 182, 72, 0.5); }
+        .btn-warning:hover { filter: brightness(1.08); }
+
+        .btn-danger { background: linear-gradient(120deg, #ff9d9d, var(--coral)); box-shadow: 0 8px 20px -6px rgba(255, 107, 107, 0.5); color: #250505; }
+        .btn-danger:hover { filter: brightness(1.08); }
+
+        .btn .ripple {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.55);
+            transform: scale(0);
+            animation: rippleAnim 0.6s var(--ease-smooth);
+            pointer-events: none;
+        }
+
+        @keyframes rippleAnim { to { transform: scale(2.6); opacity: 0; } }
+
+        /* ============================================================
+           TABLES — glass rows, staggered reveal, sticky header
+           ============================================================ */
+        .table-wrap {
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border);
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        table { width: 100%; border-collapse: collapse; }
+
+        th, td {
+            padding: 13px 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+            font-size: 13.5px;
+        }
+
+        th {
+            background: rgba(255, 255, 255, 0.04);
+            color: var(--cyan-soft);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            font-weight: 500;
+        }
+
+        tbody tr {
+            transition: background 0.25s;
+            animation: rowIn 0.35s var(--ease-smooth) both;
+        }
+
+        tbody tr:nth-child(even) { background: rgba(255, 255, 255, 0.015); }
+        tbody tr:hover { background: rgba(63, 225, 200, 0.06); }
+        tbody tr:last-child td { border-bottom: none; }
+
+        @keyframes rowIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ============================================================
+           BADGES
+           ============================================================ */
+        .badge {
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .badge::before {
+            content: '';
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: currentColor;
+            box-shadow: 0 0 8px 1px currentColor;
+        }
+
+        .badge-success { background: rgba(70, 217, 140, 0.14); color: var(--green); }
+        .badge-danger { background: rgba(255, 107, 107, 0.14); color: var(--coral); }
+        .badge-warning { background: rgba(255, 182, 72, 0.14); color: var(--amber); }
+
+        /* ============================================================
+           SEEDING TAB
+           ============================================================ */
+        .status {
+            margin: 6px 0 22px;
+            padding: 16px 20px;
+            border-radius: var(--radius-md);
+            background: rgba(63, 225, 200, 0.06);
+            border: 1px solid rgba(63, 225, 200, 0.25);
+            font-size: 14px;
+        }
+
+        .status strong { color: var(--cyan-soft); font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; }
+        #statusText { color: var(--text-hi); font-weight: 500; }
+
+        .city-form {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 26px;
+            margin: 22px 0;
+            backdrop-filter: blur(10px);
+        }
+
+        .city-form h3 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-bottom: 18px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .city-form h3::before {
+            content: '📍';
+            font-size: 15px;
+        }
+
+        .form-group { position: relative; margin: 18px 0; }
+
+        .form-group label {
+            position: absolute;
+            left: 15px;
+            top: 14px;
+            font-size: 14px;
+            color: var(--text-low);
+            pointer-events: none;
+            transition: transform 0.2s var(--ease-smooth), top 0.2s, color 0.2s, font-size 0.2s;
+            background: transparent;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 19px 15px 7px;
+            background: rgba(0, 0, 0, 0.22);
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-sm);
+            color: var(--text-hi);
+            font-family: 'Inter', sans-serif;
+            font-size: 14.5px;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--cyan);
+            box-shadow: 0 0 0 4px rgba(63, 225, 200, 0.14), 0 0 22px rgba(63, 225, 200, 0.12);
+        }
+
+        .form-group input:focus + label,
+        .form-group input:not(:placeholder-shown) + label {
+            top: 5px;
+            font-size: 10.5px;
+            color: var(--cyan-soft);
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+
+        /* keyboard focus */
+        a:focus-visible, button:focus-visible, input:focus-visible {
+            outline: 2px solid var(--cyan);
+            outline-offset: 2px;
+        }
+
+        ::-webkit-scrollbar { width: 10px; height: 10px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--panel-strong); border-radius: 10px; }
+
+        .back-link {
+            display: inline-flex;
+            text-decoration: none;
+        }
+
+        @media (max-width: 700px) {
+            .container { padding: 26px 18px 34px; border-radius: 20px; }
+            th, td { padding: 10px; font-size: 12.5px; }
+            .action-bar { flex-direction: column; align-items: flex-start; }
+        }
     </style>
     <link rel="stylesheet" href="/css/main.css">
 </head>
 <body>
-    <div class="container">
-        <h1>Admin Dashboard</h1>
-        
-        <div class="tabs">
-            <button class="tab-btn active" onclick="switchTab('businesses')">Businesses</button>
-            <button class="tab-btn" onclick="switchTab('users')">Users</button>
-            <button class="tab-btn" onclick="switchTab('feedback')">Flagged Feedback</button>
-            <button class="tab-btn" onclick="switchTab('seeding')">Data Seeding</button>
-        </div>
-        
-        <div class="loading" id="mainLoading">Processing request... Please wait.</div>
 
-        <!-- Businesses Tab -->
-        <div id="businesses" class="tab-content active">
-            <div class="action-bar">
-                <h2>Businesses</h2>
-                <div>
-                    <button class="btn btn-primary" onclick="loadBusinesses()">All Businesses</button>
-                    <button class="btn btn-warning" onclick="loadBusinesses('unverified')">Unverified Only</button>
-                </div>
-            </div>
-            <div style="overflow-x:auto;">
-                <table id="businessesTable">
-                    <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Email</th>
-                            <th>Category</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- Populated by JS -->
-                    </tbody>
-                </table>
-            </div>
-        </div>
+<canvas id="radar" aria-hidden="true"></canvas>
+<div class="grain" aria-hidden="true"></div>
 
-        <!-- Users Tab -->
-        <div id="users" class="tab-content">
-            <div class="action-bar">
-                <h2>Users</h2>
-                <button class="btn btn-primary" onclick="loadUsers()">Refresh</button>
-            </div>
-            <div style="overflow-x:auto;">
-                <table id="usersTable">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Name</th>
-                            <th>Email</th>
-                            <th>Role</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- Populated by JS -->
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- Feedback Tab -->
-        <div id="feedback" class="tab-content">
-            <div class="action-bar">
-                <h2>Flagged Feedback</h2>
-                <button class="btn btn-primary" onclick="loadFeedback()">Refresh</button>
-            </div>
-            <div style="overflow-x:auto;">
-                <table id="feedbackTable">
-                    <thead>
-                        <tr>
-                            <th>Business ID</th>
-                            <th>Rating</th>
-                            <th>Comment</th>
-                            <th>Moderation Note</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- Populated by JS -->
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- Seeding Tab -->
-        <div id="seeding" class="tab-content">
-            <h2>Data Seeding from Google Places</h2>
-            <div class="status" id="status">
-                <strong>Status:</strong> <span id="statusText">Checking...</span>
-            </div>
-            
-            <div style="text-align: center; margin: 20px 0;">
-                <button class="btn btn-primary" onclick="checkStatus()">Refresh Status</button>
-            </div>
-            
-            <div class="city-form">
-                <h3>Seed Specific Location</h3>
-                <div class="form-group">
-                    <label for="cityName">Location Name / Reference:</label>
-                    <input type="text" id="cityName" placeholder="e.g., Mumbai Bandra">
-                </div>
-                <div class="form-group">
-                    <label for="latitude">Latitude:</label>
-                    <input type="number" id="latitude" step="any" placeholder="e.g., 19.0760">
-                </div>
-                <div class="form-group">
-                    <label for="longitude">Longitude:</label>
-                    <input type="number" id="longitude" step="any" placeholder="e.g., 72.8777">
-                </div>
-                <div class="form-group">
-                    <label for="radius">Radius (meters):</label>
-                    <input type="number" id="radius" value="5000" placeholder="e.g., 5000">
-                </div>
-                <div class="form-group">
-                    <label for="types">Types (comma-separated):</label>
-                    <input type="text" id="types" value="restaurant,pharmacy,hospital" placeholder="e.g., restaurant,pharmacy">
-                </div>
-                <button class="btn btn-primary" onclick="seedSpecificCity()">Seed This Location</button>
-            </div>
-        </div>
-        
-        <div style="margin-top: 30px; text-align: center;">
-            <a href="/" class="btn btn-primary">Back to Home</a>
+<div class="container">
+    <div class="brand-row">
+        <div class="brand-mark">◎</div>
+        <div>
+            <span class="eyebrow">Locality Connector · Ops</span>
+            <h1>Admin Dashboard</h1>
         </div>
     </div>
 
-    <script src="/js/auth.js"></script>
-    <script>
-        // Ensure Admin Access
-        document.addEventListener('DOMContentLoaded', function() {
-            if (!Auth.isAuthenticated()) {
-                window.location.href = '/user_login';
-                return;
+    <div class="tabs" role="tablist">
+        <button class="tab-btn active" onclick="switchTab('businesses')">🏬 Businesses</button>
+        <button class="tab-btn" onclick="switchTab('users')">👥 Users</button>
+        <button class="tab-btn" onclick="switchTab('feedback')">🚩 Flagged Feedback</button>
+        <button class="tab-btn" onclick="switchTab('seeding')">📍 Data Seeding</button>
+    </div>
+
+    <div class="loading" id="mainLoading">Processing request... Please wait.</div>
+
+    <!-- Businesses Tab -->
+    <div id="businesses" class="tab-content active">
+        <div class="action-bar">
+            <h2>Businesses</h2>
+            <div>
+                <button class="btn btn-primary" onclick="loadBusinesses()">All Businesses</button>
+                <button class="btn btn-warning" onclick="loadBusinesses('unverified')">Unverified Only</button>
+            </div>
+        </div>
+        <div class="table-wrap" style="overflow-x:auto;">
+            <table id="businessesTable">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Category</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Populated by JS -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Users Tab -->
+    <div id="users" class="tab-content">
+        <div class="action-bar">
+            <h2>Users</h2>
+            <button class="btn btn-primary" onclick="loadUsers()">Refresh</button>
+        </div>
+        <div class="table-wrap" style="overflow-x:auto;">
+            <table id="usersTable">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Role</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Populated by JS -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Feedback Tab -->
+    <div id="feedback" class="tab-content">
+        <div class="action-bar">
+            <h2>Flagged Feedback</h2>
+            <button class="btn btn-primary" onclick="loadFeedback()">Refresh</button>
+        </div>
+        <div class="table-wrap" style="overflow-x:auto;">
+            <table id="feedbackTable">
+                <thead>
+                    <tr>
+                        <th>Business ID</th>
+                        <th>Rating</th>
+                        <th>Comment</th>
+                        <th>Moderation Note</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Populated by JS -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Seeding Tab -->
+    <div id="seeding" class="tab-content">
+        <h2 style="font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:1.35rem;margin-bottom:6px;">Data Seeding from Google Places</h2>
+        <div class="status" id="status">
+            <strong>Status</strong><br>
+            <span id="statusText">Checking...</span>
+        </div>
+
+        <div style="text-align: center; margin: 20px 0;">
+            <button class="btn btn-primary" onclick="checkStatus()">Refresh Status</button>
+        </div>
+
+        <div class="city-form">
+            <h3>Seed Specific Location</h3>
+            <div class="form-group">
+                <input type="text" id="cityName" placeholder=" ">
+                <label for="cityName">Location name / reference — e.g. Mumbai Bandra</label>
+            </div>
+            <div class="form-group">
+                <input type="number" id="latitude" step="any" placeholder=" ">
+                <label for="latitude">Latitude — e.g. 19.0760</label>
+            </div>
+            <div class="form-group">
+                <input type="number" id="longitude" step="any" placeholder=" ">
+                <label for="longitude">Longitude — e.g. 72.8777</label>
+            </div>
+            <div class="form-group">
+                <input type="number" id="radius" value="5000" placeholder=" ">
+                <label for="radius">Radius (meters)</label>
+            </div>
+            <div class="form-group">
+                <input type="text" id="types" value="restaurant,pharmacy,hospital" placeholder=" ">
+                <label for="types">Types (comma-separated)</label>
+            </div>
+            <button class="btn btn-primary" onclick="seedSpecificCity()">Seed This Location</button>
+        </div>
+    </div>
+
+    <div style="margin-top: 30px; text-align: center;">
+        <a href="/" class="btn btn-primary back-link">Back to Home</a>
+    </div>
+</div>
+
+<script src="/js/auth.js"></script>
+<script>
+    /* ============================================================
+       AMBIENT RADAR BACKGROUND
+       A slow dot-grid with a rotating sweep beam and a few pulsing
+       "location pins" — a nod to the Google Places seeding this
+       console drives. Canvas-based, cheap, and frozen entirely
+       under prefers-reduced-motion.
+       ============================================================ */
+    (function initRadar() {
+        const canvas = document.getElementById('radar');
+        const ctx = canvas.getContext('2d');
+        const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        let w, h, dpr;
+
+        function resize() {
+            dpr = Math.min(window.devicePixelRatio || 1, 2);
+            w = canvas.width = window.innerWidth * dpr;
+            h = canvas.height = window.innerHeight * dpr;
+            canvas.style.width = window.innerWidth + 'px';
+            canvas.style.height = window.innerHeight + 'px';
+        }
+        resize();
+        window.addEventListener('resize', resize);
+
+        const pins = Array.from({ length: 7 }, () => ({
+            x: Math.random(), y: Math.random(), phase: Math.random() * Math.PI * 2, speed: 0.0016 + Math.random() * 0.001
+        }));
+
+        function draw(time) {
+            ctx.clearRect(0, 0, w, h);
+
+            // faint grid
+            const gap = 46 * dpr;
+            ctx.strokeStyle = 'rgba(63,225,200,0.05)';
+            ctx.lineWidth = 1;
+            for (let x = 0; x < w; x += gap) {
+                ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
             }
-            loadBusinesses();
+            for (let y = 0; y < h; y += gap) {
+                ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
+            }
+
+            // rotating radar sweep, centered top area
+            const cx = w * 0.82, cy = h * 0.08, rad = Math.max(w, h) * 0.5;
+            const angle = time * 0.00035;
+            const grad = ctx.createConicGradient ? ctx.createConicGradient(angle, cx, cy) : null;
+            if (grad) {
+                grad.addColorStop(0, 'rgba(63,225,200,0.16)');
+                grad.addColorStop(0.06, 'rgba(63,225,200,0)');
+                grad.addColorStop(1, 'rgba(63,225,200,0)');
+                ctx.fillStyle = grad;
+                ctx.beginPath();
+                ctx.moveTo(cx, cy);
+                ctx.arc(cx, cy, rad, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            // pulsing location pins
+            pins.forEach((p) => {
+                const pulse = (Math.sin(time * p.speed + p.phase) + 1) / 2;
+                const px = p.x * w, py = p.y * h * 0.9;
+                const r = 3 + pulse * 10;
+                const g2 = ctx.createRadialGradient(px, py, 0, px, py, r * 3);
+                g2.addColorStop(0, `rgba(63,225,200,${0.35 * (1 - pulse * 0.6)})`);
+                g2.addColorStop(1, 'rgba(63,225,200,0)');
+                ctx.fillStyle = g2;
+                ctx.beginPath(); ctx.arc(px, py, r * 3, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = 'rgba(157,243,230,0.8)';
+                ctx.beginPath(); ctx.arc(px, py, 2 * dpr, 0, Math.PI * 2); ctx.fill();
+            });
+
+            if (!reduceMotion) requestAnimationFrame(draw);
+        }
+        requestAnimationFrame(draw);
+    })();
+
+    /* ============================================================
+       MAGNETIC BUTTONS + RIPPLE
+       ============================================================ */
+    document.addEventListener('mousemove', (e) => {
+        document.querySelectorAll('.btn').forEach((btn) => {
+            const rect = btn.getBoundingClientRect();
+            const dx = e.clientX - (rect.left + rect.width / 2);
+            const dy = e.clientY - (rect.top + rect.height / 2);
+            const dist = Math.hypot(dx, dy);
+            const radius = 70;
+            if (dist < radius) {
+                const pull = (1 - dist / radius) * 0.2;
+                btn.style.transform = `translate(${dx * pull}px, ${dy * pull}px)`;
+            } else {
+                btn.style.transform = '';
+            }
         });
+    });
 
-        function switchTab(tabId) {
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-            
-            document.getElementById(tabId).classList.add('active');
-            event.target.classList.add('active');
-            
-            if (tabId === 'businesses') loadBusinesses();
-            if (tabId === 'users') loadUsers();
-            if (tabId === 'feedback') loadFeedback();
-            if (tabId === 'seeding') checkStatus();
-        }
+    document.addEventListener('click', (e) => {
+        const btn = e.target.closest('.btn');
+        if (!btn) return;
+        const rect = btn.getBoundingClientRect();
+        const ripple = document.createElement('span');
+        const size = Math.max(rect.width, rect.height);
+        ripple.className = 'ripple';
+        ripple.style.width = ripple.style.height = size + 'px';
+        ripple.style.left = (e.clientX - rect.left - size / 2) + 'px';
+        ripple.style.top = (e.clientY - rect.top - size / 2) + 'px';
+        btn.appendChild(ripple);
+        setTimeout(() => ripple.remove(), 650);
+    });
 
-        function showLoading(show) {
-            document.getElementById('mainLoading').style.display = show ? 'block' : 'none';
+    // Ensure Admin Access
+    document.addEventListener('DOMContentLoaded', function() {
+        if (typeof Auth === 'undefined') {
+            // /js/auth.js wasn't loaded (e.g. this page is being previewed on its own,
+            // outside the real app server). In production this file always defines
+            // Auth before this script runs, so the block below is what actually
+            // executes there — this is just a non-crashing fallback for standalone viewing.
+            console.warn('Auth module not found — skipping auth check (standalone preview mode).');
+            document.getElementById('statusText').textContent = 'Auth module not loaded — running in standalone preview mode.';
+            return;
         }
-        
-        // --- Businesses ---
-        
-        async function loadBusinesses(filter = 'all') {
-            showLoading(true);
-            try {
-                const url = filter === 'unverified' ? '/api/admin/businesses/unverified' : '/api/admin/businesses';
-                const response = await Auth.fetchWithAuth(url);
-                const data = await response.json();
-                
-                if (response.ok) {
-                    const tbody = document.querySelector('#businessesTable tbody');
-                    tbody.innerHTML = '';
-                    
-                    if (data.data && data.data.length > 0) {
-                        data.data.forEach(b => {
-                            const verifiedBadge = b.verified ? '<span class="badge badge-success">Verified</span>' : '<span class="badge badge-warning">Unverified</span>';
-                            const activeBadge = b.active ? '<span class="badge badge-success">Active</span>' : '<span class="badge badge-danger">Suspended</span>';
-                            
-                            let actionBtns = '';
-                            if (!b.verified) {
-                                actionBtns += `<button class="btn btn-success" onclick="verifyBusiness('${b.id}')">Verify</button>`;
-                            }
-                            if (b.active) {
-                                actionBtns += `<button class="btn btn-warning" onclick="suspendBusiness('${b.id}')">Suspend</button>`;
-                            } else {
-                                actionBtns += `<button class="btn btn-success" onclick="activateBusiness('${b.id}')">Activate</button>`;
-                            }
-                            actionBtns += `<button class="btn btn-danger" onclick="deleteBusiness('${b.id}')">Delete</button>`;
-                            
-                            tbody.innerHTML += `
-                                <tr>
-                                    <td>${b.businessName || 'N/A'}</td>
-                                    <td>${b.email || 'N/A'}</td>
-                                    <td>${b.category || 'N/A'}</td>
-                                    <td>${verifiedBadge} ${activeBadge}</td>
-                                    <td>${actionBtns}</td>
-                                </tr>
-                            `;
-                        });
-                    } else {
-                        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No businesses found.</td></tr>';
-                    }
+        if (!Auth.isAuthenticated()) {
+            window.location.href = '/user_login';
+            return;
+        }
+        loadBusinesses();
+    });
+
+    function switchTab(tabId) {
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+
+        document.getElementById(tabId).classList.add('active');
+        event.target.classList.add('active');
+
+        if (tabId === 'businesses') loadBusinesses();
+        if (tabId === 'users') loadUsers();
+        if (tabId === 'feedback') loadFeedback();
+        if (tabId === 'seeding') checkStatus();
+    }
+
+    function showLoading(show) {
+        document.getElementById('mainLoading').style.display = show ? 'block' : 'none';
+    }
+
+    // --- Businesses ---
+
+    async function loadBusinesses(filter = 'all') {
+        showLoading(true);
+        try {
+            const url = filter === 'unverified' ? '/api/admin/businesses/unverified' : '/api/admin/businesses';
+            const response = await Auth.fetchWithAuth(url);
+            const data = await response.json();
+
+            if (response.ok) {
+                const tbody = document.querySelector('#businessesTable tbody');
+                tbody.innerHTML = '';
+
+                if (data.data && data.data.length > 0) {
+                    data.data.forEach((b, i) => {
+                        const verifiedBadge = b.verified ? '<span class="badge badge-success">Verified</span>' : '<span class="badge badge-warning">Unverified</span>';
+                        const activeBadge = b.active ? '<span class="badge badge-success">Active</span>' : '<span class="badge badge-danger">Suspended</span>';
+
+                        let actionBtns = '';
+                        if (!b.verified) {
+                            actionBtns += `<button class="btn btn-success" onclick="verifyBusiness('${b.id}')">Verify</button>`;
+                        }
+                        if (b.active) {
+                            actionBtns += `<button class="btn btn-warning" onclick="suspendBusiness('${b.id}')">Suspend</button>`;
+                        } else {
+                            actionBtns += `<button class="btn btn-success" onclick="activateBusiness('${b.id}')">Activate</button>`;
+                        }
+                        actionBtns += `<button class="btn btn-danger" onclick="deleteBusiness('${b.id}')">Delete</button>`;
+
+                        const row = document.createElement('tr');
+                        row.style.animationDelay = (i * 0.04) + 's';
+                        row.innerHTML = `
+                                <td>${b.businessName || 'N/A'}</td>
+                                <td>${b.email || 'N/A'}</td>
+                                <td>${b.category || 'N/A'}</td>
+                                <td>${verifiedBadge} ${activeBadge}</td>
+                                <td>${actionBtns}</td>
+                        `;
+                        tbody.appendChild(row);
+                    });
                 } else {
-                    alert('Error loading businesses: ' + (data.message || data.error));
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No businesses found.</td></tr>';
                 }
-            } catch (error) {
-                console.error(error);
-                alert('Error: ' + error.message);
-            } finally {
-                showLoading(false);
+            } else {
+                alert('Error loading businesses: ' + (data.message || data.error));
             }
+        } catch (error) {
+            console.error(error);
+            alert('Error: ' + error.message);
+        } finally {
+            showLoading(false);
         }
-        
-        async function verifyBusiness(id) {
-            if(!confirm('Verify this business?')) return;
-            await actionBusiness(`/api/admin/businesses/${id}/verify`, 'PUT');
+    }
+
+    async function verifyBusiness(id) {
+        if(!confirm('Verify this business?')) return;
+        await actionBusiness(`/api/admin/businesses/${id}/verify`, 'PUT');
+    }
+    async function suspendBusiness(id) {
+        if(!confirm('Suspend this business?')) return;
+        await actionBusiness(`/api/admin/businesses/${id}/suspend`, 'PUT');
+    }
+    async function activateBusiness(id) {
+        if(!confirm('Activate this business?')) return;
+        await actionBusiness(`/api/admin/businesses/${id}/activate`, 'PUT');
+    }
+    async function deleteBusiness(id) {
+        if(!confirm('Delete this business permanently? This cascades to items and feedback.')) return;
+        await actionBusiness(`/api/admin/businesses/${id}`, 'DELETE');
+    }
+
+    async function actionBusiness(url, method) {
+        showLoading(true);
+        try {
+            const res = await Auth.fetchWithAuth(url, { method: method });
+            const data = await res.json();
+            if (res.ok) {
+                alert(data.data.message || 'Action successful');
+                loadBusinesses();
+            } else {
+                alert('Error: ' + (data.message || data.error));
+            }
+        } catch(e) {
+            alert('Error: ' + e.message);
+        } finally {
+            showLoading(false);
         }
-        async function suspendBusiness(id) {
-            if(!confirm('Suspend this business?')) return;
-            await actionBusiness(`/api/admin/businesses/${id}/suspend`, 'PUT');
+    }
+
+    // --- Users ---
+
+    async function loadUsers() {
+        showLoading(true);
+        try {
+            const response = await Auth.fetchWithAuth('/api/admin/users');
+            const data = await response.json();
+
+            if (response.ok) {
+                const tbody = document.querySelector('#usersTable tbody');
+                tbody.innerHTML = '';
+                if (data.data && data.data.length > 0) {
+                    data.data.forEach((u, i) => {
+                        const row = document.createElement('tr');
+                        row.style.animationDelay = (i * 0.04) + 's';
+                        row.innerHTML = `
+                                <td>${u.id}</td>
+                                <td>${u.fullName || 'N/A'}</td>
+                                <td>${u.email}</td>
+                                <td><span class="badge ${u.roles.includes('ROLE_ADMIN') ? 'badge-danger' : 'badge-success'}">${u.roles.join(', ')}</span></td>
+                        `;
+                        tbody.appendChild(row);
+                    });
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">No users found.</td></tr>';
+                }
+            }
+        } catch (error) {
+            alert('Error: ' + error.message);
+        } finally {
+            showLoading(false);
         }
-        async function activateBusiness(id) {
-            if(!confirm('Activate this business?')) return;
-            await actionBusiness(`/api/admin/businesses/${id}/activate`, 'PUT');
+    }
+
+    // --- Feedback ---
+
+    async function loadFeedback() {
+        showLoading(true);
+        try {
+            const response = await Auth.fetchWithAuth('/api/admin/feedback/flagged');
+            const data = await response.json();
+
+            if (response.ok) {
+                const tbody = document.querySelector('#feedbackTable tbody');
+                tbody.innerHTML = '';
+                if (data.data && data.data.length > 0) {
+                    data.data.forEach((f, i) => {
+                        const row = document.createElement('tr');
+                        row.style.animationDelay = (i * 0.04) + 's';
+                        row.innerHTML = `
+                                <td>${f.businessId}</td>
+                                <td>${f.rating}/5</td>
+                                <td>${f.comment || 'N/A'}</td>
+                                <td>${f.moderationNote || 'N/A'}</td>
+                                <td>
+                                    <button class="btn btn-danger" onclick="deleteFeedback('${f.id}')">Remove Review</button>
+                                </td>
+                        `;
+                        tbody.appendChild(row);
+                    });
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No flagged feedback found.</td></tr>';
+                }
+            }
+        } catch (error) {
+            alert('Error: ' + error.message);
+        } finally {
+            showLoading(false);
         }
-        async function deleteBusiness(id) {
-            if(!confirm('Delete this business permanently? This cascades to items and feedback.')) return;
-            await actionBusiness(`/api/admin/businesses/${id}`, 'DELETE');
-        }
-        
-        async function actionBusiness(url, method) {
-            showLoading(true);
-            try {
-                const res = await Auth.fetchWithAuth(url, { method: method });
+    }
+
+    async function deleteFeedback(id) {
+        if(!confirm('Permanently delete this flagged review?')) return;
+        showLoading(true);
+        try {
+            const res = await Auth.fetchWithAuth(`/api/admin/feedback/${id}`, { method: 'DELETE' });
+            if (res.ok) {
+                alert('Review deleted.');
+                loadFeedback();
+            } else {
                 const data = await res.json();
-                if (res.ok) {
-                    alert(data.data.message || 'Action successful');
-                    loadBusinesses();
-                } else {
-                    alert('Error: ' + (data.message || data.error));
-                }
-            } catch(e) {
-                alert('Error: ' + e.message);
-            } finally {
-                showLoading(false);
+                alert('Error: ' + (data.message || data.error));
             }
+        } catch(e) {
+            alert('Error: ' + e.message);
+        } finally {
+            showLoading(false);
+        }
+    }
+
+    // --- Seeding ---
+
+    async function checkStatus() {
+        try {
+            const resAuth = await Auth.fetchWithAuth('/api/business-data/stats');
+            const data = await resAuth.json();
+            if (resAuth.ok) {
+                document.getElementById('statusText').textContent =
+                    `Database currently contains ${data.data.totalBusinesses} businesses.`;
+            }
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+    async function seedSpecificCity() {
+        const latitude = parseFloat(document.getElementById('latitude').value);
+        const longitude = parseFloat(document.getElementById('longitude').value);
+        const radius = parseInt(document.getElementById('radius').value) || 5000;
+        const types = document.getElementById('types').value || 'restaurant,pharmacy,hospital';
+
+        if (isNaN(latitude) || isNaN(longitude)) {
+            alert('Please provide valid latitude and longitude coordinates.');
+            return;
         }
 
-        // --- Users ---
-        
-        async function loadUsers() {
-            showLoading(true);
-            try {
-                const response = await Auth.fetchWithAuth('/api/admin/users');
-                const data = await response.json();
-                
-                if (response.ok) {
-                    const tbody = document.querySelector('#usersTable tbody');
-                    tbody.innerHTML = '';
-                    if (data.data && data.data.length > 0) {
-                        data.data.forEach(u => {
-                            tbody.innerHTML += `
-                                <tr>
-                                    <td>${u.id}</td>
-                                    <td>${u.fullName || 'N/A'}</td>
-                                    <td>${u.email}</td>
-                                    <td><span class="badge ${u.roles.includes('ROLE_ADMIN') ? 'badge-danger' : 'badge-primary'}">${u.roles.join(', ')}</span></td>
-                                </tr>
-                            `;
-                        });
-                    } else {
-                        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">No users found.</td></tr>';
-                    }
-                }
-            } catch (error) {
-                alert('Error: ' + error.message);
-            } finally {
-                showLoading(false);
+        showLoading(true);
+        try {
+            const url = `/api/admin/seed-from-places?latitude=${latitude}&longitude=${longitude}&radius=${radius}&types=${encodeURIComponent(types)}`;
+            const response = await Auth.fetchWithAuth(url, {
+                method: 'POST'
+            });
+            const data = await response.json();
+            if (response.ok) {
+                alert(`Success: Seeded ${data.data.seeded} businesses.`);
+                checkStatus();
+            } else {
+                alert('Error: ' + (data.message || data.error));
             }
+        } catch (error) {
+            alert('Error: ' + error.message);
+        } finally {
+            showLoading(false);
         }
-
-        // --- Feedback ---
-        
-        async function loadFeedback() {
-            showLoading(true);
-            try {
-                const response = await Auth.fetchWithAuth('/api/admin/feedback/flagged');
-                const data = await response.json();
-                
-                if (response.ok) {
-                    const tbody = document.querySelector('#feedbackTable tbody');
-                    tbody.innerHTML = '';
-                    if (data.data && data.data.length > 0) {
-                        data.data.forEach(f => {
-                            tbody.innerHTML += `
-                                <tr>
-                                    <td>${f.businessId}</td>
-                                    <td>${f.rating}/5</td>
-                                    <td>${f.comment || 'N/A'}</td>
-                                    <td>${f.moderationNote || 'N/A'}</td>
-                                    <td>
-                                        <button class="btn btn-danger" onclick="deleteFeedback('${f.id}')">Remove Review</button>
-                                    </td>
-                                </tr>
-                            `;
-                        });
-                    } else {
-                        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No flagged feedback found.</td></tr>';
-                    }
-                }
-            } catch (error) {
-                alert('Error: ' + error.message);
-            } finally {
-                showLoading(false);
-            }
-        }
-        
-        async function deleteFeedback(id) {
-            if(!confirm('Permanently delete this flagged review?')) return;
-            showLoading(true);
-            try {
-                const res = await Auth.fetchWithAuth(`/api/admin/feedback/${id}`, { method: 'DELETE' });
-                if (res.ok) {
-                    alert('Review deleted.');
-                    loadFeedback();
-                } else {
-                    const data = await res.json();
-                    alert('Error: ' + (data.message || data.error));
-                }
-            } catch(e) {
-                alert('Error: ' + e.message);
-            } finally {
-                showLoading(false);
-            }
-        }
-
-        // --- Seeding ---
-        
-        async function checkStatus() {
-            try {
-                const resAuth = await Auth.fetchWithAuth('/api/business-data/stats'); 
-                const data = await resAuth.json();
-                if (resAuth.ok) {
-                    document.getElementById('statusText').textContent = 
-                        `Database currently contains ${data.data.totalBusinesses} businesses.`;
-                }
-            } catch (error) {
-                console.error(error);
-            }
-        }
-
-        async function seedSpecificCity() {
-            const latitude = parseFloat(document.getElementById('latitude').value);
-            const longitude = parseFloat(document.getElementById('longitude').value);
-            const radius = parseInt(document.getElementById('radius').value) || 5000;
-            const types = document.getElementById('types').value || 'restaurant,pharmacy,hospital';
-            
-            if (isNaN(latitude) || isNaN(longitude)) {
-                alert('Please provide valid latitude and longitude coordinates.');
-                return;
-            }
-            
-            showLoading(true);
-            try {
-                const url = `/api/admin/seed-from-places?latitude=${latitude}&longitude=${longitude}&radius=${radius}&types=${encodeURIComponent(types)}`;
-                const response = await Auth.fetchWithAuth(url, {
-                    method: 'POST'
-                });
-                const data = await response.json();
-                if (response.ok) {
-                    alert(`Success: Seeded ${data.data.seeded} businesses.`);
-                    checkStatus();
-                } else {
-                    alert('Error: ' + (data.message || data.error));
-                }
-            } catch (error) {
-                alert('Error: ' + error.message);
-            } finally {
-                showLoading(false);
-            }
-        }
-    </script>
-    <script src="/js/notifications.js"></script>
+    }
+</script>
+<script src="/js/notifications.js"></script>
 </body>
 </html>
