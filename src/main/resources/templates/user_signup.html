@@ -22,6 +22,8 @@
             --line-strong: rgba(246,241,228,0.28);
             --shadow-soft: 0 20px 60px rgba(0,0,0,0.45);
             --ease: cubic-bezier(.16,.84,.36,1);
+            --autofill-bg: #141815;
+            --autofill-text: #f6f1e4;
         }
 
         *{ margin:0; padding:0; box-sizing:border-box; }
@@ -185,7 +187,7 @@
         input[type="text"], input[type="email"], input[type="password"], input[type="tel"]{
             width:100%;
             padding: 13px 4px 13px 0;
-            background:transparent;
+            background:transparent !important;
             border:none;
             border-bottom: 1.5px solid var(--line-strong);
             color: var(--paper);
@@ -195,6 +197,17 @@
             position:relative;
             z-index:1;
             transition: border-color .3s var(--ease);
+        }
+
+        input:-webkit-autofill,
+        input:-webkit-autofill:hover,
+        input:-webkit-autofill:focus,
+        input:-webkit-autofill:active{
+            -webkit-box-shadow: 0 0 0 1000px #141815 inset !important;
+            -webkit-text-fill-color: var(--paper) !important;
+            transition: background-color 5000s ease-in-out 0s;
+            caret-color: var(--paper);
+            border-bottom: 1.5px solid var(--line-strong);
         }
 
         input::placeholder{ color: rgba(246,241,228,0.28); }

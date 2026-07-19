@@ -22,6 +22,8 @@
             --line-strong: rgba(246,241,228,0.28);
             --shadow-soft: 0 20px 60px rgba(0,0,0,0.45);
             --ease: cubic-bezier(.16,.84,.36,1);
+            --autofill-bg: #141815;
+            --autofill-text: #f6f1e4;
         }
 
         *{ margin:0; padding:0; box-sizing:border-box; }
@@ -194,7 +196,7 @@
         input[type="text"], input[type="email"], input[type="password"], input[type="tel"], select, textarea{
             width:100%;
             padding: 13px 4px 13px 0;
-            background:transparent;
+            background:transparent !important;
             border:none;
             border-bottom: 1.5px solid var(--line-strong);
             color: var(--paper);
@@ -209,7 +211,7 @@
         select{
             appearance:none;
             -webkit-appearance:none;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%23ff6b35' stroke-width='2'%3E%3Cpath d='M5 7l5 5 5-5'/%3E%3C/svg%3E");
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%23ff6b35' stroke-width='2'%3E%3Cpath d='M5 7l5 5 5-5'/%3E%3C/svg%3E") !important;
             background-repeat:no-repeat;
             background-position: right 4px center;
             background-size: 16px;
@@ -227,6 +229,19 @@
         }
 
         input::placeholder, textarea::placeholder{ color: rgba(246,241,228,0.28); }
+
+        input:-webkit-autofill,
+        input:-webkit-autofill:hover,
+        input:-webkit-autofill:focus,
+        input:-webkit-autofill:active,
+        textarea:-webkit-autofill,
+        select:-webkit-autofill{
+            -webkit-box-shadow: 0 0 0 1000px #141815 inset !important;
+            -webkit-text-fill-color: var(--paper) !important;
+            transition: background-color 5000s ease-in-out 0s;
+            caret-color: var(--paper);
+            border-bottom: 1.5px solid var(--line-strong);
+        }
 
         .field-underline{
             position:absolute;

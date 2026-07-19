@@ -135,6 +135,19 @@ textarea.invalid {
   box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.12);
 }
 
+/* ===== Autofill override: prevent browser white background on dark pages ===== */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active,
+textarea:-webkit-autofill,
+select:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0 1000px var(--autofill-bg, #fff) inset !important;
+  -webkit-text-fill-color: var(--autofill-text, var(--lc-text)) !important;
+  transition: background-color 5000s ease-in-out 0s;
+  caret-color: var(--autofill-text, var(--lc-text));
+}
+
 .field-error {
   color: var(--lc-danger);
   font-size: 0.82rem;

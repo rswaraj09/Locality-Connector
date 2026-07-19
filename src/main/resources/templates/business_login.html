@@ -189,7 +189,7 @@ h1{
 
 .form-group input{
   width:100%;padding:16px 0 10px;
-  background:transparent;border:none;
+  background:transparent !important;border:none;
   border-bottom:1px solid rgba(255,255,255,0.16);
   color:#fff;font-size:1rem;outline:none;
   transition:border-color 0.3s;
@@ -197,6 +197,17 @@ h1{
 }
 .form-group input:focus{border-bottom-color:rgba(245,87,108,0.5)}
 .form-group input::placeholder{color:transparent}
+
+.form-group input:-webkit-autofill,
+.form-group input:-webkit-autofill:hover,
+.form-group input:-webkit-autofill:focus,
+.form-group input:-webkit-autofill:active{
+  -webkit-box-shadow: 0 0 0 1000px rgba(9,9,16,0.95) inset !important;
+  -webkit-text-fill-color: #fff !important;
+  transition: background-color 5000s ease-in-out 0s;
+  caret-color: #fff;
+  border-bottom:1px solid rgba(255,255,255,0.16);
+}
 
 .floating-label{
   position:absolute;top:14px;left:0;
