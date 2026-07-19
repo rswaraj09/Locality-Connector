@@ -38,12 +38,12 @@ public class HomeController {
 
     @GetMapping("/user")
     public String userPortal() {
-        return "user_portal";
+        return "user_home";
     }
 
     @GetMapping("/business")
     public String businessPortal() {
-        return "business_portal";
+        return "business_login";
     }
 
     @GetMapping("/user/login")
@@ -73,12 +73,12 @@ public class HomeController {
 
     @GetMapping("/enhanced-user-dashboard")
     public String enhancedUserDashboard() {
-        return "enhanced_user_dashboard";
+        return "user_dashboard";
     }
 
     @GetMapping("/user-homepage")
     public String userHomepage() {
-        return "user_homepage";
+        return "user_home";
     }
 
     @GetMapping("/business-dashboard")
@@ -88,7 +88,7 @@ public class HomeController {
 
     @GetMapping("/enhanced-business-dashboard")
     public String enhancedBusinessDashboard() {
-        return "enhanced_business_dashboard";
+        return "business_dashboard";
     }
 
     @GetMapping("/listing")
