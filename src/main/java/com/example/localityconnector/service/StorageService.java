@@ -1,23 +1,22 @@
 package com.example.localityconnector.service;
 
-import com.google.cloud.storage.Blob;
-import com.google.cloud.storage.BlobId;
-import com.google.cloud.storage.BlobInfo;
-import com.google.cloud.storage.Storage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import jakarta.annotation.PostConstruct;
 import java.io.IOException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.Set;
 import java.util.UUID;
 
 /**
- * Manages file uploads to Firebase/Google Cloud Storage. Validates file type
- * and size before upload.
+ * Manages file uploads to the local filesystem. Validates file type
+ * and size before upload. Files are served via Spring's static resource handler.
  */
 @Slf4j
 @Service
@@ -27,18 +26,27 @@ public class StorageService {
             "image/jpeg", "image/png", "image/webp", "image/gif");
     private static final long MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
 
-    private final Storage storage;
-    private final String bucketName;
+    @Value("${app.storage.upload-dir:./uploads}")
+    private String uploadDir;
 
-    public StorageService(
-            Storage storage,
-            @Value("${firebase.storage.bucket:}") String bucketName) {
-        this.storage = storage;
-        this.bucketName = bucketName;
+    @Value("${app.base-url:http://localhost:8081}")
+    private String baseUrl;
+
+    @PostConstruct
+    public void init() {
+        try {
+            Path uploadPath = Paths.get(uploadDir);
+            if (!Files.exists(uploadPath)) {
+                Files.createDirectories(uploadPath);
+                log.info("Created upload directory: {}", uploadPath.toAbsolutePath());
+            }
+        } catch (IOException e) {
+            throw new IllegalStateException("Could not create upload directory: " + uploadDir, e);
+        }
     }
 
     /**
-     * Upload an image file to Firebase Cloud Storage.
+     * Upload an image file to local storage.
      *
      * @param file   the uploaded multipart file
      * @param folder the storage folder (e.g., "logos", "items")
@@ -51,44 +59,37 @@ public class StorageService {
         String extension = originalFilename != null && originalFilename.contains(".")
                 ? originalFilename.substring(originalFilename.lastIndexOf('.'))
                 : ".jpg";
-        String objectName = folder + "/" + UUID.randomUUID() + extension;
+        String filename = UUID.randomUUID() + extension;
 
-        BlobId blobId = BlobId.of(bucketName, objectName);
-        BlobInfo blobInfo = BlobInfo.newBuilder(blobId)
-                .setContentType(file.getContentType())
-                .build();
+        Path folderPath = Paths.get(uploadDir, folder);
+        if (!Files.exists(folderPath)) {
+            Files.createDirectories(folderPath);
+        }
 
-        storage.create(blobInfo, file.getBytes());
+        Path targetPath = folderPath.resolve(filename);
+        Files.copy(file.getInputStream(), targetPath, StandardCopyOption.REPLACE_EXISTING);
 
-        // Return the Firebase Storage public URL
-        String encodedName = URLEncoder.encode(objectName, StandardCharsets.UTF_8);
-        String url = String.format(
-                "https://firebasestorage.googleapis.com/v0/b/%s/o/%s?alt=media",
-                bucketName, encodedName);
-
-        log.info("Uploaded file to {}/{}", bucketName, objectName);
+        String url = baseUrl + "/uploads/" + folder + "/" + filename;
+        log.info("Uploaded file to {}", targetPath.toAbsolutePath());
         return url;
     }
 
     /**
-     * Delete a file from Firebase Cloud Storage by its URL.
+     * Delete a file from local storage by its URL.
      */
     public void deleteByUrl(String url) {
         if (url == null || url.isBlank()) return;
         try {
-            // Extract object name from Firebase Storage URL
-            String prefix = "/o/";
-            int start = url.indexOf(prefix);
+            // Extract relative path from URL: /uploads/folder/filename
+            String marker = "/uploads/";
+            int start = url.indexOf(marker);
             if (start < 0) return;
-            String encoded = url.substring(start + prefix.length());
-            int queryIdx = encoded.indexOf('?');
-            if (queryIdx > 0) encoded = encoded.substring(0, queryIdx);
-            String objectName = java.net.URLDecoder.decode(encoded, StandardCharsets.UTF_8);
+            String relativePath = url.substring(start + marker.length());
 
-            BlobId blobId = BlobId.of(bucketName, objectName);
-            boolean deleted = storage.delete(blobId);
-            if (deleted) {
-                log.info("Deleted file: {}", objectName);
+            Path filePath = Paths.get(uploadDir, relativePath);
+            if (Files.exists(filePath)) {
+                Files.delete(filePath);
+                log.info("Deleted file: {}", filePath);
             }
         } catch (Exception e) {
             log.warn("Failed to delete file from storage: {}", e.getMessage());

@@ -1,6 +1,6 @@
 package com.example.localityconnector.controller;
 
-import com.example.localityconnector.repository.BusinessFirestoreRepository;
+import com.example.localityconnector.repository.BusinessRepository;
 import com.example.localityconnector.security.JwtFilter;
 import com.example.localityconnector.security.JwtUtil;
 import com.example.localityconnector.security.SecurityConfig;

@@ -4,7 +4,7 @@ import com.example.localityconnector.dto.UserSignupRequest;
 import com.example.localityconnector.exception.DuplicateResourceException;
 import com.example.localityconnector.exception.ResourceNotFoundException;
 import com.example.localityconnector.model.User;
-import com.example.localityconnector.repository.UserFirestoreRepository;
+import com.example.localityconnector.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -25,7 +25,7 @@ import static org.mockito.Mockito.*;
 class UserServiceTest {
 
     @Mock
-    private UserFirestoreRepository userRepository;
+    private UserRepository userRepository;
 
     @Mock
     private PasswordEncoder passwordEncoder;

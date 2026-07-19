@@ -4,6 +4,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -17,8 +20,10 @@ import java.util.Map;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Document(collection = "users")
 public class User {
 
+	@Id
 	private String id;
 
 	@NotBlank(message = "Name is required")
@@ -27,6 +32,7 @@ public class User {
 
 	@NotBlank(message = "Email is required")
 	@Email(message = "Please provide a valid email address")
+	@Indexed(unique = true)
 	private String email;
 
 	// WRITE_ONLY: the password hash must never be serialized into API responses

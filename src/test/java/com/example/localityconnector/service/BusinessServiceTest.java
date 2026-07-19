@@ -4,7 +4,7 @@ import com.example.localityconnector.dto.BusinessSignupRequest;
 import com.example.localityconnector.exception.DuplicateResourceException;
 import com.example.localityconnector.exception.ResourceNotFoundException;
 import com.example.localityconnector.model.Business;
-import com.example.localityconnector.repository.BusinessFirestoreRepository;
+import com.example.localityconnector.repository.BusinessRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -23,7 +23,7 @@ import static org.mockito.Mockito.*;
 class BusinessServiceTest {
 
     @Mock
-    private BusinessFirestoreRepository businessRepository;
+    private BusinessRepository businessRepository;
 
     @Mock
     private GooglePlacesService googlePlacesService;

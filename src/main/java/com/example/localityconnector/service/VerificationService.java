@@ -1,9 +1,9 @@
 package com.example.localityconnector.service;
 
 import com.example.localityconnector.model.VerificationToken;
-import com.example.localityconnector.repository.VerificationTokenFirestoreRepository;
-import com.example.localityconnector.repository.UserFirestoreRepository;
-import com.example.localityconnector.repository.BusinessFirestoreRepository;
+import com.example.localityconnector.repository.VerificationTokenRepository;
+import com.example.localityconnector.repository.UserRepository;
+import com.example.localityconnector.repository.BusinessRepository;
 import com.example.localityconnector.model.User;
 import com.example.localityconnector.model.Business;
 import lombok.RequiredArgsConstructor;
@@ -26,9 +26,9 @@ public class VerificationService {
 
     private static final long TOKEN_VALIDITY_MS = 24 * 60 * 60 * 1000L; // 24 hours
 
-    private final VerificationTokenFirestoreRepository tokenRepository;
-    private final UserFirestoreRepository userRepository;
-    private final BusinessFirestoreRepository businessRepository;
+    private final VerificationTokenRepository tokenRepository;
+    private final UserRepository userRepository;
+    private final BusinessRepository businessRepository;
     private final EmailService emailService;
 
     /**
@@ -98,7 +98,7 @@ public class VerificationService {
     /** Periodic cleanup of expired verification tokens. */
     @Scheduled(fixedRate = 3600_000) // every hour
     public void cleanupExpiredTokens() {
-        int deleted = tokenRepository.deleteExpired();
+        long deleted = tokenRepository.deleteByExpiresAtBefore(new Date());
         if (deleted > 0) {
             log.info("Cleaned up {} expired verification tokens", deleted);
         }

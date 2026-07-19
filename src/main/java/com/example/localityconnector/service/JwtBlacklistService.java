@@ -1,7 +1,7 @@
 package com.example.localityconnector.service;
 
 import com.example.localityconnector.model.BlacklistedToken;
-import com.example.localityconnector.repository.JwtBlacklistFirestoreRepository;
+import com.example.localityconnector.repository.JwtBlacklistRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -11,14 +11,14 @@ import java.util.Date;
 
 /**
  * Manages revoked JWTs. A token is blacklisted by its {@code jti} until its original
- * expiry, after which a scheduled job purges it from Firestore.
+ * expiry, after which a scheduled job purges it from MongoDB.
  */
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class JwtBlacklistService {
 
-    private final JwtBlacklistFirestoreRepository blacklistRepository;
+    private final JwtBlacklistRepository blacklistRepository;
 
     public boolean isBlacklisted(String jti) {
         if (jti == null || jti.isBlank()) {
@@ -38,7 +38,7 @@ public class JwtBlacklistService {
     @Scheduled(fixedRate = 60 * 60 * 1000L)
     public void cleanupExpiredTokens() {
         try {
-            int removed = blacklistRepository.deleteExpired();
+            long removed = blacklistRepository.deleteByExpiresAtBefore(new Date());
             if (removed > 0) {
                 log.info("Purged {} expired token-blacklist entries", removed);
             }

@@ -4,7 +4,7 @@ import com.example.localityconnector.dto.UserSignupRequest;
 import com.example.localityconnector.exception.DuplicateResourceException;
 import com.example.localityconnector.exception.ResourceNotFoundException;
 import com.example.localityconnector.model.User;
-import com.example.localityconnector.repository.UserFirestoreRepository;
+import com.example.localityconnector.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -16,7 +16,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class UserService {
 
-    private final UserFirestoreRepository userRepository;
+    private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
     public User signup(UserSignupRequest request) {

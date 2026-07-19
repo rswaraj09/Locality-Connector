@@ -6,12 +6,16 @@ import com.example.localityconnector.dto.PaginatedResult;
 import com.example.localityconnector.exception.DuplicateResourceException;
 import com.example.localityconnector.exception.ResourceNotFoundException;
 import com.example.localityconnector.model.Business;
-import com.example.localityconnector.repository.BusinessFirestoreRepository;
+import com.example.localityconnector.repository.BusinessRepository;
 import com.example.localityconnector.util.GeolocationUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -27,7 +31,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class BusinessService {
 
-    private final BusinessFirestoreRepository businessRepository;
+    private final BusinessRepository businessRepository;
     private final GooglePlacesService googlePlacesService;
     private final ItemService itemService;
     private final FeedbackService feedbackService;
@@ -100,7 +104,31 @@ public class BusinessService {
     }
 
     public PaginatedResult<Business> getBusinessesPaginated(int limit, String startAfterId) {
-        return businessRepository.findAllPaginated(limit, startAfterId);
+        // MongoDB cursor-based pagination: use offset derived from startAfterId position
+        // For simplicity, use page-based pagination with Spring Data
+        Pageable pageable = PageRequest.of(0, limit, Sort.by("id").ascending());
+        Page<Business> page;
+        if (startAfterId != null && !startAfterId.isBlank()) {
+            // Find all after the cursor — use id > startAfterId approach
+            List<Business> all = businessRepository.findAll(Sort.by("id").ascending());
+            int startIdx = 0;
+            for (int i = 0; i < all.size(); i++) {
+                if (all.get(i).getId().equals(startAfterId)) {
+                    startIdx = i + 1;
+                    break;
+                }
+            }
+            int endIdx = Math.min(startIdx + limit, all.size());
+            List<Business> pageContent = all.subList(startIdx, endIdx);
+            String nextCursor = pageContent.isEmpty() ? null : pageContent.get(pageContent.size() - 1).getId();
+            boolean hasMore = endIdx < all.size();
+            return new PaginatedResult<>(pageContent, hasMore ? nextCursor : null, hasMore);
+        } else {
+            page = businessRepository.findAll(pageable);
+            List<Business> content = page.getContent();
+            String nextCursor = content.isEmpty() ? null : content.get(content.size() - 1).getId();
+            return new PaginatedResult<>(content, page.hasNext() ? nextCursor : null, page.hasNext());
+        }
     }
 
     public List<Business> getBusinessesByCategory(String category) {
@@ -144,7 +172,7 @@ public class BusinessService {
 
     /**
      * Update the logged-in business's geolocation (latitude/longitude) and recompute its
-     * geohash. Replaces the deleted HomeController {@code /saveLocation} endpoint.
+     * geohash.
      */
     public Business updateLocation(String id, double latitude, double longitude) {
         Business business = businessRepository.findById(id)
@@ -184,7 +212,7 @@ public class BusinessService {
 
         List<Business> candidates = queryGeohashCandidates(lat, lng, radiusKm);
         if (candidates.isEmpty()) {
-            // No geohash-indexed data (e.g. legacy rows): fall back to a full scan.
+            // No geohash-indexed data: fall back to a full scan.
             candidates = businessRepository.findAll();
         }
 
@@ -210,7 +238,7 @@ public class BusinessService {
             List<String> prefixes = GeolocationUtils.getNeighborGeohashes(lat, lng, precision);
             Map<String, Business> byId = new LinkedHashMap<>();
             for (String prefix : prefixes) {
-                for (Business business : businessRepository.findByGeohashPrefix(prefix)) {
+                for (Business business : businessRepository.findByGeohashStartingWith(prefix)) {
                     if (business.getId() != null) {
                         byId.put(business.getId(), business);
                     }
@@ -239,16 +267,18 @@ public class BusinessService {
     }
 
     // ------------------------------------------------------------------
-    // Delegated query methods (used by controllers that previously
-    // accessed the repository directly — maintaining clean layering).
+    // Delegated query methods
     // ------------------------------------------------------------------
 
     public List<Business> findAllSorted(String sortField, boolean descending, int offset, int limit) {
-        return businessRepository.findAllSorted(sortField, descending, offset, limit);
+        Sort sort = descending ? Sort.by(sortField).descending() : Sort.by(sortField).ascending();
+        int page = offset / Math.max(limit, 1);
+        Pageable pageable = PageRequest.of(page, Math.max(limit, 1), sort);
+        return businessRepository.findAll(pageable).getContent();
     }
 
     public long countAll() {
-        return businessRepository.countAll();
+        return businessRepository.count();
     }
 
     public long countByCategory(String category) {
@@ -256,7 +286,7 @@ public class BusinessService {
     }
 
     public long countWithCoordinates() {
-        return businessRepository.countWithCoordinates();
+        return businessRepository.countByLatitudeGreaterThanEqual(-90.0);
     }
 
     public List<Business> findByLatitudeRange(double minLat, double maxLat) {
@@ -264,11 +294,15 @@ public class BusinessService {
     }
 
     public List<Business> searchByNamePrefix(String prefix, int offset, int limit) {
-        return businessRepository.searchByNamePrefix(prefix, offset, limit);
+        // MongoDB handles regex-based prefix search; we apply offset/limit in memory for simplicity
+        List<Business> results = businessRepository.findByBusinessNameStartingWithIgnoreCase(prefix);
+        int start = Math.min(offset, results.size());
+        int end = Math.min(start + limit, results.size());
+        return results.subList(start, end);
     }
 
     public long countByNamePrefix(String prefix) {
-        return businessRepository.countByNamePrefix(prefix);
+        return businessRepository.countByBusinessNameStartingWithIgnoreCase(prefix);
     }
 
     public List<Business> findAllExport() {
@@ -280,7 +314,7 @@ public class BusinessService {
     }
 
     public List<Business> getUnverifiedBusinesses() {
-        return businessRepository.findByVerifiedFalse();
+        return businessRepository.findByIsVerifiedFalse();
     }
 
     @CacheEvict(value = "businesses", allEntries = true)
@@ -289,4 +323,3 @@ public class BusinessService {
         return businessRepository.save(business);
     }
 }
-

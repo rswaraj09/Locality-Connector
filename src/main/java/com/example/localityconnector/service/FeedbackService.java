@@ -2,12 +2,14 @@ package com.example.localityconnector.service;
 
 import com.example.localityconnector.model.Business;
 import com.example.localityconnector.model.Feedback;
-import com.example.localityconnector.repository.BusinessFirestoreRepository;
-import com.example.localityconnector.repository.FeedbackFirestoreRepository;
+import com.example.localityconnector.repository.BusinessRepository;
+import com.example.localityconnector.repository.FeedbackRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -16,8 +18,8 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class FeedbackService {
 
-    private final FeedbackFirestoreRepository feedbackRepository;
-    private final BusinessFirestoreRepository businessRepository;
+    private final FeedbackRepository feedbackRepository;
+    private final BusinessRepository businessRepository;
 
     public Feedback createFeedback(Feedback feedback) {
         feedback.prePersist();
@@ -59,12 +61,27 @@ public class FeedbackService {
                 return business.getAverageRating();
             }
         }
-        // Fallback for legacy data without denormalized counters
-        return feedbackRepository.averageRatingByBusinessId(businessId);
+        // Fallback: compute from all feedback
+        return computeAverageRating(businessId);
+    }
+
+    /** Compute average rating from all feedback for a business. */
+    private double computeAverageRating(String businessId) {
+        List<Feedback> feedbackList = feedbackRepository.findByBusinessId(businessId);
+        int count = 0;
+        long sum = 0;
+        for (Feedback feedback : feedbackList) {
+            if (feedback.getRating() != null) {
+                sum += feedback.getRating();
+                count++;
+            }
+        }
+        if (count == 0) return 0.0;
+        return Math.round(((double) sum / count) * 10.0) / 10.0;
     }
 
     public List<Feedback> getFeedbackByBusinessId(String businessId) {
-        return feedbackRepository.findByBusinessIdOrderByCreatedAtDesc(businessId);
+        return feedbackRepository.findByBusinessId(businessId, Sort.by(Sort.Direction.DESC, "createdAt"));
     }
 
     public List<Feedback> getFeedbackByUserId(String userId) {
@@ -116,22 +133,33 @@ public class FeedbackService {
     }
 
     /**
-     * Propagate a business rename to all of its feedback entries (denormalised
-     * {@code businessName}), batched into single round-trips.
+     * Propagate a business rename to all of its feedback entries.
      *
      * @return the number of feedback records updated
      */
     public int updateBusinessNameOnFeedback(String businessId, String newBusinessName) {
-        return feedbackRepository.updateBusinessNameOnFeedback(businessId, newBusinessName);
+        List<Feedback> feedbackList = feedbackRepository.findByBusinessId(businessId);
+        Date now = new Date();
+        int updated = 0;
+        for (Feedback feedback : feedbackList) {
+            feedback.setBusinessName(newBusinessName);
+            feedback.setUpdatedAt(now);
+            feedbackRepository.save(feedback);
+            updated++;
+        }
+        return updated;
     }
 
     /**
-     * Cascade-delete every feedback entry for a business in a single batched round-trip.
+     * Cascade-delete every feedback entry for a business.
      *
      * @return the number removed.
      */
     public int deleteFeedbackByBusinessId(String businessId) {
-        return feedbackRepository.deleteByBusinessId(businessId);
+        List<Feedback> feedbackList = feedbackRepository.findByBusinessId(businessId);
+        int removed = feedbackList.size();
+        feedbackRepository.deleteAll(feedbackList);
+        return removed;
     }
 
     public Feedback reportFeedback(String feedbackId, String reason) {
@@ -176,10 +204,21 @@ public class FeedbackService {
     /** Add or remove a rating from the business counters. */
     private void updateBusinessRating(String businessId, int rating, boolean add) {
         try {
-            if (add) {
-                businessRepository.updateRatingAtomically(businessId, rating, 1);
-            } else {
-                businessRepository.updateRatingAtomically(businessId, -rating, -1);
+            Optional<Business> opt = businessRepository.findById(businessId);
+            if (opt.isPresent()) {
+                Business business = opt.get();
+                if (add) {
+                    business.setRatingSum(business.getRatingSum() + rating);
+                    business.setRatingCount(business.getRatingCount() + 1);
+                } else {
+                    business.setRatingSum(Math.max(0, business.getRatingSum() - rating));
+                    business.setRatingCount(Math.max(0, business.getRatingCount() - 1));
+                }
+                double avg = business.getRatingCount() > 0
+                        ? Math.round(((double) business.getRatingSum() / business.getRatingCount()) * 10.0) / 10.0
+                        : 0.0;
+                business.setAverageRating(avg);
+                businessRepository.save(business);
             }
         } catch (Exception e) {
             log.warn("Failed to update denormalized rating for business {}: {}", businessId, e.getMessage());
@@ -189,7 +228,16 @@ public class FeedbackService {
     /** Adjust counters when a rating changes (edit). */
     private void adjustBusinessRating(String businessId, int oldRating, int newRating) {
         try {
-            businessRepository.updateRatingAtomically(businessId, newRating - oldRating, 0);
+            Optional<Business> opt = businessRepository.findById(businessId);
+            if (opt.isPresent()) {
+                Business business = opt.get();
+                business.setRatingSum(Math.max(0, business.getRatingSum() + (newRating - oldRating)));
+                double avg = business.getRatingCount() > 0
+                        ? Math.round(((double) business.getRatingSum() / business.getRatingCount()) * 10.0) / 10.0
+                        : 0.0;
+                business.setAverageRating(avg);
+                businessRepository.save(business);
+            }
         } catch (Exception e) {
             log.warn("Failed to adjust denormalized rating for business {}: {}", businessId, e.getMessage());
         }

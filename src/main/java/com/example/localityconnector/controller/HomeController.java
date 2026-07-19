@@ -41,10 +41,6 @@ public class HomeController {
         return "user_home";
     }
 
-    @GetMapping("/business")
-    public String businessPortal() {
-        return "business_login";
-    }
 
     @GetMapping("/user/login")
     public String userLogin() {

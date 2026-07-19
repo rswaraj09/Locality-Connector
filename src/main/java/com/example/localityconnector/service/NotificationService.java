@@ -1,10 +1,11 @@
 package com.example.localityconnector.service;
 
 import com.example.localityconnector.model.Notification;
-import com.example.localityconnector.repository.NotificationFirestoreRepository;
+import com.example.localityconnector.repository.NotificationRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
@@ -20,10 +21,12 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class NotificationService {
 
-    private final NotificationFirestoreRepository notificationRepository;
+    private final NotificationRepository notificationRepository;
 
     @Autowired(required = false)
     private SimpMessagingTemplate messagingTemplate;
+
+    private static final Sort CREATED_DESC = Sort.by(Sort.Direction.DESC, "createdAt");
 
     /**
      * Create and persist a notification.
@@ -50,15 +53,15 @@ public class NotificationService {
     }
 
     public List<Notification> getNotifications(String recipientId) {
-        return notificationRepository.findByRecipientId(recipientId);
+        return notificationRepository.findByRecipientId(recipientId, CREATED_DESC);
     }
 
     public List<Notification> getUnreadNotifications(String recipientId) {
-        return notificationRepository.findUnreadByRecipientId(recipientId);
+        return notificationRepository.findByRecipientIdAndReadFalse(recipientId, CREATED_DESC);
     }
 
     public long getUnreadCount(String recipientId) {
-        return notificationRepository.countUnreadByRecipientId(recipientId);
+        return notificationRepository.countByRecipientIdAndReadFalse(recipientId);
     }
 
     public void markAsRead(String notificationId) {
@@ -70,7 +73,14 @@ public class NotificationService {
     }
 
     public int markAllAsRead(String recipientId) {
-        return notificationRepository.markAllRead(recipientId);
+        List<Notification> unread = notificationRepository.findByRecipientIdAndReadFalse(recipientId, CREATED_DESC);
+        int count = 0;
+        for (Notification n : unread) {
+            n.setRead(true);
+            notificationRepository.save(n);
+            count++;
+        }
+        return count;
     }
 
     public boolean deleteNotification(String notificationId, String recipientId) {
@@ -83,7 +93,10 @@ public class NotificationService {
     }
 
     public int deleteAllNotifications(String recipientId) {
-        return notificationRepository.deleteAllByRecipientId(recipientId);
+        List<Notification> all = notificationRepository.findByRecipientId(recipientId, CREATED_DESC);
+        int count = all.size();
+        notificationRepository.deleteAll(all);
+        return count;
     }
 
     // --- Convenience trigger methods ---

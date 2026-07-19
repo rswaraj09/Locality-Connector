@@ -3,6 +3,9 @@ package com.example.localityconnector.model;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -11,14 +14,18 @@ import java.util.Date;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Document(collection = "feedback")
 public class Feedback {
 
+    @Id
     private String id;
 
+    @Indexed
     private String userId;
     private String userName;
     private String userEmail;
 
+    @Indexed
     private String businessId;
     private String businessName;
 

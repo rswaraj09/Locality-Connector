@@ -2,10 +2,11 @@ package com.example.localityconnector.service;
 
 import com.example.localityconnector.exception.ResourceNotFoundException;
 import com.example.localityconnector.model.Item;
-import com.example.localityconnector.repository.ItemFirestoreRepository;
+import com.example.localityconnector.repository.ItemRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -13,7 +14,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class ItemService {
 
-    private final ItemFirestoreRepository itemRepository;
+    private final ItemRepository itemRepository;
 
     public Item createItem(Item item) {
         item.prePersist();
@@ -50,7 +51,16 @@ public class ItemService {
 
     /** Propagate a business rename to all of its catalog items. */
     public int updateBusinessNameOnItems(String businessId, String newBusinessName) {
-        return itemRepository.updateBusinessNameOnItems(businessId, newBusinessName);
+        List<Item> items = itemRepository.findByBusinessId(businessId);
+        Date now = new Date();
+        int updated = 0;
+        for (Item item : items) {
+            item.setBusinessName(newBusinessName);
+            item.setUpdatedAt(now);
+            itemRepository.save(item);
+            updated++;
+        }
+        return updated;
     }
 
     public void deleteItem(String id) {
@@ -58,11 +68,14 @@ public class ItemService {
     }
 
     /**
-     * Cascade-delete every item owned by a business in a single batched round-trip.
+     * Cascade-delete every item owned by a business.
      *
      * @return the number of items removed.
      */
     public int deleteItemsByBusinessId(String businessId) {
-        return itemRepository.deleteByBusinessId(businessId);
+        List<Item> items = itemRepository.findByBusinessId(businessId);
+        int removed = items.size();
+        itemRepository.deleteAll(items);
+        return removed;
     }
 }

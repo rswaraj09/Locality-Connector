@@ -87,6 +87,7 @@ public class SecurityConfig {
                         // --- Server-rendered page shells (client-side JS guards with the stored JWT) ---
                         .requestMatchers(
                                 "/", "/index.html", "/css/**", "/js/**", "/images/**", "/favicon.ico",
+                                "/uploads/**",
                                 "/user", "/business", "/user/**", "/business/**",
                                 "/user-home", "/user-homepage", "/enhanced-user-dashboard",
                                 "/enhanced-business-dashboard", "/business-dashboard",

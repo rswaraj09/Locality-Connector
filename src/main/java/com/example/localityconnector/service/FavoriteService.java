@@ -2,8 +2,8 @@ package com.example.localityconnector.service;
 
 import com.example.localityconnector.model.Business;
 import com.example.localityconnector.model.Favorite;
-import com.example.localityconnector.repository.FavoriteFirestoreRepository;
-import com.example.localityconnector.repository.BusinessFirestoreRepository;
+import com.example.localityconnector.repository.FavoriteRepository;
+import com.example.localityconnector.repository.BusinessRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -16,8 +16,8 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class FavoriteService {
 
-    private final FavoriteFirestoreRepository favoriteRepository;
-    private final BusinessFirestoreRepository businessRepository;
+    private final FavoriteRepository favoriteRepository;
+    private final BusinessRepository businessRepository;
 
     public Favorite addFavorite(String userId, String businessId) {
         // Check if already favorited

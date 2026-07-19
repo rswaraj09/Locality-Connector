@@ -3,9 +3,9 @@ package com.example.localityconnector.service;
 import com.example.localityconnector.model.Business;
 import com.example.localityconnector.model.PasswordResetToken;
 import com.example.localityconnector.model.User;
-import com.example.localityconnector.repository.BusinessFirestoreRepository;
-import com.example.localityconnector.repository.PasswordResetTokenFirestoreRepository;
-import com.example.localityconnector.repository.UserFirestoreRepository;
+import com.example.localityconnector.repository.BusinessRepository;
+import com.example.localityconnector.repository.PasswordResetTokenRepository;
+import com.example.localityconnector.repository.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -25,13 +25,13 @@ import static org.mockito.Mockito.*;
 class PasswordResetServiceTest {
 
     @Mock
-    private PasswordResetTokenFirestoreRepository tokenRepository;
+    private PasswordResetTokenRepository tokenRepository;
 
     @Mock
-    private UserFirestoreRepository userRepository;
+    private UserRepository userRepository;
 
     @Mock
-    private BusinessFirestoreRepository businessRepository;
+    private BusinessRepository businessRepository;
 
     @Mock
     private PasswordEncoder passwordEncoder;

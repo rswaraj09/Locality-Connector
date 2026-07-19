@@ -3,9 +3,9 @@ package com.example.localityconnector.service;
 import com.example.localityconnector.model.Business;
 import com.example.localityconnector.model.User;
 import com.example.localityconnector.model.VerificationToken;
-import com.example.localityconnector.repository.BusinessFirestoreRepository;
-import com.example.localityconnector.repository.UserFirestoreRepository;
-import com.example.localityconnector.repository.VerificationTokenFirestoreRepository;
+import com.example.localityconnector.repository.BusinessRepository;
+import com.example.localityconnector.repository.UserRepository;
+import com.example.localityconnector.repository.VerificationTokenRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -25,13 +25,13 @@ import static org.mockito.Mockito.*;
 class VerificationServiceTest {
 
     @Mock
-    private VerificationTokenFirestoreRepository tokenRepository;
+    private VerificationTokenRepository tokenRepository;
 
     @Mock
-    private UserFirestoreRepository userRepository;
+    private UserRepository userRepository;
 
     @Mock
-    private BusinessFirestoreRepository businessRepository;
+    private BusinessRepository businessRepository;
 
     @Mock
     private EmailService emailService;

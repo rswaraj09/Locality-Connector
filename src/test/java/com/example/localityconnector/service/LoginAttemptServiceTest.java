@@ -1,7 +1,7 @@
 package com.example.localityconnector.service;
 
 import com.example.localityconnector.model.LoginAttempt;
-import com.example.localityconnector.repository.LoginAttemptFirestoreRepository;
+import com.example.localityconnector.repository.LoginAttemptRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -10,71 +10,41 @@ import java.util.Map;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 class LoginAttemptServiceTest {
 
     /** Mirrors the (private) cap in {@link LoginAttemptService}. */
     private static final int MAX_ATTEMPTS = 5;
 
-    /**
-     * In-memory stand-in for the Firestore-backed repository so the service can be
-     * unit-tested without a live Firebase connection. Possible now that the repository
-     * is constructor-injected.
-     */
-    static class FakeLoginAttemptRepository extends LoginAttemptFirestoreRepository {
-        private final Map<String, LoginAttempt> store = new HashMap<>();
-
-        FakeLoginAttemptRepository() {
-            super(null);
-        }
-
-        @Override
-        public Optional<LoginAttempt> findByKey(String key) {
-            return Optional.ofNullable(store.get(key));
-        }
-
-        @Override
-        public void save(String key, LoginAttempt attempt) {
-            attempt.setId(key);
-            store.put(key, attempt);
-        }
-
-        @Override
-        public void deleteByKey(String key) {
-            store.remove(key);
-        }
-
-        @Override
-        public void recordFailedAttemptAtomically(String key, long windowMillis, int maxAttempts, long lockMillis) {
-            long now = java.time.Instant.now().toEpochMilli();
-            LoginAttempt record = findByKey(key).orElseGet(() -> {
-                LoginAttempt fresh = new LoginAttempt();
-                fresh.setId(key);
-                fresh.setEmail(key);
-                fresh.setCount(0);
-                fresh.setFirstAttemptEpochMs(now);
-                return fresh;
-            });
-
-            if (record.getFirstAttemptEpochMs() == null
-                    || (now - record.getFirstAttemptEpochMs()) >= windowMillis) {
-                record.setFirstAttemptEpochMs(now);
-                record.setCount(0);
-                record.setLockedUntilEpochMs(null);
-            }
-            record.setCount(record.getCount() + 1);
-            if (record.getCount() >= maxAttempts) {
-                record.setLockedUntilEpochMs(now + lockMillis);
-            }
-            save(key, record);
-        }
-    }
-
+    private LoginAttemptRepository repository;
     private LoginAttemptService service;
+
+    /** In-memory backing store for the mocked repository. */
+    private final Map<String, LoginAttempt> store = new HashMap<>();
 
     @BeforeEach
     void setUp() {
-        service = new LoginAttemptService(new FakeLoginAttemptRepository());
+        store.clear();
+        repository = mock(LoginAttemptRepository.class);
+
+        // Wire up mock behavior to delegate to the in-memory store
+        when(repository.findById(anyString())).thenAnswer(inv -> {
+            String key = inv.getArgument(0);
+            return Optional.ofNullable(store.get(key));
+        });
+        when(repository.save(any(LoginAttempt.class))).thenAnswer(inv -> {
+            LoginAttempt attempt = inv.getArgument(0);
+            store.put(attempt.getId(), attempt);
+            return attempt;
+        });
+        doAnswer(inv -> {
+            String key = inv.getArgument(0);
+            store.remove(key);
+            return null;
+        }).when(repository).deleteById(anyString());
+
+        service = new LoginAttemptService(repository);
     }
 
     @Test

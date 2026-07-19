@@ -3,6 +3,9 @@ package com.example.localityconnector.model;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -13,10 +16,13 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Document(collection = "items")
 public class Item {
+	@Id
 	private String id;
 
 	@NotBlank
+	@Indexed
 	private String businessId;
 
 	@NotBlank
@@ -36,7 +42,7 @@ public class Item {
 
 	private Integer stock = 100;
 
-	// Item image URL (Firebase Storage)
+	// Item image URL
 	private String imageUrl;
 
 	private List<String> imageUrls = new ArrayList<>();

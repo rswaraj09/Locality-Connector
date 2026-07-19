@@ -26,10 +26,14 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
+
+# Create uploads directory for file storage
+RUN mkdir -p /app/uploads
+
 COPY --from=build /workspace/target/localityconnector-0.0.1-SNAPSHOT.jar app.jar
 
 # Run as a non-root user.
-RUN useradd -r -u 1001 appuser
+RUN useradd -r -u 1001 appuser && chown -R appuser:appuser /app/uploads
 USER appuser
 
 ENV JAVA_OPTS="-XX:MaxRAMPercentage=75.0 -XX:+UseG1GC" \
@@ -37,7 +41,7 @@ ENV JAVA_OPTS="-XX:MaxRAMPercentage=75.0 -XX:+UseG1GC" \
 
 EXPOSE 8081
 
-# Surface application + Firebase health to the orchestrator.
+# Surface application health to the orchestrator.
 HEALTHCHECK --interval=30s --timeout=5s --start-period=45s --retries=3 \
   CMD curl -fsS "http://localhost:${SERVER_PORT}/health" || exit 1
 

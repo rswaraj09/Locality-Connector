@@ -4,6 +4,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -17,12 +20,15 @@ import java.util.Map;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Document(collection = "businesses")
 public class Business {
 
+    @Id
     private String id;
 
     @NotBlank(message = "Business name is required")
     @Size(min = 2, max = 100, message = "Business name must be between 2 and 100 characters")
+    @Indexed(unique = true)
     private String businessName;
 
     @NotBlank(message = "Owner name is required")
@@ -31,6 +37,7 @@ public class Business {
 
     @NotBlank(message = "Email is required")
     @Email(message = "Please provide a valid email address")
+    @Indexed(unique = true)
     private String email;
 
     // WRITE_ONLY: the password hash must never be serialized into API responses
@@ -46,6 +53,7 @@ public class Business {
     private String phoneNumber;
 
     @NotBlank(message = "Business category is required")
+    @Indexed
     private String category; // e.g., "food", "pharmacy", "clothing", "stationary", "hospital"
 
     private String description;
@@ -57,17 +65,18 @@ public class Business {
 
     private Double longitude;
 
-    // Geohash (precision 6 = ~1.2km cell) used for Firestore proximity prefix queries.
+    // Geohash (precision 6 = ~1.2km cell) used for proximity prefix queries.
     // Computed from latitude/longitude whenever coordinates are saved.
+    @Indexed
     private String geohash;
 
-    // Native Firestore timestamps (serialized as Timestamp, not String).
     private Date createdAt;
 
     private Date updatedAt;
 
     private boolean isActive = true;
 
+    @Indexed
     private boolean isVerified = false;
 
     private boolean emailVerified = false;
@@ -82,7 +91,7 @@ public class Business {
     private long clicksCount = 0;
     private long favoritesCount = 0;
 
-    // Business logo URL (Firebase Storage)
+    // Business logo URL
     private String logoUrl;
 
     // Storefront image URL
