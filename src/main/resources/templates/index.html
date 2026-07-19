@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout}">
+<html xmlns:th="http://www.thymeleaf.org">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -114,7 +114,7 @@ section{position:relative;z-index:10;padding:120px 60px}
 </style>
 </head>
 <body>
-<div layout:fragment="content">
+
 <div id="cursor"></div>
 <div id="cursor-ring"></div>
 
@@ -203,7 +203,7 @@ section{position:relative;z-index:10;padding:120px 60px}
   </div>
 </section>
 
-<script>
+<script th:inline="none">
 // --- Three.js particle background ---
 const canvas = document.getElementById('bg-canvas');
 if (canvas && typeof THREE !== 'undefined') {
@@ -341,6 +341,6 @@ if (typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined') {
   });
 }
 </script>
-</div>
+
 </body>
 </html>
