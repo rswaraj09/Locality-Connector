@@ -147,8 +147,8 @@ class PasswordResetServiceTest {
 
     @Test
     void testCleanupExpiredTokens() {
-        when(tokenRepository.deleteExpired()).thenReturn(3);
+        when(tokenRepository.deleteByExpiresAtBefore(any(Date.class))).thenReturn(3L);
         passwordResetService.cleanupExpiredTokens();
-        verify(tokenRepository, times(1)).deleteExpired();
+        verify(tokenRepository, times(1)).deleteByExpiresAtBefore(any(Date.class));
     }
 }
