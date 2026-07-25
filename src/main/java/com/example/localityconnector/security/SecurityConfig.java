@@ -84,13 +84,16 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/business-data/export").hasRole("ADMIN")
                         .requestMatchers("/api/business-data/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/feedback/**").permitAll()
-                        // --- Server-rendered page shells (unauthenticated public pages + assets) ---
+                        // --- Server-rendered page shells (client-side JS guards with stored JWT) ---
                         .requestMatchers(
                                 "/", "/index.html", "/css/**", "/js/**", "/images/**", "/favicon.ico",
                                 "/uploads/**",
-                                "/user/login", "/user/signup",
-                                "/business/login", "/business/signup",
-                                "/forgot-password", "/reset-password")
+                                "/user", "/business", "/user/**", "/business/**",
+                                "/user-home", "/user-homepage", "/enhanced-user-dashboard", "/user-dashboard",
+                                "/enhanced-business-dashboard", "/business-dashboard",
+                                "/listing", "/addlisting", "/feedback", "/update-business",
+                                "/admin", "/data-viewer", "/accuracy-test",
+                                "/profile", "/forgot-password", "/reset-password")
                         .permitAll()
                         // --- Role-protected JSON API + mutating endpoints ---
                         .requestMatchers(HttpMethod.POST, "/api/feedback").hasRole("USER")

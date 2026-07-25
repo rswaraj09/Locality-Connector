@@ -38,8 +38,8 @@ class HomeControllerTest {
     }
 
     @Test
-    void businessDashboard_unauthenticated_returnsForbidden() throws Exception {
-        mockMvc.perform(get("/business-dashboard"))
-                .andExpect(status().isForbidden());
+    void userDashboard_pageShellIsAccessible() throws Exception {
+        mockMvc.perform(get("/enhanced-user-dashboard"))
+                .andExpect(status().isOk());
     }
 }
