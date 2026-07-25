@@ -84,17 +84,22 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/business-data/export").hasRole("ADMIN")
                         .requestMatchers("/api/business-data/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/feedback/**").permitAll()
-                        // --- Server-rendered page shells (client-side JS guards with stored JWT) ---
+                        // --- Unauthenticated public pages + static assets ---
                         .requestMatchers(
                                 "/", "/index.html", "/css/**", "/js/**", "/images/**", "/favicon.ico",
                                 "/uploads/**",
-                                "/user", "/business", "/user/**", "/business/**",
-                                "/user-home", "/user-homepage", "/enhanced-user-dashboard", "/user-dashboard",
-                                "/enhanced-business-dashboard", "/business-dashboard",
-                                "/listing", "/addlisting", "/feedback", "/update-business",
-                                "/admin", "/data-viewer", "/accuracy-test",
-                                "/profile", "/forgot-password", "/reset-password")
+                                "/user/login", "/user/signup",
+                                "/business/login", "/business/signup",
+                                "/forgot-password", "/reset-password")
                         .permitAll()
+                        // --- Protected User Page Shells ---
+                        .requestMatchers("/user-dashboard", "/enhanced-user-dashboard", "/user-home", "/user-homepage", "/user").hasAnyRole("USER", "BUSINESS", "ADMIN")
+                        // --- Protected Business Page Shells ---
+                        .requestMatchers("/business-dashboard", "/enhanced-business-dashboard", "/listing", "/addlisting", "/update-business").hasAnyRole("BUSINESS", "ADMIN")
+                        // --- Protected Admin Page Shells ---
+                        .requestMatchers("/admin", "/data-viewer", "/accuracy-test").hasRole("ADMIN")
+                        // --- Protected Shared Page Shells ---
+                        .requestMatchers("/feedback", "/profile").authenticated()
                         // --- Role-protected JSON API + mutating endpoints ---
                         .requestMatchers(HttpMethod.POST, "/api/feedback").hasRole("USER")
                         .requestMatchers(HttpMethod.PUT, "/api/feedback/**").hasAnyRole("USER", "ADMIN")
@@ -109,6 +114,31 @@ public class SecurityConfig {
                         .requestMatchers("/api/diagnostics/**").hasRole("ADMIN")
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated())
+                .exceptionHandling(exceptions -> exceptions
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            String uri = request.getRequestURI();
+                            String accept = request.getHeader("Accept");
+                            boolean isHtmlRequest = (accept != null && accept.contains("text/html")) || (!uri.startsWith("/api/") && !uri.startsWith("/actuator"));
+                            if (isHtmlRequest) {
+                                if (uri.startsWith("/business") || uri.contains("business") || uri.equals("/listing") || uri.equals("/addlisting")) {
+                                    response.sendRedirect("/business/login");
+                                } else {
+                                    response.sendRedirect("/user/login");
+                                }
+                            } else {
+                                response.sendError(jakarta.servlet.http.HttpServletResponse.SC_FORBIDDEN, "Access Denied");
+                            }
+                        })
+                        .accessDeniedHandler((request, response, accessDeniedException) -> {
+                            String uri = request.getRequestURI();
+                            String accept = request.getHeader("Accept");
+                            boolean isHtmlRequest = (accept != null && accept.contains("text/html")) || (!uri.startsWith("/api/") && !uri.startsWith("/actuator"));
+                            if (isHtmlRequest) {
+                                response.sendRedirect("/user/login");
+                            } else {
+                                response.sendError(jakarta.servlet.http.HttpServletResponse.SC_FORBIDDEN, "Access Denied");
+                            }
+                        }))
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 // Rate limiter runs first (before auth), then JWT filter

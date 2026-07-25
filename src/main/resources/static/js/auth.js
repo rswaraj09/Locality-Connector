@@ -14,6 +14,7 @@
   function setSession(token, identity) {
     if (token) {
       localStorage.setItem(TOKEN_KEY, token);
+      document.cookie = "jwt=" + token + "; path=/; max-age=86400; SameSite=Lax";
     }
     if (identity) {
       localStorage.setItem(IDENTITY_KEY, JSON.stringify(identity));
@@ -35,6 +36,7 @@
   function clearSession() {
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(IDENTITY_KEY);
+    document.cookie = "jwt=; path=/; max-age=0;";
   }
 
   function isLoggedIn() {

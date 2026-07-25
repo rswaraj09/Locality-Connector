@@ -25,8 +25,15 @@ public class OtpVerificationService {
     private final OtpTokenRepository otpTokenRepository;
     private final EmailService emailService;
 
+    @org.springframework.beans.factory.annotation.Value("${fast2sms.api.key:${FAST2SMS_API_KEY:}}")
+    private String fast2smsApiKey;
+
+    private final java.net.http.HttpClient httpClient = java.net.http.HttpClient.newBuilder()
+            .connectTimeout(java.time.Duration.ofSeconds(10))
+            .build();
+
     /**
-     * Generates a 4-digit OTP (1000-9999) and dispatches it via Email (Resend API) or logs it for SMS.
+     * Generates a 4-digit OTP (1000-9999) and dispatches it via Email (Resend API) or SMS (Fast2SMS API).
      */
     public String sendOtp(String target, String targetType) {
         String cleanTarget = target != null ? target.trim().toLowerCase() : "";
@@ -47,12 +54,56 @@ public class OtpVerificationService {
         otpTokenRepository.save(token);
 
         if ("PHONE".equalsIgnoreCase(targetType)) {
-            log.info("[SMS OTP] Sent 4-digit OTP {} to phone number {}", otpCode, cleanTarget);
+            dispatchSmsOtp(cleanTarget, otpCode);
         } else {
             emailService.sendRegistrationOtpEmail(cleanTarget, otpCode);
         }
 
         return otpCode;
+    }
+
+    private void dispatchSmsOtp(String rawPhone, String otpCode) {
+        String digitsOnly = rawPhone.replaceAll("[^0-9]", "");
+        if (digitsOnly.length() > 10) {
+            digitsOnly = digitsOnly.substring(digitsOnly.length() - 10);
+        }
+
+        if (fast2smsApiKey == null || fast2smsApiKey.trim().isEmpty()) {
+            log.info("[SMS OTP - DEV MODE] FAST2SMS_API_KEY not set. 4-digit OTP code for phone {}: {}", rawPhone, otpCode);
+            return;
+        }
+
+        try {
+            String jsonPayload = """
+                    {
+                      "route": "q",
+                      "message": "Your Locality Connector 4-digit verification code is %s. Valid for 10 minutes.",
+                      "language": "english",
+                      "flash": 0,
+                      "numbers": "%s"
+                    }
+                    """.formatted(otpCode, digitsOnly);
+
+            java.net.http.HttpRequest request = java.net.http.HttpRequest.newBuilder()
+                    .uri(java.net.URI.create("https://www.fast2sms.com/dev/bulkV2"))
+                    .header("authorization", fast2smsApiKey.trim())
+                    .header("Content-Type", "application/json")
+                    .POST(java.net.http.HttpRequest.BodyPublishers.ofString(jsonPayload))
+                    .timeout(java.time.Duration.ofSeconds(15))
+                    .build();
+
+            java.net.http.HttpResponse<String> response = httpClient.send(request, java.net.http.HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() >= 200 && response.statusCode() < 300) {
+                log.info("Fast2SMS OTP sent successfully to {}. Response: {}", digitsOnly, response.body());
+            } else {
+                log.warn("Fast2SMS API error sending to {} (HTTP {}): {}", digitsOnly, response.statusCode(), response.body());
+                log.info("[SMS OTP - FALLBACK] 4-digit OTP code for phone {}: {}", rawPhone, otpCode);
+            }
+        } catch (Exception e) {
+            log.error("Failed to send SMS via Fast2SMS to {}: {}", rawPhone, e.getMessage(), e);
+            log.info("[SMS OTP - FALLBACK] 4-digit OTP code for phone {}: {}", rawPhone, otpCode);
+        }
     }
 
     /**

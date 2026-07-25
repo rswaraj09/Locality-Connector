@@ -38,8 +38,9 @@ class HomeControllerTest {
     }
 
     @Test
-    void userDashboard_pageShellIsAccessible() throws Exception {
+    void userDashboard_unauthenticated_redirectsToLogin() throws Exception {
         mockMvc.perform(get("/enhanced-user-dashboard"))
-                .andExpect(status().isOk());
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/user/login"));
     }
 }

@@ -18,6 +18,7 @@ import com.example.localityconnector.util.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -175,7 +176,7 @@ public class AuthController {
 
     @Operation(summary = "User login; returns a JWT")
     @PostMapping("/user/login")
-    public ResponseEntity<ApiResponse<Object>> userLogin(@Valid @RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<ApiResponse<Object>> userLogin(@Valid @RequestBody LoginRequest loginRequest, HttpServletResponse response) {
         String email = loginRequest.getEmail();
         ResponseEntity<ApiResponse<Object>> locked = lockoutResponse(email);
         if (locked != null) {
@@ -197,6 +198,12 @@ public class AuthController {
         }
         String token = jwtUtil.generateToken(user.getEmail(), roles, user.getId(), user.getName());
 
+        jakarta.servlet.http.Cookie cookie = new jakarta.servlet.http.Cookie("jwt", token);
+        cookie.setPath("/");
+        cookie.setHttpOnly(true);
+        cookie.setMaxAge(86400);
+        response.addCookie(cookie);
+
         Map<String, Object> data = new LinkedHashMap<>();
         data.put("message", "Login successful");
         data.put("token", token);
@@ -209,7 +216,7 @@ public class AuthController {
 
     @Operation(summary = "Business login; returns a JWT")
     @PostMapping("/business/login")
-    public ResponseEntity<ApiResponse<Object>> businessLogin(@Valid @RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<ApiResponse<Object>> businessLogin(@Valid @RequestBody LoginRequest loginRequest, HttpServletResponse response) {
         String email = loginRequest.getEmail();
         ResponseEntity<ApiResponse<Object>> locked = lockoutResponse(email);
         if (locked != null) {
@@ -231,6 +238,12 @@ public class AuthController {
         }
         String token = jwtUtil.generateToken(business.getEmail(), roles, business.getId(), business.getBusinessName());
 
+        jakarta.servlet.http.Cookie cookie = new jakarta.servlet.http.Cookie("jwt", token);
+        cookie.setPath("/");
+        cookie.setHttpOnly(true);
+        cookie.setMaxAge(86400);
+        response.addCookie(cookie);
+
         Map<String, Object> data = new LinkedHashMap<>();
         data.put("message", "Login successful");
         data.put("token", token);
@@ -244,7 +257,7 @@ public class AuthController {
 
     @Operation(summary = "Logout; revokes the presented JWT until it expires")
     @PostMapping("/logout")
-    public ResponseEntity<ApiResponse<Object>> logout(HttpServletRequest request) {
+    public ResponseEntity<ApiResponse<Object>> logout(HttpServletRequest request, HttpServletResponse response) {
         String header = request.getHeader("Authorization");
         if (header != null && header.startsWith("Bearer ")) {
             String token = header.substring(7);
@@ -256,6 +269,11 @@ public class AuthController {
                 // A malformed/expired token needs no revocation.
             }
         }
+        jakarta.servlet.http.Cookie cookie = new jakarta.servlet.http.Cookie("jwt", "");
+        cookie.setPath("/");
+        cookie.setHttpOnly(true);
+        cookie.setMaxAge(0);
+        response.addCookie(cookie);
         return ResponseEntity.ok(ApiResponse.ok(Map.of("message", "Logged out successfully")));
     }
 

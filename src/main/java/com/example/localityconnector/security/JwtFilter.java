@@ -42,10 +42,27 @@ public class JwtFilter extends OncePerRequestFilter {
 
         if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
             jwt = authorizationHeader.substring(7);
+        } else if (request.getCookies() != null) {
+            for (jakarta.servlet.http.Cookie cookie : request.getCookies()) {
+                if ("jwt".equals(cookie.getName()) || "Authorization".equals(cookie.getName())) {
+                    String val = cookie.getValue();
+                    if (val != null && val.startsWith("Bearer%20")) {
+                        jwt = val.substring(9);
+                    } else if (val != null && val.startsWith("Bearer ")) {
+                        jwt = val.substring(7);
+                    } else {
+                        jwt = val;
+                    }
+                    break;
+                }
+            }
+        }
+
+        if (jwt != null && !jwt.isBlank()) {
             try {
                 username = jwtUtil.extractUsername(jwt);
             } catch (Exception e) {
-                // Token invalid or expired - leave the context unauthenticated.
+                // Token invalid or expired - leave context unauthenticated.
             }
         }
 
@@ -97,10 +114,14 @@ public class JwtFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getRequestURI();
-        // Skip token processing for unauthenticated entry points and server-rendered portal pages.
-        return path.startsWith("/api/auth/login") || path.startsWith("/api/auth/user/")
-                || path.startsWith("/api/auth/business/")
-                || path.startsWith("/user/") || path.startsWith("/business/")
-                || path.equals("/user") || path.equals("/business");
+        // Skip token filtering for unauthenticated API auth endpoints, public assets, and login/signup/recovery pages
+        return path.startsWith("/api/auth/")
+                || path.startsWith("/api/public/")
+                || path.equals("/") || path.equals("/index.html")
+                || path.equals("/user/login") || path.equals("/user/signup")
+                || path.equals("/business/login") || path.equals("/business/signup")
+                || path.equals("/forgot-password") || path.equals("/reset-password")
+                || path.startsWith("/css/") || path.startsWith("/js/")
+                || path.startsWith("/images/") || path.equals("/favicon.ico");
     }
 }
