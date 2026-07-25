@@ -370,7 +370,7 @@
 <div class="header">
     <div>
         <span class="eyebrow">Locality Connector · Business Portal</span>
-        <h1>Welcome <span th:text="${session.loggedInBusinessName != null ? session.loggedInBusinessName : 'Business'}"></span></h1>
+        <h1>Welcome <span id="business-display-name">Business</span></h1>
     </div>
     <a href="/business/login" class="logout-btn">Logout</a>
 </div>
@@ -499,6 +499,13 @@
         }
         if (window.LCAuth) {
             LCAuth.requireRole("business", "/business/login");
+            const identity = LCAuth.getIdentity();
+            if (identity && identity.name) {
+                const nameEl = document.getElementById("business-display-name");
+                if (nameEl) nameEl.textContent = identity.name;
+                const bizNameEl = document.querySelector(".biz-name");
+                if (bizNameEl) bizNameEl.textContent = identity.name;
+            }
             loadBusinessProfile();
         }
     });
@@ -507,8 +514,16 @@
         LCAuth.authFetch("/api/business/dashboard/profile")
             .then(res => res.json())
             .then(data => {
-                if (data && data.success && data.data && data.data.logoUrl) {
-                    document.getElementById("currentLogo").src = data.data.logoUrl;
+                if (data && data.success && data.data) {
+                    if (data.data.businessName) {
+                        const nameEl = document.getElementById("business-display-name");
+                        if (nameEl) nameEl.textContent = data.data.businessName;
+                        const bizNameEl = document.querySelector(".biz-name");
+                        if (bizNameEl) bizNameEl.textContent = data.data.businessName;
+                    }
+                    if (data.data.logoUrl) {
+                        document.getElementById("currentLogo").src = data.data.logoUrl;
+                    }
                 }
             })
             .catch(err => console.error("Failed to load profile:", err));

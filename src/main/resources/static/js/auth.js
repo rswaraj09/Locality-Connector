@@ -43,7 +43,14 @@
 
   function hasRole(role) {
     var identity = getIdentity();
-    return !!(identity && Array.isArray(identity.roles) && identity.roles.indexOf(role) !== -1);
+    if (!identity || !Array.isArray(identity.roles) || !role) {
+      return false;
+    }
+    var target = String(role).toUpperCase();
+    return identity.roles.some(function (r) {
+      var rUpper = String(r).toUpperCase();
+      return rUpper === target || rUpper === "ROLE_" + target || "ROLE_" + rUpper === target;
+    });
   }
 
   function authHeaders(extra) {
