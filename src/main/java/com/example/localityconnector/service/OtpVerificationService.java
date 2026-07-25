@@ -87,15 +87,11 @@ public class OtpVerificationService {
 
     private void sendTwilioSms(String rawPhone, String otpCode) {
         try {
-            String formattedPhone = rawPhone.trim();
-            if (!formattedPhone.startsWith("+")) {
-                String digits = formattedPhone.replaceAll("[^0-9]", "");
-                if (digits.length() == 10) {
-                    formattedPhone = "+91" + digits;
-                } else {
-                    formattedPhone = "+" + digits;
-                }
+            String digitsOnly = rawPhone.replaceAll("[^0-9]", "");
+            if (digitsOnly.length() > 10) {
+                digitsOnly = digitsOnly.substring(digitsOnly.length() - 10);
             }
+            String formattedPhone = "+91" + digitsOnly;
             String body = "Your Locality Connector 4-digit verification code is " + otpCode + ". Valid for 10 minutes.";
             String formData = "To=" + java.net.URLEncoder.encode(formattedPhone, java.nio.charset.StandardCharsets.UTF_8)
                     + "&From=" + java.net.URLEncoder.encode(twilioPhoneNumber != null ? twilioPhoneNumber.trim() : "", java.nio.charset.StandardCharsets.UTF_8)
