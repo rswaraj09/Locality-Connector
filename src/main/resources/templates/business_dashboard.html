@@ -49,11 +49,12 @@
 
         body {
             font-family: 'Sora', sans-serif;
-            background:
+            background: #0d0817 !important;
+            background-image:
                 radial-gradient(120% 140% at 15% -10%, #2a1a45 0%, transparent 55%),
                 radial-gradient(100% 120% at 100% 10%, #3a1530 0%, transparent 50%),
-                linear-gradient(180deg, var(--bg-0), var(--bg-1) 45%, var(--bg-0));
-            color: var(--text-hi);
+                linear-gradient(180deg, #0d0817, #170f28 45%, #0d0817) !important;
+            color: #f6f2ff !important;
             min-height: 100vh;
             overflow-x: hidden;
             position: relative;
@@ -77,10 +78,10 @@
             justify-content: space-between;
             align-items: center;
             padding: 18px 34px;
-            background: rgba(13, 8, 23, 0.55);
+            background: rgba(13, 8, 23, 0.85) !important;
             backdrop-filter: blur(18px) saturate(140%);
             -webkit-backdrop-filter: blur(18px) saturate(140%);
-            border-bottom: 1px solid var(--glass-border);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.15) !important;
         }
 
         .header h1 {
@@ -88,7 +89,7 @@
             font-weight: 600;
             font-size: 1.7rem;
             letter-spacing: -0.01em;
-            color: var(--text-hi);
+            color: #ffffff !important;
         }
 
         .header h1 span {
@@ -105,7 +106,7 @@
             font-size: 11px;
             letter-spacing: 0.12em;
             text-transform: uppercase;
-            color: var(--text-low);
+            color: #c9bfe0 !important;
             margin-bottom: 2px;
         }
 
@@ -172,6 +173,7 @@
             letter-spacing: -0.02em;
             margin-top: 10px;
             max-width: 640px;
+            color: #ffffff !important;
         }
 
         .hero h2 .biz-name {
@@ -184,10 +186,11 @@
 
         .hero p {
             margin-top: 14px;
-            color: var(--text-mid);
+            color: #d8ceee !important;
             font-size: 15px;
             max-width: 480px;
             line-height: 1.6;
+            font-weight: 500;
         }
 
         /* ============================================================
@@ -212,13 +215,13 @@
            ============================================================ */
         .card {
             position: relative;
-            background: var(--glass);
-            border: 1px solid var(--glass-border);
+            background: rgba(26, 17, 43, 0.82) !important;
+            border: 1px solid rgba(255, 255, 255, 0.18) !important;
             border-radius: var(--radius-lg);
             padding: 28px;
             backdrop-filter: blur(22px) saturate(130%);
             -webkit-backdrop-filter: blur(22px) saturate(130%);
-            box-shadow: 0 20px 50px -20px rgba(0, 0, 0, 0.55);
+            box-shadow: 0 20px 50px -20px rgba(0, 0, 0, 0.65) !important;
             transition: transform 0.5s var(--ease-smooth), box-shadow 0.5s var(--ease-smooth), border-color 0.4s;
             overflow: hidden;
         }
@@ -252,6 +255,7 @@
             display: flex;
             align-items: center;
             gap: 10px;
+            color: #ffffff !important;
         }
 
         .card h3::before {
@@ -269,10 +273,10 @@
         .btn {
             position: relative;
             overflow: hidden;
-            background: linear-gradient(120deg, var(--gold-soft), var(--gold));
-            color: #1a0f0a;
+            background: linear-gradient(120deg, var(--gold-soft), var(--gold)) !important;
+            color: #120904 !important;
             padding: 15px 22px;
-            border: none;
+            border: none !important;
             border-radius: var(--radius-sm);
             cursor: pointer;
             text-decoration: none;
@@ -281,7 +285,7 @@
             text-align: center;
             margin-top: 12px;
             font-size: 1rem;
-            font-weight: 700;
+            font-weight: 700 !important;
             box-shadow: 0 10px 26px -10px rgba(240, 180, 41, 0.5);
             transition: transform 0.25s var(--ease-spring), box-shadow 0.3s;
             will-change: transform;
@@ -291,13 +295,18 @@
         .btn:active { transform: scale(0.97) !important; }
 
         .btn-secondary {
-            background: var(--glass-strong);
-            color: var(--text-hi);
-            border: 1px solid var(--glass-border);
-            box-shadow: none;
+            background: rgba(255, 255, 255, 0.12) !important;
+            color: #ffffff !important;
+            border: 1px solid rgba(255, 255, 255, 0.25) !important;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2) !important;
         }
 
-        .btn-secondary:hover { border-color: var(--violet); box-shadow: 0 8px 24px -8px rgba(155, 123, 240, 0.45); }
+        .btn-secondary:hover {
+            background: rgba(155, 123, 240, 0.25) !important;
+            border-color: #9b7bf0 !important;
+            color: #ffffff !important;
+            box-shadow: 0 8px 24px -8px rgba(155, 123, 240, 0.5) !important;
+        }
 
         .btn .ripple {
             position: absolute;
