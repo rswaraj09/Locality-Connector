@@ -49,14 +49,15 @@
 
         body {
             font-family: 'Sora', sans-serif;
-            background:
+            background: #0d0817 !important;
+            background-image:
                 radial-gradient(120% 140% at 15% -10%, #2a1a45 0%, transparent 55%),
                 radial-gradient(100% 120% at 100% 10%, #3a1530 0%, transparent 50%),
-                linear-gradient(180deg, var(--bg-0), var(--bg-1) 45%, var(--bg-0));
+                linear-gradient(180deg, #0d0817, #170f28 45%, #0d0817) !important;
+            color: #f6f2ff !important;
             min-height: 100vh;
-            color: var(--text-hi);
-            position: relative;
             overflow-x: hidden;
+            position: relative;
         }
 
         #aurora { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; opacity: 0.55; pointer-events: none; }
@@ -77,18 +78,18 @@
             justify-content: space-between;
             align-items: center;
             padding: 18px 34px;
-            background: rgba(13, 8, 23, 0.55);
+            background: rgba(13, 8, 23, 0.85) !important;
             backdrop-filter: blur(18px) saturate(140%);
             -webkit-backdrop-filter: blur(18px) saturate(140%);
-            border-bottom: 1px solid var(--glass-border);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.15) !important;
         }
 
         .header h1 {
             font-family: 'Fraunces', serif;
             font-weight: 600;
-            font-size: 1.6rem;
+            font-size: 1.7rem;
             letter-spacing: -0.01em;
-            color: var(--text-hi);
+            color: #ffffff !important;
         }
 
         .header .eyebrow {
@@ -97,7 +98,7 @@
             font-size: 11px;
             letter-spacing: 0.12em;
             text-transform: uppercase;
-            color: var(--text-low);
+            color: #c9bfe0 !important;
             margin-bottom: 2px;
         }
 
@@ -219,15 +220,15 @@
         .dashboard-container {
             position: relative;
             z-index: 2;
-            max-width: 720px;
-            margin: 16px auto 70px;
-            padding: 34px;
-            background: var(--glass);
-            border: 1px solid var(--glass-border);
+            max-width: 780px;
+            margin: 18px auto 80px;
+            padding: 40px 44px;
+            background: rgba(26, 17, 43, 0.82) !important;
+            border: 1px solid rgba(255, 255, 255, 0.18) !important;
             border-radius: var(--radius-lg);
             backdrop-filter: blur(22px) saturate(130%);
             -webkit-backdrop-filter: blur(22px) saturate(130%);
-            box-shadow: 0 20px 50px -20px rgba(0, 0, 0, 0.55);
+            box-shadow: 0 20px 50px -20px rgba(0, 0, 0, 0.65) !important;
         }
 
         .dashboard-container h2 { display: none; } /* title now lives in the hero */
