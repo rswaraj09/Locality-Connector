@@ -31,12 +31,12 @@ client (Thymeleaf pages + JS)
   Spring Security (stateless)
         |  JwtFilter -> sets principal = entityId, authorities = ROLE_*
         v
-  Controllers  ->  Services  ->  Firestore repositories  ->  Firestore
+  Controllers  ->  Services  ->  MongoDB repositories  ->  MongoDB
 ```
 
 - **Stateless auth**: login issues a JWT carrying `sub` (email), `sub_id` (entity id),
   `sub_name` (display name), `roles`, and a unique `jti`. No HTTP session is created.
-- **Logout** revokes the token by storing its `jti` in a Firestore blacklist until it
+- **Logout** revokes the token by storing its `jti` in a MongoDB blacklist until it
   expires; a scheduled job purges expired entries.
 - **Brute-force protection**: 5 failed logins within 15 minutes locks an account for 30
   minutes; locked logins return `429 Too Many Requests` with a `Retry-After` header.
