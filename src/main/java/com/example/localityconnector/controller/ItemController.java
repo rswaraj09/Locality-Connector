@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -32,6 +33,7 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/api/items")
 @RequiredArgsConstructor
+@Slf4j
 @Tag(name = "Items", description = "Business catalog management")
 @SecurityRequirement(name = "bearerAuth")
 public class ItemController {
@@ -156,8 +158,12 @@ public class ItemController {
             item.prePersist();
             itemService.createItem(item);
             return ResponseEntity.ok(ApiResponse.ok(Map.of("message", "Image uploaded", "imageUrl", url)));
+        } catch (IllegalArgumentException e) {
+            // Validation failures (bad type/size) are safe, user-facing messages.
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.fail(e.getMessage()));
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponse.fail("Failed to upload image: " + e.getMessage()));
+            log.error("Failed to upload item image for item {}", id, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponse.fail("Failed to upload image. Please try again."));
         }
     }
 
@@ -183,8 +189,11 @@ public class ItemController {
             item.prePersist();
             itemService.createItem(item);
             return ResponseEntity.ok(ApiResponse.ok(Map.of("message", "Images uploaded", "imageUrls", item.getImageUrls())));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.fail(e.getMessage()));
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponse.fail("Failed to upload images: " + e.getMessage()));
+            log.error("Failed to upload item images for item {}", id, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponse.fail("Failed to upload images. Please try again."));
         }
     }
 

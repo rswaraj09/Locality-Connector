@@ -85,10 +85,19 @@ public class RateLimitingFilter extends OncePerRequestFilter {
     }
 
     private String resolveClientKey(HttpServletRequest request) {
-        // Prefer X-Forwarded-For for proxied deployments
+        // X-Forwarded-For is a client-supplied header: anyone can prepend fake IPs to it.
+        // A reverse proxy (AWS ALB, nginx, etc.) appends the real client IP as the LAST
+        // entry in the chain when it forwards the request - it never removes what the
+        // client sent before it. Trusting the first (leftmost) entry lets an attacker
+        // rotate a fake value there to dodge the limiter entirely, so we must read the
+        // last entry instead, which is the one the proxy itself set.
         String forwarded = request.getHeader("X-Forwarded-For");
         if (forwarded != null && !forwarded.isBlank()) {
-            return forwarded.split(",")[0].trim();
+            String[] parts = forwarded.split(",");
+            String lastHop = parts[parts.length - 1].trim();
+            if (!lastHop.isEmpty()) {
+                return lastHop;
+            }
         }
         return request.getRemoteAddr();
     }

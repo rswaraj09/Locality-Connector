@@ -61,7 +61,13 @@ public class StorageService {
                 : ".jpg";
         String filename = UUID.randomUUID() + extension;
 
-        Path folderPath = Paths.get(uploadDir, folder);
+        Path uploadRoot = Paths.get(uploadDir).toAbsolutePath().normalize();
+        Path folderPath = uploadRoot.resolve(folder).normalize();
+        if (!folderPath.startsWith(uploadRoot)) {
+            // folder is always a hardcoded literal from our own controllers today, but
+            // fail closed rather than silently writing outside the upload directory.
+            throw new IllegalArgumentException("Invalid storage folder");
+        }
         if (!Files.exists(folderPath)) {
             Files.createDirectories(folderPath);
         }
@@ -76,6 +82,12 @@ public class StorageService {
 
     /**
      * Delete a file from local storage by its URL.
+     *
+     * <p>Defense-in-depth: even though callers today only pass back URLs the service
+     * itself generated, the relative path is resolved and then verified to still live
+     * inside {@code uploadDir} before any delete happens. This blocks path traversal
+     * ({@code ../../etc/passwd}-style segments) if this method is ever reached with a
+     * URL built from less-trusted input.</p>
      */
     public void deleteByUrl(String url) {
         if (url == null || url.isBlank()) return;
@@ -86,7 +98,14 @@ public class StorageService {
             if (start < 0) return;
             String relativePath = url.substring(start + marker.length());
 
-            Path filePath = Paths.get(uploadDir, relativePath);
+            Path uploadRoot = Paths.get(uploadDir).toAbsolutePath().normalize();
+            Path filePath = uploadRoot.resolve(relativePath).normalize();
+
+            if (!filePath.startsWith(uploadRoot)) {
+                log.warn("Refused to delete path outside upload directory: {}", relativePath);
+                return;
+            }
+
             if (Files.exists(filePath)) {
                 Files.delete(filePath);
                 log.info("Deleted file: {}", filePath);

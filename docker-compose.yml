@@ -9,7 +9,9 @@ services:
       - "8081:8081"
     environment:
       SERVER_PORT: 8081
-      SPRING_PROFILES_ACTIVE: dev
+      # prod profile: Secure cookies enforced, no stack traces in error responses.
+      # Use dev only for local iteration outside Docker (./mvnw spring-boot:run).
+      SPRING_PROFILES_ACTIVE: prod
       JWT_SECRET_KEY: ${JWT_SECRET_KEY}
       ADMIN_EMAILS: ${ADMIN_EMAILS:-}
       CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:8081}

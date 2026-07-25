@@ -35,11 +35,16 @@ public interface BusinessRepository extends MongoRepository<Business, String> {
     /** Count businesses that have a stored latitude (i.e. geocoded). */
     long countByLatitudeGreaterThanEqual(double minLat);
 
-    /** Prefix search on businessName (case-insensitive regex). */
-    @Query(value = "{'businessName': {$regex: '^?0', $options: 'i'}}")
+    /**
+     * Prefix search on businessName (case-insensitive). Uses Spring Data's derived
+     * query method rather than a hand-written {@code $regex} string: Spring Data
+     * escapes regex metacharacters in the parameter automatically, whereas splicing
+     * the raw prefix into a {@code @Query} regex string let a caller inject regex
+     * syntax (e.g. catastrophic-backtracking patterns) through the public
+     * {@code /api/business-data/search} endpoint.
+     */
     List<Business> findByBusinessNameStartingWithIgnoreCase(String prefix);
 
-    @Query(value = "{'businessName': {$regex: '^?0', $options: 'i'}}", count = true)
     long countByBusinessNameStartingWithIgnoreCase(String prefix);
 
     /** Paginated query ordered by a field. */

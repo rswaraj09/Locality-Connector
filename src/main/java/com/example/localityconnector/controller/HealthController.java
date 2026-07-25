@@ -2,6 +2,7 @@ package com.example.localityconnector.controller;
 
 import com.example.localityconnector.util.ApiResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,6 +18,7 @@ import java.util.Map;
  */
 @RestController
 @RequiredArgsConstructor
+@Slf4j
 public class HealthController {
 
     private final MongoTemplate mongoTemplate;
@@ -32,9 +34,10 @@ public class HealthController {
             data.put("database", "connected");
             return ResponseEntity.ok(ApiResponse.ok(data));
         } catch (Exception e) {
-            data.put("status", "DOWN");
-            data.put("database", "unavailable");
-            data.put("detail", e.getMessage());
+            // Log the real cause server-side only; never return connection/driver
+            // details (host, credentials in the URI, etc.) to a public, unauthenticated
+            // caller.
+            log.warn("Health check: MongoDB ping failed: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
                     .body(ApiResponse.fail("MongoDB connectivity check failed"));
         }

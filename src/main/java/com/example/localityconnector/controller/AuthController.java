@@ -62,6 +62,12 @@ public class AuthController {
     @Value("${app.admin.emails:}")
     private String adminEmailsRaw;
 
+    // Cookies must only be sent over HTTPS in production. Set COOKIE_SECURE=true
+    // (or leave the default) once the app is deployed behind TLS on AWS; only
+    // disable it for plain-HTTP local development.
+    @Value("${app.cookie.secure:true}")
+    private boolean cookieSecure;
+
     /** Parsed once at startup — no per-request CSV parsing. */
     private Set<String> adminEmailsCache = Collections.emptySet();
 
@@ -81,6 +87,17 @@ public class AuthController {
 
     private boolean isAdmin(String email) {
         return email != null && adminEmailsCache.contains(email.toLowerCase());
+    }
+
+    /** Builds the {@code jwt} cookie with HttpOnly + Secure + SameSite=Lax applied consistently. */
+    private jakarta.servlet.http.Cookie buildJwtCookie(String value, int maxAgeSeconds) {
+        jakarta.servlet.http.Cookie cookie = new jakarta.servlet.http.Cookie("jwt", value);
+        cookie.setPath("/");
+        cookie.setHttpOnly(true);
+        cookie.setSecure(cookieSecure);
+        cookie.setMaxAge(maxAgeSeconds);
+        cookie.setAttribute("SameSite", "Lax");
+        return cookie;
     }
 
     @Operation(summary = "Send 4-digit OTP for Email or Phone verification")
@@ -198,11 +215,7 @@ public class AuthController {
         }
         String token = jwtUtil.generateToken(user.getEmail(), roles, user.getId(), user.getName());
 
-        jakarta.servlet.http.Cookie cookie = new jakarta.servlet.http.Cookie("jwt", token);
-        cookie.setPath("/");
-        cookie.setHttpOnly(true);
-        cookie.setMaxAge(86400);
-        response.addCookie(cookie);
+        response.addCookie(buildJwtCookie(token, 86400));
 
         Map<String, Object> data = new LinkedHashMap<>();
         data.put("message", "Login successful");
@@ -238,11 +251,7 @@ public class AuthController {
         }
         String token = jwtUtil.generateToken(business.getEmail(), roles, business.getId(), business.getBusinessName());
 
-        jakarta.servlet.http.Cookie cookie = new jakarta.servlet.http.Cookie("jwt", token);
-        cookie.setPath("/");
-        cookie.setHttpOnly(true);
-        cookie.setMaxAge(86400);
-        response.addCookie(cookie);
+        response.addCookie(buildJwtCookie(token, 86400));
 
         Map<String, Object> data = new LinkedHashMap<>();
         data.put("message", "Login successful");
@@ -269,11 +278,7 @@ public class AuthController {
                 // A malformed/expired token needs no revocation.
             }
         }
-        jakarta.servlet.http.Cookie cookie = new jakarta.servlet.http.Cookie("jwt", "");
-        cookie.setPath("/");
-        cookie.setHttpOnly(true);
-        cookie.setMaxAge(0);
-        response.addCookie(cookie);
+        response.addCookie(buildJwtCookie("", 0));
         return ResponseEntity.ok(ApiResponse.ok(Map.of("message", "Logged out successfully")));
     }
 
