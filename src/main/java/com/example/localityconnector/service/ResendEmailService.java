@@ -66,10 +66,12 @@ public class ResendEmailService {
                 return true;
             } else {
                 log.warn("Resend API error sending to {} (HTTP {}): {}", to, response.statusCode(), response.body());
+                log.info("[CONSOLE FALLBACK] Simulated Email to {}: subject='{}'\n{}", to, subject, htmlContent);
                 return false;
             }
         } catch (Exception e) {
             log.error("Failed to send email via Resend API to {}: {}", to, e.getMessage(), e);
+            log.info("[CONSOLE FALLBACK] Simulated Email to {}: subject='{}'\n{}", to, subject, htmlContent);
             return false;
         }
     }
