@@ -77,13 +77,8 @@ public class HomeController {
         return "user_home";
     }
 
-    @GetMapping("/business-dashboard")
+    @GetMapping({"/business-dashboard", "/enhanced-business-dashboard"})
     public String businessDashboard() {
-        return "redirect:/enhanced-business-dashboard";
-    }
-
-    @GetMapping("/enhanced-business-dashboard")
-    public String enhancedBusinessDashboard() {
         return "business_dashboard";
     }
 
