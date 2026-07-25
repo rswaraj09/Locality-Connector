@@ -123,8 +123,8 @@ class VerificationServiceTest {
 
     @Test
     void testCleanupExpiredTokens() {
-        when(tokenRepository.deleteExpired()).thenReturn(5);
+        when(tokenRepository.deleteByExpiresAtBefore(any(Date.class))).thenReturn(5L);
         verificationService.cleanupExpiredTokens();
-        verify(tokenRepository, times(1)).deleteExpired();
+        verify(tokenRepository, times(1)).deleteByExpiresAtBefore(any(Date.class));
     }
 }
