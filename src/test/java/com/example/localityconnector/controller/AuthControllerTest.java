@@ -46,6 +46,8 @@ class AuthControllerTest {
     com.example.localityconnector.service.VerificationService verificationService;
     @MockBean
     com.example.localityconnector.service.PasswordResetService passwordResetService;
+    @MockBean
+    com.example.localityconnector.service.OtpVerificationService otpVerificationService;
 
     @Test
     void userLogin_happyPath_returnsToken() throws Exception {

@@ -3,29 +3,21 @@ package com.example.localityconnector.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
-import jakarta.mail.MessagingException;
-import jakarta.mail.internet.MimeMessage;
-
 /**
- * Sends transactional emails (verification, password reset). Uses Spring's
- * {@link JavaMailSender} backed by the configured SMTP provider.
+ * Sends transactional emails (verification, password reset, 4-digit OTP).
+ * Delegates sending to ResendEmailService REST API.
  */
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class EmailService {
 
-    private final JavaMailSender mailSender;
+    private final ResendEmailService resendEmailService;
 
     @Value("${app.base-url:http://localhost:8081}")
     private String baseUrl;
-
-    @Value("${spring.mail.username:noreply@localityconnector.com}")
-    private String fromEmail;
 
     @Value("${app.name:Locality Connector}")
     private String appName;
@@ -43,12 +35,8 @@ public class EmailService {
                     Verify Email
                   </a>
                   <p style="color: #6b7280; font-size: 13px;">This link expires in 24 hours. If you didn't create an account, ignore this email.</p>
-                  <p style="color: #9ca3af; font-size: 12px; margin-top: 32px; border-top: 1px solid #e5e7eb; padding-top: 16px;">
-                    If the button doesn't work, copy and paste this URL into your browser:<br>
-                    <a href="%s" style="color: #2563eb;">%s</a>
-                  </p>
                 </div>
-                """.formatted(appName, link, link, link);
+                """.formatted(appName, link);
 
         sendHtmlEmail(to, subject, body);
     }
@@ -66,29 +54,30 @@ public class EmailService {
                     Reset Password
                   </a>
                   <p style="color: #6b7280; font-size: 13px;">This link expires in 1 hour. If you didn't request a reset, ignore this email.</p>
-                  <p style="color: #9ca3af; font-size: 12px; margin-top: 32px; border-top: 1px solid #e5e7eb; padding-top: 16px;">
-                    If the button doesn't work, copy and paste this URL into your browser:<br>
-                    <a href="%s" style="color: #2563eb;">%s</a>
-                  </p>
                 </div>
-                """.formatted(appName, link, link, link);
+                """.formatted(appName, link);
 
         sendHtmlEmail(to, subject, body);
     }
 
-    private void sendHtmlEmail(String to, String subject, String htmlBody) {
-        try {
-            MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-            helper.setFrom(fromEmail);
-            helper.setTo(to);
-            helper.setSubject(subject);
-            helper.setText(htmlBody, true);
-            mailSender.send(message);
-            log.info("Email sent to {}: {}", to, subject);
-        } catch (MessagingException e) {
-            log.error("Failed to send email to {}: {}", to, e.getMessage());
-            throw new RuntimeException("Failed to send email", e);
-        }
+    public void sendRegistrationOtpEmail(String to, String otpCode) {
+        String subject = appName + " — Registration 4-Digit OTP Verification";
+        String body = """
+                <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 520px; margin: 0 auto; padding: 32px; background: #0f0a14; color: #ffffff; border-radius: 16px;">
+                  <h2 style="color: #f0b429; margin-bottom: 8px;">%s</h2>
+                  <p style="color: #e2d9f3; font-size: 15px;">Your 4-digit registration verification code is:</p>
+                  <div style="margin: 24px 0; padding: 16px 32px; background: rgba(240, 180, 41, 0.15); border: 2px dashed #f0b429; border-radius: 12px; font-size: 36px; font-weight: 800; letter-spacing: 8px; color: #ffd580; text-align: center;">
+                    %s
+                  </div>
+                  <p style="color: #a095bd; font-size: 13px;">This OTP expires in 10 minutes. Do not share this code with anyone.</p>
+                </div>
+                """.formatted(appName, otpCode);
+
+        sendHtmlEmail(to, subject, body);
+    }
+
+    public void sendHtmlEmail(String to, String subject, String htmlBody) {
+        resendEmailService.sendEmail(to, subject, htmlBody);
     }
 }
+

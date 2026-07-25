@@ -462,10 +462,15 @@
                 </div>
                 <div class="form-group">
                     <label for="email">Email</label>
-                    <div class="field-wrap">
-                        <input type="email" id="email" name="email" placeholder="Enter your email" required autocomplete="email">
-                        <div class="field-underline"></div>
+                    <div class="field-wrap" style="display: flex; gap: 8px;">
+                        <input type="email" id="email" name="email" placeholder="Enter your email" required autocomplete="email" style="flex: 1;">
+                        <button type="button" id="send-email-otp-btn" style="padding: 6px 14px; background: #6C63FF; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 12px;">Send OTP</button>
                     </div>
+                    <div class="field-wrap" id="email-otp-wrap" style="display: none; margin-top: 8px; gap: 8px;">
+                        <input type="text" id="emailOtp" name="emailOtp" placeholder="Enter 4-digit Email OTP" maxlength="4" style="flex: 1; letter-spacing: 4px; font-weight: bold; text-align: center;">
+                        <button type="button" id="verify-email-otp-btn" style="padding: 6px 14px; background: #10B981; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 12px;">Verify OTP</button>
+                    </div>
+                    <span id="email-otp-status" style="font-size: 11px; margin-top: 4px; display: block;"></span>
                 </div>
                 <div class="form-group">
                     <label for="password">Password</label>
@@ -483,10 +488,15 @@
                 </div>
                 <div class="form-group">
                     <label for="phoneNumber">Phone Number</label>
-                    <div class="field-wrap">
-                        <input type="tel" id="phoneNumber" name="phoneNumber" placeholder="Enter phone number" required>
-                        <div class="field-underline"></div>
+                    <div class="field-wrap" style="display: flex; gap: 8px;">
+                        <input type="tel" id="phoneNumber" name="phoneNumber" placeholder="Enter phone number" required style="flex: 1;">
+                        <button type="button" id="send-phone-otp-btn" style="padding: 6px 14px; background: #6C63FF; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 12px;">Send OTP</button>
                     </div>
+                    <div class="field-wrap" id="phone-otp-wrap" style="display: none; margin-top: 8px; gap: 8px;">
+                        <input type="text" id="phoneOtp" name="phoneOtp" placeholder="Enter 4-digit Phone OTP" maxlength="4" style="flex: 1; letter-spacing: 4px; font-weight: bold; text-align: center;">
+                        <button type="button" id="verify-phone-otp-btn" style="padding: 6px 14px; background: #10B981; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 12px;">Verify OTP</button>
+                    </div>
+                    <span id="phone-otp-status" style="font-size: 11px; margin-top: 4px; display: block;"></span>
                 </div>
                 <div class="form-group">
                     <label for="category">Business Category</label>
@@ -541,6 +551,129 @@
         const messageDiv = document.getElementById('message');
         const submitBtn = form ? form.querySelector('.btn') : null;
 
+        // OTP Handlers
+        const sendEmailOtpBtn = document.getElementById('send-email-otp-btn');
+        const verifyEmailOtpBtn = document.getElementById('verify-email-otp-btn');
+        const emailOtpWrap = document.getElementById('email-otp-wrap');
+        const emailOtpStatus = document.getElementById('email-otp-status');
+
+        const sendPhoneOtpBtn = document.getElementById('send-phone-otp-btn');
+        const verifyPhoneOtpBtn = document.getElementById('verify-phone-otp-btn');
+        const phoneOtpWrap = document.getElementById('phone-otp-wrap');
+        const phoneOtpStatus = document.getElementById('phone-otp-status');
+
+        if (sendEmailOtpBtn) {
+            sendEmailOtpBtn.addEventListener('click', async () => {
+                const emailVal = document.getElementById('email').value.trim();
+                if (!emailVal) { alert('Please enter your email first.'); return; }
+                sendEmailOtpBtn.disabled = true; sendEmailOtpBtn.textContent = 'Sending...';
+                try {
+                    const res = await fetch('/api/auth/otp/send', {
+                        method: 'POST', headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ target: emailVal, targetType: 'EMAIL' })
+                    });
+                    const data = await res.json();
+                    if (res.ok) {
+                        emailOtpWrap.style.display = 'flex';
+                        emailOtpStatus.style.color = '#10B981';
+                        emailOtpStatus.textContent = '4-Digit OTP sent to ' + emailVal;
+                    } else {
+                        emailOtpStatus.style.color = '#EF4444';
+                        emailOtpStatus.textContent = data.error || 'Failed to send OTP';
+                    }
+                } catch (e) {
+                    emailOtpStatus.style.color = '#EF4444';
+                    emailOtpStatus.textContent = 'Error sending OTP';
+                } finally { sendEmailOtpBtn.disabled = false; sendEmailOtpBtn.textContent = 'Send OTP'; }
+            });
+        }
+
+        if (verifyEmailOtpBtn) {
+            verifyEmailOtpBtn.addEventListener('click', async () => {
+                const emailVal = document.getElementById('email').value.trim();
+                const otpVal = document.getElementById('emailOtp').value.trim();
+                if (!otpVal || otpVal.length !== 4) { alert('Please enter 4-digit OTP code.'); return; }
+                verifyEmailOtpBtn.disabled = true; verifyEmailOtpBtn.textContent = 'Verifying...';
+                try {
+                    const res = await fetch('/api/auth/otp/verify', {
+                        method: 'POST', headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ target: emailVal, otpCode: otpVal })
+                    });
+                    const data = await res.json();
+                    if (res.ok) {
+                        emailOtpStatus.style.color = '#10B981';
+                        emailOtpStatus.textContent = '✓ Email Verified';
+                        verifyEmailOtpBtn.disabled = true;
+                        verifyEmailOtpBtn.textContent = 'Verified';
+                    } else {
+                        emailOtpStatus.style.color = '#EF4444';
+                        emailOtpStatus.textContent = data.error || 'Invalid 4-digit OTP';
+                        verifyEmailOtpBtn.disabled = false; verifyEmailOtpBtn.textContent = 'Verify OTP';
+                    }
+                } catch (e) {
+                    emailOtpStatus.style.color = '#EF4444';
+                    emailOtpStatus.textContent = 'Error verifying OTP';
+                    verifyEmailOtpBtn.disabled = false; verifyEmailOtpBtn.textContent = 'Verify OTP';
+                }
+            });
+        }
+
+        if (sendPhoneOtpBtn) {
+            sendPhoneOtpBtn.addEventListener('click', async () => {
+                const phoneVal = document.getElementById('phoneNumber').value.trim();
+                if (!phoneVal) { alert('Please enter your phone number first.'); return; }
+                sendPhoneOtpBtn.disabled = true; sendPhoneOtpBtn.textContent = 'Sending...';
+                try {
+                    const res = await fetch('/api/auth/otp/send', {
+                        method: 'POST', headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ target: phoneVal, targetType: 'PHONE' })
+                    });
+                    const data = await res.json();
+                    if (res.ok) {
+                        phoneOtpWrap.style.display = 'flex';
+                        phoneOtpStatus.style.color = '#10B981';
+                        phoneOtpStatus.textContent = '4-Digit OTP sent to ' + phoneVal;
+                    } else {
+                        phoneOtpStatus.style.color = '#EF4444';
+                        phoneOtpStatus.textContent = data.error || 'Failed to send OTP';
+                    }
+                } catch (e) {
+                    phoneOtpStatus.style.color = '#EF4444';
+                    phoneOtpStatus.textContent = 'Error sending OTP';
+                } finally { sendPhoneOtpBtn.disabled = false; sendPhoneOtpBtn.textContent = 'Send OTP'; }
+            });
+        }
+
+        if (verifyPhoneOtpBtn) {
+            verifyPhoneOtpBtn.addEventListener('click', async () => {
+                const phoneVal = document.getElementById('phoneNumber').value.trim();
+                const otpVal = document.getElementById('phoneOtp').value.trim();
+                if (!otpVal || otpVal.length !== 4) { alert('Please enter 4-digit OTP code.'); return; }
+                verifyPhoneOtpBtn.disabled = true; verifyPhoneOtpBtn.textContent = 'Verifying...';
+                try {
+                    const res = await fetch('/api/auth/otp/verify', {
+                        method: 'POST', headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ target: phoneVal, otpCode: otpVal })
+                    });
+                    const data = await res.json();
+                    if (res.ok) {
+                        phoneOtpStatus.style.color = '#10B981';
+                        phoneOtpStatus.textContent = '✓ Phone Verified';
+                        verifyPhoneOtpBtn.disabled = true;
+                        verifyPhoneOtpBtn.textContent = 'Verified';
+                    } else {
+                        phoneOtpStatus.style.color = '#EF4444';
+                        phoneOtpStatus.textContent = data.error || 'Invalid 4-digit OTP';
+                        verifyPhoneOtpBtn.disabled = false; verifyPhoneOtpBtn.textContent = 'Verify OTP';
+                    }
+                } catch (e) {
+                    phoneOtpStatus.style.color = '#EF4444';
+                    phoneOtpStatus.textContent = 'Error verifying OTP';
+                    verifyPhoneOtpBtn.disabled = false; verifyPhoneOtpBtn.textContent = 'Verify OTP';
+                }
+            });
+        }
+
         if (form) {
             form.addEventListener('submit', async (e) => {
                 e.preventDefault();
@@ -549,9 +682,11 @@
                     businessName: document.getElementById('businessName').value.trim(),
                     ownerName: document.getElementById('ownerName').value.trim(),
                     email: document.getElementById('email').value.trim(),
+                    emailOtp: document.getElementById('emailOtp') ? document.getElementById('emailOtp').value.trim() : '',
                     password: document.getElementById('password').value,
                     address: document.getElementById('address').value.trim(),
                     phoneNumber: document.getElementById('phoneNumber').value.trim(),
+                    phoneOtp: document.getElementById('phoneOtp') ? document.getElementById('phoneOtp').value.trim() : '',
                     category: document.getElementById('category').value,
                     description: document.getElementById('description').value.trim(),
                     businessLicense: document.getElementById('businessLicense').value.trim()

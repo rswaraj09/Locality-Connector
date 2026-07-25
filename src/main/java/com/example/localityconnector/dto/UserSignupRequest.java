@@ -28,4 +28,8 @@ public class UserSignupRequest {
     private String address;
     
     private String phoneNumber;
+
+    private String emailOtp;
+
+    private String phoneOtp;
 }

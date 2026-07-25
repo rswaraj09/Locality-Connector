@@ -32,9 +32,14 @@ class HomeControllerTest {
     JwtBlacklistService jwtBlacklistService;
 
     @Test
-    void businessDashboard_isPublicAndRedirects() throws Exception {
+    void home_isPublic() throws Exception {
+        mockMvc.perform(get("/"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void businessDashboard_unauthenticated_returnsForbidden() throws Exception {
         mockMvc.perform(get("/business-dashboard"))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/enhanced-business-dashboard"));
+                .andExpect(status().isForbidden());
     }
 }

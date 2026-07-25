@@ -56,6 +56,7 @@ public class AuthController {
     private final JwtBlacklistService jwtBlacklistService;
     private final VerificationService verificationService;
     private final PasswordResetService passwordResetService;
+    private final com.example.localityconnector.service.OtpVerificationService otpVerificationService;
 
     @Value("${app.admin.emails:}")
     private String adminEmailsRaw;
@@ -81,14 +82,57 @@ public class AuthController {
         return email != null && adminEmailsCache.contains(email.toLowerCase());
     }
 
+    @Operation(summary = "Send 4-digit OTP for Email or Phone verification")
+    @PostMapping("/otp/send")
+    public ResponseEntity<ApiResponse<Object>> sendOtp(@Valid @RequestBody com.example.localityconnector.dto.SendOtpRequest request) {
+        String code = otpVerificationService.sendOtp(request.getTarget(), request.getTargetType());
+        Map<String, Object> data = new LinkedHashMap<>();
+        data.put("message", "4-Digit OTP sent successfully to " + request.getTarget());
+        data.put("target", request.getTarget());
+        data.put("targetType", request.getTargetType());
+        return ResponseEntity.ok(ApiResponse.ok(data));
+    }
+
+    @Operation(summary = "Verify 4-digit OTP code")
+    @PostMapping("/otp/verify")
+    public ResponseEntity<ApiResponse<Object>> verifyOtp(@Valid @RequestBody com.example.localityconnector.dto.VerifyOtpRequest request) {
+        boolean verified = otpVerificationService.verifyOtp(request.getTarget(), request.getOtpCode());
+        if (verified) {
+            return ResponseEntity.ok(ApiResponse.ok(Map.of("message", "4-Digit OTP verified successfully", "verified", true)));
+        }
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.fail("Invalid or expired 4-digit OTP code"));
+    }
+
     @Operation(summary = "Register a new user account")
     @PostMapping("/user/signup")
     public ResponseEntity<ApiResponse<Object>> userSignup(@Valid @RequestBody UserSignupRequest request) {
+        // Validate Email OTP if code provided directly or previously verified
+        if (request.getEmailOtp() != null && !request.getEmailOtp().trim().isEmpty()) {
+            boolean verified = otpVerificationService.verifyOtp(request.getEmail(), request.getEmailOtp());
+            if (!verified) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.fail("Invalid or expired 4-digit Email OTP"));
+            }
+        } else if (!otpVerificationService.isTargetVerified(request.getEmail())) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.fail("Please verify your email address using the 4-digit OTP"));
+        }
+
+        // Validate Phone OTP if phone number provided
+        if (request.getPhoneNumber() != null && !request.getPhoneNumber().trim().isEmpty()) {
+            if (request.getPhoneOtp() != null && !request.getPhoneOtp().trim().isEmpty()) {
+                boolean verified = otpVerificationService.verifyOtp(request.getPhoneNumber(), request.getPhoneOtp());
+                if (!verified) {
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.fail("Invalid or expired 4-digit Phone OTP"));
+                }
+            } else if (!otpVerificationService.isTargetVerified(request.getPhoneNumber())) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.fail("Please verify your phone number using the 4-digit OTP"));
+            }
+        }
+
         User user = userService.signup(request);
-        // Send verification email
         verificationService.createAndSendVerification(user.getId(), "USER", user.getEmail());
         Map<String, Object> data = new LinkedHashMap<>();
-        data.put("message", "User registered successfully. Please check your email to verify your account.");
+        data.put("message", "User registered successfully.");
         data.put("userId", user.getId());
         data.put("email", user.getEmail());
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok(data));
@@ -97,11 +141,32 @@ public class AuthController {
     @Operation(summary = "Register a new business account")
     @PostMapping("/business/signup")
     public ResponseEntity<ApiResponse<Object>> businessSignup(@Valid @RequestBody BusinessSignupRequest request) {
+        // Validate Email OTP
+        if (request.getEmailOtp() != null && !request.getEmailOtp().trim().isEmpty()) {
+            boolean verified = otpVerificationService.verifyOtp(request.getEmail(), request.getEmailOtp());
+            if (!verified) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.fail("Invalid or expired 4-digit Email OTP"));
+            }
+        } else if (!otpVerificationService.isTargetVerified(request.getEmail())) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.fail("Please verify your business email using the 4-digit OTP"));
+        }
+
+        // Validate Phone OTP
+        if (request.getPhoneNumber() != null && !request.getPhoneNumber().trim().isEmpty()) {
+            if (request.getPhoneOtp() != null && !request.getPhoneOtp().trim().isEmpty()) {
+                boolean verified = otpVerificationService.verifyOtp(request.getPhoneNumber(), request.getPhoneOtp());
+                if (!verified) {
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.fail("Invalid or expired 4-digit Phone OTP"));
+                }
+            } else if (!otpVerificationService.isTargetVerified(request.getPhoneNumber())) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.fail("Please verify your business phone number using the 4-digit OTP"));
+            }
+        }
+
         Business business = businessService.signup(request);
-        // Send verification email
         verificationService.createAndSendVerification(business.getId(), "BUSINESS", business.getEmail());
         Map<String, Object> data = new LinkedHashMap<>();
-        data.put("message", "Business registered successfully. Please check your email to verify your account.");
+        data.put("message", "Business registered successfully.");
         data.put("businessId", business.getId());
         data.put("businessName", business.getBusinessName());
         data.put("email", business.getEmail());

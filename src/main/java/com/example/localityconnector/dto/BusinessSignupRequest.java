@@ -40,4 +40,8 @@ public class BusinessSignupRequest {
     private String description;
     
     private String businessLicense;
+
+    private String emailOtp;
+
+    private String phoneOtp;
 }
