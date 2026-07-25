@@ -425,6 +425,7 @@
         .header { padding: 16px 20px; }
         .hero { padding: 36px 20px 6px; }
         .container { padding: 0 20px; }
+    }
   </style>
 </head>
 <body>
@@ -443,7 +444,7 @@
             <a href="/update-business">Settings</a>
             <a href="/update-business">Update Profile</a>
             <a href="/feedback">View Feedback</a>
-            <a href="/business/login">Logout</a>
+            <a href="#" onclick="if (window.LCAuth) { LCAuth.logout('/business/login'); } else { window.location.href='/business/login'; } return false;">Logout</a>
         </div>
     </div>
 </div>
@@ -470,7 +471,7 @@
 
       <form id="item-form" style="display:none;">
         <h4>Add/Update Item</h4>
-        <input type="hidden" name="businessName" value="${sessionScope.loggedInBusinessName}">
+        <input type="hidden" name="businessName" id="itemBusinessName" value="">
         <input type="text" id="itemName" name="itemName" placeholder="Item Name" required>
         <input type="number" step="0.01" id="itemPrice" name="itemPrice" placeholder="Price" required>
         <textarea id="itemDescription" name="itemDescription" placeholder="Description"></textarea>
@@ -494,7 +495,7 @@
         </div>
 
         <!-- Latitude and Longitude Input Fields -->
-        <input type="hidden" name="businessName" value="${sessionScope.loggedInBusinessName}"> <!-- Assuming session attribute is stored as 'loggedInBusinessName' -->
+        <input type="hidden" name="businessName" id="locationBusinessName" value="">
         <input type="text" id="latitude" name="businessLatitude" placeholder="Latitude" readonly required>
         <input type="text" id="longitude" name="businessLongitude" placeholder="Longitude" readonly required>
 
@@ -668,7 +669,9 @@ locationForm.addEventListener('submit', function(event) {
     event.preventDefault(); // Prevent the default form submission
 
     // Gather form data
-    const businessName = document.querySelector('input[name="businessName"]').value; // Get the business name
+    const identity = (window.LCAuth && LCAuth.getIdentity) ? LCAuth.getIdentity() : null;
+    const businessNameInput = locationForm.querySelector('input[name="businessName"]');
+    const businessName = (identity && identity.name) ? identity.name : (businessNameInput ? businessNameInput.value : '');
     const latitude = document.getElementById('latitude').value;
     const longitude = document.getElementById('longitude').value;
 
@@ -717,7 +720,9 @@ const itemForm = document.getElementById('item-form');
 itemForm.addEventListener('submit', function(event) {
     event.preventDefault();
 
-    const businessName = itemForm.querySelector('input[name="businessName"]').value;
+    const identity = (window.LCAuth && LCAuth.getIdentity) ? LCAuth.getIdentity() : null;
+    const businessNameInput = itemForm.querySelector('input[name="businessName"]');
+    const businessName = (identity && identity.name) ? identity.name : (businessNameInput ? businessNameInput.value : '');
     const itemName = document.getElementById('itemName').value;
     const itemPrice = document.getElementById('itemPrice').value;
     const itemDescription = document.getElementById('itemDescription').value;
