@@ -259,7 +259,7 @@
     <div class="orb orb2"></div>
 
     <div class="header">
-        <h1>Welcome <span th:text="${session.loggedInUserName != null ? session.loggedInUserName : 'User'}"></span></h1>
+        <h1>Welcome <span id="user-display-name">User</span></h1>
         <div class="header-actions">
             <a href="/user/login" class="logout-btn">Logout</a>
         </div>
@@ -816,5 +816,17 @@
   <script src="/js/auth.js"></script>
   <script src="/js/validation.js"></script>
   <script src="/js/notifications.js"></script>
+  <script>
+    // Display the logged-in user's name in the welcome header
+    (function() {
+      if (window.LCAuth && window.LCAuth.getIdentity) {
+        var identity = window.LCAuth.getIdentity();
+        if (identity && identity.name) {
+          var nameEl = document.getElementById('user-display-name');
+          if (nameEl) nameEl.textContent = identity.name;
+        }
+      }
+    })();
+  </script>
 </body>
 </html>
