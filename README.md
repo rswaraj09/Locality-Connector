@@ -14,7 +14,7 @@ Firestore.
 | Language       | Java 23                                         |
 | Framework      | Spring Boot 3.3.x (Web, Security, Validation)   |
 | Auth           | Stateless JWT (jjwt 0.11.5)                      |
-| Datastore      | Google Cloud Firestore                          |
+| Datastore      | MongoDB (Atlas or local)                        |
 | Geo            | `ch.hsr:geohash` + Haversine distance           |
 | API docs       | springdoc-openapi (Swagger UI)                  |
 | Build / test   | Maven, JUnit 5, Mockito, JaCoCo (60% gate)      |
@@ -52,7 +52,7 @@ client (Thymeleaf pages + JS)
 
 - JDK 23
 - Maven 3.9+
-- A Firebase project + service account JSON
+- MongoDB Atlas cluster (or local MongoDB instance)
 - (Optional) Google Maps API keys for geocoding / nearby search
 
 ### Configuration
@@ -66,9 +66,9 @@ cp .env.example .env
 | Variable                         | Purpose                                              | Required |
 | -------------------------------- | ---------------------------------------------------- | -------- |
 | `JWT_SECRET_KEY`                 | HMAC-SHA256 signing key (>= 32 chars)                | Yes      |
+| `MONGODB_URI`                    | MongoDB connection URI (must include database name)  | Yes      |
 | `ADMIN_EMAILS`                   | Comma-separated emails granted the ADMIN role        | No       |
 | `CORS_ALLOWED_ORIGINS`           | Comma-separated allowed origins                      | No       |
-| `FIREBASE_SERVICE_ACCOUNT_PATH`  | `classpath:` resource or file path to the SA JSON    | Yes      |
 | `SERVER_PORT`                    | HTTP port (default `8081`)                           | No       |
 | `GOOGLE_MAPS_API_KEY`            | Google Places key                                    | No       |
 | `GOOGLE_MAPS_GEOCODING_API_KEY`  | Google Geocoding key                                 | No       |
@@ -76,20 +76,20 @@ cp .env.example .env
 The app validates that `JWT_SECRET_KEY` is at least 32 bytes and fails fast on startup
 otherwise.
 
-### Firebase Credentials Setup (CRITICAL)
+### MongoDB Setup
 
-The application cannot start without valid Firebase service account credentials.
+1. Create a MongoDB Atlas cluster at [cloud.mongodb.com](https://cloud.mongodb.com) (or run MongoDB locally).
+2. Add your IP address to the Atlas **Network Access** allowlist.
+3. Set `MONGODB_URI` in your `.env` file — **include the database name** in the URI path:
+   ```
+   MONGODB_URI=mongodb+srv://user:pass@cluster.mongodb.net/locality_connector
+   ```
 
-1. Go to your Firebase Console -> Project Settings -> Service Accounts.
-2. Click **Generate new private key** and download the JSON file.
-3. Rename the downloaded file to `serviceAccountKey.json`.
-4. Place it in `src/main/resources/serviceAccountKey.json` for local development (or inside a `config/` directory if running via Docker Compose).
-5. Set the environment variable `FIREBASE_SERVICE_ACCOUNT_PATH=classpath:serviceAccountKey.json` (or `file:./config/serviceAccountKey.json`).
+> **Note:** The `.env` file is auto-loaded at startup by `spring-dotenv`. No manual env export needed.
 
 ### Run locally
 
 ```bash
-# Export the variables from your .env, then:
 mvn spring-boot:run
 ```
 
