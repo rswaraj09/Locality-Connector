@@ -67,7 +67,7 @@ public class HomeController {
         return "user_home";
     }
 
-    @GetMapping("/enhanced-user-dashboard")
+    @GetMapping({"/user-dashboard", "/enhanced-user-dashboard"})
     public String enhancedUserDashboard() {
         return "user_dashboard";
     }
