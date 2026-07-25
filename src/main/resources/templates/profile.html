@@ -488,10 +488,14 @@
                 var allEls = document.querySelectorAll('*');
                 for (var i=0;i<allEls.length;i++){
                     allEls[i].style.animationDuration = '.01ms';
-                    allEls[i].style.transitionDuration = '.01ms';
-                }
             }
         })();
+    </script>
+    <script src="/js/auth.js"></script>
+    <script>
+        if (window.LCAuth) {
+            LCAuth.requireAuth("/user/login");
+        }
     </script>
 </body>
 </html>

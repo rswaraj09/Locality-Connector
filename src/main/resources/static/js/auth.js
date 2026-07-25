@@ -123,6 +123,15 @@
     return true;
   }
 
+  /* Client-side page guard requiring any authenticated user. */
+  function requireAuth(loginUrl) {
+    if (!isLoggedIn()) {
+      window.location.href = loginUrl || "/user/login";
+      return false;
+    }
+    return true;
+  }
+
   window.LCAuth = {
     setSession: setSession,
     getToken: getToken,
@@ -134,6 +143,7 @@
     authFetch: authFetch,
     login: login,
     logout: logout,
-    requireRole: requireRole
+    requireRole: requireRole,
+    requireAuth: requireAuth
   };
 })(window);

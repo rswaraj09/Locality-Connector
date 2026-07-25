@@ -566,5 +566,10 @@
 
   <script src="/js/auth.js"></script>
   <script src="/js/validation.js"></script>
+  <script>
+    if (window.LCAuth) {
+      LCAuth.requireRole("BUSINESS", "/business/login");
+    }
+  </script>
 </body>
 </html>

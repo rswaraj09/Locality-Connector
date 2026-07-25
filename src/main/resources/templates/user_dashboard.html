@@ -817,9 +817,9 @@
   <script src="/js/validation.js"></script>
   <script src="/js/notifications.js"></script>
   <script>
-    // Display the logged-in user's name in the welcome header
     (function() {
-      if (window.LCAuth && window.LCAuth.getIdentity) {
+      if (window.LCAuth) {
+        if (!window.LCAuth.requireRole("USER", "/user/login")) return;
         var identity = window.LCAuth.getIdentity();
         if (identity && identity.name) {
           var nameEl = document.getElementById('user-display-name');
