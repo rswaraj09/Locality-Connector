@@ -28,12 +28,21 @@ public class OtpVerificationService {
     @org.springframework.beans.factory.annotation.Value("${fast2sms.api.key:${FAST2SMS_API_KEY:}}")
     private String fast2smsApiKey;
 
+    @org.springframework.beans.factory.annotation.Value("${twilio.account.sid:${TWILIO_ACCOUNT_SID:}}")
+    private String twilioAccountSid;
+
+    @org.springframework.beans.factory.annotation.Value("${twilio.auth.token:${TWILIO_AUTH_TOKEN:}}")
+    private String twilioAuthToken;
+
+    @org.springframework.beans.factory.annotation.Value("${twilio.phone.number:${TWILIO_PHONE_NUMBER:}}")
+    private String twilioPhoneNumber;
+
     private final java.net.http.HttpClient httpClient = java.net.http.HttpClient.newBuilder()
             .connectTimeout(java.time.Duration.ofSeconds(10))
             .build();
 
     /**
-     * Generates a 4-digit OTP (1000-9999) and dispatches it via Email (Resend API) or SMS (Fast2SMS API).
+     * Generates a 4-digit OTP (1000-9999) and dispatches it via Email (Resend API) or SMS (Twilio / Fast2SMS API).
      */
     public String sendOtp(String target, String targetType) {
         String cleanTarget = target != null ? target.trim().toLowerCase() : "";
@@ -63,6 +72,61 @@ public class OtpVerificationService {
     }
 
     private void dispatchSmsOtp(String rawPhone, String otpCode) {
+        if (twilioAccountSid != null && !twilioAccountSid.isBlank() && twilioAuthToken != null && !twilioAuthToken.isBlank()) {
+            sendTwilioSms(rawPhone, otpCode);
+            return;
+        }
+
+        if (fast2smsApiKey != null && !fast2smsApiKey.isBlank()) {
+            sendFast2SmsOtp(rawPhone, otpCode);
+            return;
+        }
+
+        log.info("[SMS OTP - DEV MODE] Neither Twilio nor Fast2SMS configured. 4-digit OTP code for phone {}: {}", rawPhone, otpCode);
+    }
+
+    private void sendTwilioSms(String rawPhone, String otpCode) {
+        try {
+            String formattedPhone = rawPhone.trim();
+            if (!formattedPhone.startsWith("+")) {
+                String digits = formattedPhone.replaceAll("[^0-9]", "");
+                if (digits.length() == 10) {
+                    formattedPhone = "+91" + digits;
+                } else {
+                    formattedPhone = "+" + digits;
+                }
+            }
+            String body = "Your Locality Connector 4-digit verification code is " + otpCode + ". Valid for 10 minutes.";
+            String formData = "To=" + java.net.URLEncoder.encode(formattedPhone, java.nio.charset.StandardCharsets.UTF_8)
+                    + "&From=" + java.net.URLEncoder.encode(twilioPhoneNumber != null ? twilioPhoneNumber.trim() : "", java.nio.charset.StandardCharsets.UTF_8)
+                    + "&Body=" + java.net.URLEncoder.encode(body, java.nio.charset.StandardCharsets.UTF_8);
+
+            String auth = twilioAccountSid.trim() + ":" + twilioAuthToken.trim();
+            String encodedAuth = java.util.Base64.getEncoder().encodeToString(auth.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+
+            java.net.http.HttpRequest request = java.net.http.HttpRequest.newBuilder()
+                    .uri(java.net.URI.create("https://api.twilio.com/2010-04-01/Accounts/" + twilioAccountSid.trim() + "/Messages.json"))
+                    .header("Authorization", "Basic " + encodedAuth)
+                    .header("Content-Type", "application/x-www-form-urlencoded")
+                    .POST(java.net.http.HttpRequest.BodyPublishers.ofString(formData))
+                    .timeout(java.time.Duration.ofSeconds(15))
+                    .build();
+
+            java.net.http.HttpResponse<String> response = httpClient.send(request, java.net.http.HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() >= 200 && response.statusCode() < 300) {
+                log.info("Twilio SMS sent successfully to {}. Response: {}", formattedPhone, response.body());
+            } else {
+                log.warn("Twilio API error sending to {} (HTTP {}): {}", formattedPhone, response.statusCode(), response.body());
+                log.info("[SMS OTP - FALLBACK] 4-digit OTP code for phone {}: {}", rawPhone, otpCode);
+            }
+        } catch (Exception e) {
+            log.error("Failed to send SMS via Twilio to {}: {}", rawPhone, e.getMessage(), e);
+            log.info("[SMS OTP - FALLBACK] 4-digit OTP code for phone {}: {}", rawPhone, otpCode);
+        }
+    }
+
+    private void sendFast2SmsOtp(String rawPhone, String otpCode) {
         String digitsOnly = rawPhone.replaceAll("[^0-9]", "");
         if (digitsOnly.length() > 10) {
             digitsOnly = digitsOnly.substring(digitsOnly.length() - 10);
