@@ -90,6 +90,7 @@ public class SecurityConfig {
                                 "/uploads/**",
                                 "/user/login", "/user/signup",
                                 "/business/login", "/business/signup",
+                                "/admin/login",
                                 "/forgot-password", "/reset-password")
                         .permitAll()
                         // --- Protected User Page Shells ---
@@ -120,7 +121,9 @@ public class SecurityConfig {
                             String accept = request.getHeader("Accept");
                             boolean isHtmlRequest = (accept != null && accept.contains("text/html")) || (!uri.startsWith("/api/") && !uri.startsWith("/actuator"));
                             if (isHtmlRequest) {
-                                if (uri.startsWith("/business") || uri.contains("business") || uri.equals("/listing") || uri.equals("/addlisting")) {
+                                if (uri.startsWith("/admin") || uri.contains("admin") || uri.equals("/data-viewer") || uri.equals("/accuracy-test")) {
+                                    response.sendRedirect("/admin/login");
+                                } else if (uri.startsWith("/business") || uri.contains("business") || uri.equals("/listing") || uri.equals("/addlisting")) {
                                     response.sendRedirect("/business/login");
                                 } else {
                                     response.sendRedirect("/user/login");
@@ -134,7 +137,11 @@ public class SecurityConfig {
                             String accept = request.getHeader("Accept");
                             boolean isHtmlRequest = (accept != null && accept.contains("text/html")) || (!uri.startsWith("/api/") && !uri.startsWith("/actuator"));
                             if (isHtmlRequest) {
-                                response.sendRedirect("/user/login");
+                                if (uri.startsWith("/admin") || uri.contains("admin") || uri.equals("/data-viewer") || uri.equals("/accuracy-test")) {
+                                    response.sendRedirect("/admin/login");
+                                } else {
+                                    response.sendRedirect("/user/login");
+                                }
                             } else {
                                 response.sendError(jakarta.servlet.http.HttpServletResponse.SC_FORBIDDEN, "Access Denied");
                             }

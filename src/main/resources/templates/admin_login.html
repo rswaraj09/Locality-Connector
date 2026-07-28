@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Login - Locality Connector</title>
+<link rel="stylesheet" th:href="@{/css/main.css}" href="/css/main.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg-0:#060a12;
+  --bg-1:#0b1220;
+  --cyan:#3fe1c8;
+  --cyan-soft:#9df3e6;
+  --amber:#ffb648;
+  --coral:#ff6b6b;
+  --panel:rgba(255,255,255,0.045);
+  --border:rgba(255,255,255,0.10);
+  --border-hi:rgba(255,255,255,0.20);
+  --muted:rgba(255,255,255,0.55);
+}
+html,body{height:100%;margin:0}
+body{
+  font-family:'Segoe UI',system-ui,sans-serif;
+  background:
+    radial-gradient(90% 60% at 50% -10%, rgba(63,225,200,0.12), transparent 60%),
+    linear-gradient(180deg, var(--bg-0), var(--bg-1) 55%, var(--bg-0));
+  min-height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  overflow:hidden;
+  position:relative;
+  color:#fff;
+}
+
+/* Background layers */
+.grid-overlay{
+  position:fixed;inset:0;z-index:1;pointer-events:none;
+  background-image:
+    linear-gradient(rgba(63,225,200,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(63,225,200,0.04) 1px, transparent 1px);
+  background-size:50px 50px;
+}
+
+/* Back button */
+.back-btn{
+  position:fixed;top:24px;left:24px;z-index:100;
+  display:inline-flex;align-items:center;gap:8px;
+  background:rgba(255,255,255,0.05);
+  border:1px solid var(--border);
+  color:rgba(255,255,255,0.85);
+  padding:10px 20px;border-radius:999px;
+  text-decoration:none;font-size:13px;font-weight:600;
+  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  transition:all 0.3s;
+}
+.back-btn:hover{
+  border-color:var(--cyan);
+  box-shadow:0 0 16px rgba(63,225,200,0.25);
+  color:#fff;
+}
+
+/* Container Card */
+.card{
+  position:relative;z-index:10;
+  width:100%;max-width:440px;
+  background:rgba(11,18,32,0.85);
+  border:1px solid var(--border-hi);
+  border-radius:24px;
+  padding:44px 38px;
+  backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
+  box-shadow:0 30px 70px rgba(0,0,0,0.7), 0 0 50px rgba(63,225,200,0.08);
+}
+
+.brand-badge{
+  display:inline-flex;align-items:center;gap:8px;
+  background:rgba(63,225,200,0.1);
+  border:1px solid rgba(63,225,200,0.25);
+  color:var(--cyan-soft);
+  padding:6px 14px;border-radius:999px;
+  font-size:12px;font-weight:600;letter-spacing:1px;
+  text-transform:uppercase;margin-bottom:18px;
+}
+.badge-dot{width:6px;height:6px;border-radius:50%;background:var(--cyan);box-shadow:0 0 8px var(--cyan)}
+
+h1{font-size:1.85rem;font-weight:700;margin-bottom:8px;color:#fff}
+.sub{color:var(--muted);font-size:0.92rem;margin-bottom:28px}
+
+.form-group{margin-bottom:20px;text-align:left}
+label{display:block;font-size:0.82rem;font-weight:600;color:rgba(255,255,255,0.7);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px}
+input{
+  width:100%;padding:14px 16px;
+  background:rgba(255,255,255,0.05);
+  border:1px solid rgba(255,255,255,0.12);
+  border-radius:12px;color:#fff;font-size:0.95rem;
+  outline:none;transition:all 0.3s;
+}
+input:focus{
+  border-color:var(--cyan);
+  box-shadow:0 0 0 3px rgba(63,225,200,0.15);
+  background:rgba(255,255,255,0.08);
+}
+
+.btn-admin{
+  width:100%;padding:14px;margin-top:10px;
+  background:linear-gradient(135deg, var(--cyan) 0%, #2bb8a2 100%);
+  color:#060a12;border:none;border-radius:12px;
+  font-size:0.95rem;font-weight:700;letter-spacing:0.5px;
+  cursor:pointer;transition:all 0.3s;
+  box-shadow:0 8px 24px rgba(63,225,200,0.25);
+}
+.btn-admin:hover{
+  transform:translateY(-2px);
+  box-shadow:0 12px 32px rgba(63,225,200,0.4);
+}
+.btn-admin:disabled{opacity:0.6;cursor:not-allowed;transform:none}
+
+.message{
+  padding:12px 16px;border-radius:10px;font-size:0.88rem;
+  margin-bottom:20px;display:none;
+}
+.message.error{background:rgba(255,107,107,0.15);border:1px solid rgba(255,107,107,0.3);color:var(--coral)}
+.message.success{background:rgba(63,225,200,0.15);border:1px solid rgba(63,225,200,0.3);color:var(--cyan-soft)}
+</style>
+</head>
+<body>
+
+<div class="grid-overlay"></div>
+
+<a th:href="@{/}" href="/" class="back-btn">← Back</a>
+
+<div class="card">
+  <div class="brand-badge">
+    <div class="badge-dot"></div>
+    Control Room
+  </div>
+  <h1>Admin Authentication</h1>
+  <p class="sub">Sign in with system credentials to access moderation tools.</p>
+
+  <div id="message" class="message"></div>
+
+  <form id="admin-login-form" novalidate>
+    <div class="form-group">
+      <label for="email">Admin Email / Username</label>
+      <input type="email" id="email" name="email" required placeholder="admin@locality-connector.in" autocomplete="username">
+    </div>
+    <div class="form-group">
+      <label for="password">Password</label>
+      <input type="password" id="password" name="password" required placeholder="••••••••••••" autocomplete="current-password">
+    </div>
+    <button type="submit" class="btn-admin" id="submit-btn">Authenticate & Continue →</button>
+  </form>
+</div>
+
+<script th:src="@{/js/auth.js}" src="/js/auth.js"></script>
+<script>
+document.getElementById('admin-login-form').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  const messageEl = document.getElementById('message');
+  const submitBtn = document.getElementById('submit-btn');
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+
+  if (!email || !password) {
+    messageEl.className = 'message error';
+    messageEl.textContent = 'Please enter both email and password.';
+    messageEl.style.display = 'block';
+    return;
+  }
+
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Authenticating...';
+  messageEl.style.display = 'none';
+
+  try {
+    const res = await fetch('/api/auth/admin/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+    const data = await res.json();
+
+    if (res.ok && data.success && data.data && data.data.token) {
+      messageEl.className = 'message success';
+      messageEl.textContent = 'Authentication successful! Redirecting to Admin Dashboard...';
+      messageEl.style.display = 'block';
+      
+      if (typeof Auth !== 'undefined') {
+        Auth.setSession(data.data.token, data.data);
+      } else {
+        localStorage.setItem('lc_token', data.data.token);
+      }
+
+      setTimeout(() => {
+        window.location.href = data.data.redirectUrl || '/admin';
+      }, 600);
+    } else {
+      messageEl.className = 'message error';
+      messageEl.textContent = (data && data.error) || 'Invalid admin credentials or unauthorized account.';
+      messageEl.style.display = 'block';
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Authenticate & Continue →';
+    }
+  } catch (err) {
+    console.error('Admin login error:', err);
+    messageEl.className = 'message error';
+    messageEl.textContent = 'Network error. Please try again.';
+    messageEl.style.display = 'block';
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Authenticate & Continue →';
+  }
+});
+</script>
+</body>
+</html>

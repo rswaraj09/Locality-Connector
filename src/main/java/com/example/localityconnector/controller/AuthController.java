@@ -210,7 +210,7 @@ public class AuthController {
         User user = userOpt.get();
         List<String> roles = new ArrayList<>();
         roles.add("USER");
-        if (isAdmin(email)) {
+        if (isAdmin(email) || (user.getRoles() != null && user.getRoles().contains("ADMIN"))) {
             roles.add("ADMIN");
         }
         String token = jwtUtil.generateToken(user.getEmail(), roles, user.getId(), user.getName());
@@ -262,7 +262,60 @@ public class AuthController {
         data.put("category", business.getCategory());
         data.put("roles", roles);
         return ResponseEntity.ok(ApiResponse.ok(data));
+    @Value("${app.admin.email:admin@locality-connector.in}")
+    private String envAdminEmail;
+
+    @Value("${app.admin.password:Admin@123}")
+    private String envAdminPassword;
+
+    @Operation(summary = "Admin login; authenticates platform administrators")
+    @PostMapping("/admin/login")
+    public ResponseEntity<ApiResponse<Object>> adminLogin(@Valid @RequestBody LoginRequest loginRequest, HttpServletResponse response) {
+        String email = loginRequest.getEmail() != null ? loginRequest.getEmail().trim().toLowerCase() : "";
+        String password = loginRequest.getPassword();
+
+        // 1. Direct match with .env credentials
+        boolean isEnvAdmin = (envAdminEmail != null && !envAdminEmail.isBlank() && envAdminEmail.equalsIgnoreCase(email));
+
+        User adminUser = null;
+        Optional<User> userOpt = userService.findByEmail(email);
+        if (userOpt.isPresent() && userOpt.get().getRoles() != null && userOpt.get().getRoles().contains("ADMIN")) {
+            adminUser = userOpt.get();
+        }
+
+        if (isEnvAdmin) {
+            boolean envMatch = password.equals(envAdminPassword);
+            boolean dbMatch = (adminUser != null && userService.verifyPassword(password, adminUser.getPassword()));
+            if (!envMatch && !dbMatch) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ApiResponse.fail("Invalid admin credentials"));
+            }
+        } else if (adminUser != null) {
+            if (!userService.verifyPassword(password, adminUser.getPassword())) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ApiResponse.fail("Invalid admin credentials"));
+            }
+        } else {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ApiResponse.fail("Invalid admin credentials or account does not have Admin access"));
+        }
+
+        String adminId = adminUser != null ? adminUser.getId() : "admin-root";
+        String adminName = adminUser != null ? (adminUser.getName() != null ? adminUser.getName() : "Administrator") : "Administrator";
+        List<String> roles = List.of("ADMIN", "USER");
+
+        String token = jwtUtil.generateToken(email, roles, adminId, adminName);
+        response.addCookie(buildJwtCookie(token, 86400));
+
+        Map<String, Object> data = new LinkedHashMap<>();
+        data.put("message", "Admin authentication successful");
+        data.put("token", token);
+        data.put("userId", adminId);
+        data.put("name", adminName);
+        data.put("email", email);
+        data.put("roles", roles);
+        data.put("redirectUrl", "/admin");
+
+        return ResponseEntity.ok(ApiResponse.ok(data));
     }
+
 
     @Operation(summary = "Logout; revokes the presented JWT until it expires")
     @PostMapping("/logout")

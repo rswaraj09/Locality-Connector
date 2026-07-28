@@ -52,6 +52,11 @@ public class HomeController {
         return "business_login";
     }
 
+    @GetMapping("/admin/login")
+    public String adminLogin() {
+        return "admin_login";
+    }
+
     @GetMapping("/user/signup")
     public String userSignup() {
         return "user_signup";
