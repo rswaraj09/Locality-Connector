@@ -262,6 +262,8 @@ public class AuthController {
         data.put("category", business.getCategory());
         data.put("roles", roles);
         return ResponseEntity.ok(ApiResponse.ok(data));
+    }
+
     @Value("${app.admin.email:admin@locality-connector.in}")
     private String envAdminEmail;
 
