@@ -83,33 +83,22 @@
 
 ## ⚙️ Environment Configuration (`.env`)
 
-Create a `.env` file in the root directory before running the application:
+Configuration is environment-driven. Copy `.env.example` to `.env` and fill in your secrets before starting the application:
 
-```env
-# --- Core Application ---
-SERVER_PORT=8081
-SPRING_PROFILES_ACTIVE=prod
-JWT_SECRET_KEY=change-me-to-a-long-random-secret-at-least-32-chars
-ADMIN_EMAILS=swarajritik@gmail.com
-CORS_ALLOWED_ORIGINS=https://locality-connector.in,https://www.locality-connector.in,http://localhost:8081
-
-# --- MongoDB Atlas Connection ---
-MONGODB_URI=mongodb+srv://<username>:<password>@cluster0.vhqx37e.mongodb.net/locality-connector
-
-# --- Resend Email API ---
-RESEND_API_KEY=re_xxxxxxxxxxxxxxxxxxxx
-RESEND_FROM_EMAIL=no-reply@locality-connector.in
-
-# --- Twilio SMS API ---
-TWILIO_ACCOUNT_SID=ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-TWILIO_AUTH_TOKEN=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-TWILIO_PHONE_NUMBER=+12345678901
-
-# --- Cloudinary Image CDN ---
-CLOUDINARY_CLOUD_NAME=wgot7nvl
-CLOUDINARY_API_KEY=xxxxxxxxxxxxxxx
-CLOUDINARY_API_SECRET=xxxxxxxxxxxxxxxxxxxxxxxxxxx
+```bash
+cp .env.example .env
 ```
+
+Refer to the included [`.env.example`](.env.example) file for all supported environment variable definitions:
+
+| Property Category | Key Variables | Description |
+| :--- | :--- | :--- |
+| **Security & Auth** | `JWT_SECRET_KEY`, `ADMIN_EMAILS`, `CORS_ALLOWED_ORIGINS` | HMAC signing key (>=32 chars), admin email list, allowed CORS origins |
+| **Database** | `MONGODB_URI` | MongoDB Atlas cluster connection string (including database name) |
+| **Email Service** | `RESEND_API_KEY`, `RESEND_FROM_EMAIL` | Transactional email & 4-digit signup OTP delivery via Resend API |
+| **SMS Service** | `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_PHONE_NUMBER` | Mobile phone SMS OTP delivery via Twilio API |
+| **Image Hosting** | `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` | Image CDN for logos, storefronts, and catalog products |
+| **Server & Storage** | `SERVER_PORT`, `SPRING_PROFILES_ACTIVE`, `UPLOAD_DIR` | Port (8081), profile (`prod`), and local upload directory fallback |
 
 ---
 
