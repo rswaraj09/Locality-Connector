@@ -84,4 +84,8 @@ public class UserService {
         user.prePersist();
         return userRepository.save(user);
     }
+
+    public boolean verifyPassword(String rawPassword, String encodedPassword) {
+        return passwordEncoder.matches(rawPassword, encodedPassword);
+    }
 }
