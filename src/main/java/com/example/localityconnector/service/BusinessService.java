@@ -32,14 +32,15 @@ import java.util.stream.Collectors;
 public class BusinessService {
 
     private final BusinessRepository businessRepository;
+    private final com.example.localityconnector.repository.UserRepository userRepository;
     private final GooglePlacesService googlePlacesService;
     private final ItemService itemService;
     private final FeedbackService feedbackService;
     private final PasswordEncoder passwordEncoder;
 
     public Business signup(BusinessSignupRequest request) {
-        if (businessRepository.existsByEmail(request.getEmail())) {
-            throw new DuplicateResourceException("Business", "email", request.getEmail());
+        if (businessRepository.existsByEmail(request.getEmail()) || userRepository.existsByEmail(request.getEmail())) {
+            throw new DuplicateResourceException("Account", "email", request.getEmail());
         }
         if (businessRepository.existsByBusinessName(request.getBusinessName())) {
             throw new DuplicateResourceException("Business", "businessName", request.getBusinessName());

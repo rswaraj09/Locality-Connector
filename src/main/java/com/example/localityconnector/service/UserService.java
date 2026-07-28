@@ -17,11 +17,12 @@ import java.util.Optional;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final com.example.localityconnector.repository.BusinessRepository businessRepository;
     private final PasswordEncoder passwordEncoder;
 
     public User signup(UserSignupRequest request) {
-        if (userRepository.existsByEmail(request.getEmail())) {
-            throw new DuplicateResourceException("User", "email", request.getEmail());
+        if (userRepository.existsByEmail(request.getEmail()) || businessRepository.existsByEmail(request.getEmail())) {
+            throw new DuplicateResourceException("Account", "email", request.getEmail());
         }
 
         User user = new User();
