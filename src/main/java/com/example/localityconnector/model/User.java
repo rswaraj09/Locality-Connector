@@ -56,6 +56,8 @@ public class User {
 
 	private boolean isActive = true;
 
+	private List<String> roles = new ArrayList<>();
+
 	private boolean emailVerified = false;
 
 	// Pre-save method to set timestamps
