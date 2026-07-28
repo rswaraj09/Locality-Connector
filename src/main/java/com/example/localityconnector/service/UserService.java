@@ -22,7 +22,7 @@ public class UserService {
 
     public User signup(UserSignupRequest request) {
         if (userRepository.existsByEmail(request.getEmail()) || businessRepository.existsByEmail(request.getEmail())) {
-            throw new DuplicateResourceException("Account", "email", request.getEmail());
+            throw new DuplicateResourceException("An account with this email address already exists. Please log in using this email.");
         }
 
         User user = new User();

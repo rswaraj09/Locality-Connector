@@ -40,10 +40,10 @@ public class BusinessService {
 
     public Business signup(BusinessSignupRequest request) {
         if (businessRepository.existsByEmail(request.getEmail()) || userRepository.existsByEmail(request.getEmail())) {
-            throw new DuplicateResourceException("Account", "email", request.getEmail());
+            throw new DuplicateResourceException("An account with this email address already exists. Please log in using this email.");
         }
         if (businessRepository.existsByBusinessName(request.getBusinessName())) {
-            throw new DuplicateResourceException("Business", "businessName", request.getBusinessName());
+            throw new DuplicateResourceException("A business with this name already exists. Please choose a different business name.");
         }
 
         Business business = new Business();
