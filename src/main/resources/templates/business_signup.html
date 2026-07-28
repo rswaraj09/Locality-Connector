@@ -500,15 +500,10 @@
                 </div>
                 <div class="form-group">
                     <label for="phoneNumber">Phone Number</label>
-                    <div class="field-wrap" style="display: flex; gap: 8px;">
-                        <input type="tel" id="phoneNumber" name="phoneNumber" placeholder="Enter phone number" required style="flex: 1;">
-                        <button type="button" id="send-phone-otp-btn" style="padding: 6px 14px; background: #6C63FF; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 12px;">Send OTP</button>
+                    <div class="field-wrap">
+                        <input type="tel" id="phoneNumber" name="phoneNumber" placeholder="Enter phone number" required>
+                        <div class="field-underline"></div>
                     </div>
-                    <div class="field-wrap" id="phone-otp-wrap" style="display: none; margin-top: 8px; gap: 8px;">
-                        <input type="text" id="phoneOtp" name="phoneOtp" placeholder="Enter 4-digit Phone OTP" maxlength="4" style="flex: 1; letter-spacing: 4px; font-weight: bold; text-align: center;">
-                        <button type="button" id="verify-phone-otp-btn" style="padding: 6px 14px; background: #10B981; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 12px;">Verify OTP</button>
-                    </div>
-                    <span id="phone-otp-status" style="font-size: 11px; margin-top: 4px; display: block;"></span>
                 </div>
                 <div class="form-group">
                     <label for="category">Business Category</label>

@@ -135,18 +135,6 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.fail("Please verify your email address using the 4-digit OTP"));
         }
 
-        // Validate Phone OTP if phone number provided
-        if (request.getPhoneNumber() != null && !request.getPhoneNumber().trim().isEmpty()) {
-            if (request.getPhoneOtp() != null && !request.getPhoneOtp().trim().isEmpty()) {
-                boolean verified = otpVerificationService.verifyOtp(request.getPhoneNumber(), request.getPhoneOtp());
-                if (!verified) {
-                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.fail("Invalid or expired 4-digit Phone OTP"));
-                }
-            } else if (!otpVerificationService.isTargetVerified(request.getPhoneNumber())) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.fail("Please verify your phone number using the 4-digit OTP"));
-            }
-        }
-
         User user = userService.signup(request);
         verificationService.createAndSendVerification(user.getId(), "USER", user.getEmail());
         Map<String, Object> data = new LinkedHashMap<>();
@@ -167,18 +155,6 @@ public class AuthController {
             }
         } else if (!otpVerificationService.isTargetVerified(request.getEmail())) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.fail("Please verify your business email using the 4-digit OTP"));
-        }
-
-        // Validate Phone OTP
-        if (request.getPhoneNumber() != null && !request.getPhoneNumber().trim().isEmpty()) {
-            if (request.getPhoneOtp() != null && !request.getPhoneOtp().trim().isEmpty()) {
-                boolean verified = otpVerificationService.verifyOtp(request.getPhoneNumber(), request.getPhoneOtp());
-                if (!verified) {
-                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.fail("Invalid or expired 4-digit Phone OTP"));
-                }
-            } else if (!otpVerificationService.isTargetVerified(request.getPhoneNumber())) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.fail("Please verify your business phone number using the 4-digit OTP"));
-            }
         }
 
         Business business = businessService.signup(request);

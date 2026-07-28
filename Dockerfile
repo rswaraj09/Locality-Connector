@@ -45,6 +45,6 @@ EXPOSE 8081
 
 # Surface application health to the orchestrator.
 HEALTHCHECK --interval=30s --timeout=5s --start-period=45s --retries=3 \
-  CMD curl -fsS "http://localhost:${SERVER_PORT}/health" || exit 1
+  CMD curl -fsS "http://localhost:${SERVER_PORT}/actuator/health" || exit 1
 
 ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
