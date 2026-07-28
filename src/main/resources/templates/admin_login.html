@@ -186,10 +186,21 @@ document.getElementById('admin-login-form').addEventListener('submit', async fun
       messageEl.textContent = 'Authentication successful! Redirecting to Admin Dashboard...';
       messageEl.style.display = 'block';
       
-      if (typeof Auth !== 'undefined') {
-        Auth.setSession(data.data.token, data.data);
+      if (typeof LCAuth !== 'undefined') {
+        LCAuth.setSession(data.data.token, {
+          id: data.data.userId,
+          name: data.data.name,
+          email: data.data.email,
+          roles: data.data.roles || ['ADMIN']
+        });
       } else {
         localStorage.setItem('lc_token', data.data.token);
+        localStorage.setItem('lc_identity', JSON.stringify({
+          id: data.data.userId,
+          name: data.data.name,
+          email: data.data.email,
+          roles: data.data.roles || ['ADMIN']
+        }));
       }
 
       setTimeout(() => {
