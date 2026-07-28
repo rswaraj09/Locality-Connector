@@ -1,228 +1,184 @@
-# Locality Connector
+# 🌐 Locality Connector
 
-A Spring Boot backend that connects local customers with nearby businesses. It provides
-stateless JWT authentication, a business catalog, proximity search (geohash + Haversine),
-customer feedback/ratings, and an admin moderation surface, backed by Google Cloud
-Firestore.
+[![Spring Boot](https://img.shields.io/badge/Spring--Boot-3.3.x-6DB33F?style=for-the-badge&logo=springboot&logoColor=white)](https://spring.io/projects/spring-boot)
+[![Java](https://img.shields.io/badge/Java-23-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)](https://www.oracle.com/java/)
+[![MongoDB](https://img.shields.io/badge/MongoDB--Atlas-Cloud-47A248?style=for-the-badge&logo=mongodb&logoColor=white)](https://www.mongodb.com/cloud/atlas)
+[![Cloudflare](https://img.shields.io/badge/Cloudflare-DDoS%20Shield-F38020?style=for-the-badge&logo=cloudflare&logoColor=white)](https://www.cloudflare.com/)
+[![AWS EC2](https://img.shields.io/badge/AWS-EC2-FF9900?style=for-the-badge&logo=amazonec2&logoColor=white)](https://aws.amazon.com/ec2/)
+[![Cloudinary](https://img.shields.io/badge/Cloudinary-CDN-3448C5?style=for-the-badge&logo=cloudinary&logoColor=white)](https://cloudinary.com/)
 
----
-
-## Tech stack
-
-| Concern        | Choice                                          |
-| -------------- | ----------------------------------------------- |
-| Language       | Java 23                                         |
-| Framework      | Spring Boot 3.3.x (Web, Security, Validation)   |
-| Auth           | Stateless JWT (jjwt 0.11.5)                      |
-| Datastore      | MongoDB (Atlas or local)                        |
-| Geo            | `ch.hsr:geohash` + Haversine distance           |
-| API docs       | springdoc-openapi (Swagger UI)                  |
-| Build / test   | Maven, JUnit 5, Mockito, JaCoCo (60% gate)      |
-| Packaging      | Docker (multi-stage), Docker Compose, GitLab CI |
+**Locality Connector** is a high-performance, full-stack local discovery and business ecosystem platform. It seamlessly bridges local residents with nearby storefronts, service providers, and neighborhood deals using real-time geohash proximity search, automated email/SMS OTP verification, Cloudinary CDN asset management, and stateless JWT security.
 
 ---
 
-## Architecture overview
+## 🌍 Live Production Deployment
 
+* 🔗 **Live Website**: [https://locality-connector.in](https://locality-connector.in)
+* 🔒 **SSL/HTTPS**: Let's Encrypt RSA 4096-bit Certificate
+* 🛡️ **DDoS Protection**: Cloudflare Global Edge Proxy & WAF
+* ☁️ **Host Infrastructure**: AWS EC2 (Ubuntu 26.04 LTS, Sydney `ap-southeast-2`)
+* 🐳 **Containerization**: Multi-stage Docker Compose Architecture with Nginx Reverse Proxy
+
+---
+
+## 🛠️ Technology Stack
+
+| Layer | Component / Tool | Details & Functionality |
+| :--- | :--- | :--- |
+| **Language & Core** | **Java 23** | Modern Java LTS runtime with Virtual Threads capability |
+| **Framework** | **Spring Boot 3.3.x** | Spring MVC, Spring Security, Validation, Actuator, Cache |
+| **Datastore** | **MongoDB Atlas Cloud** | Fully managed NoSQL Document Database with unique indexes & Geohashing |
+| **Authentication** | **Stateless JWT (JJWT 0.11.5)** | HMAC-SHA256 tokens, JTI blacklisting, Secure HttpOnly cookies |
+| **CDN & Image Hosting** | **Cloudinary Java SDK** | Cloud storage for Logos, Storefront covers, Item photos & auto WebP compression |
+| **Email Service** | **Resend API** | Transactional emails & 4-Digit Registration OTP delivery |
+| **SMS Service** | **Twilio REST API / Fast2SMS** | Mobile phone SMS OTP verification for multi-factor authentication |
+| **Geolocation & Spatial** | **`ch.hsr:geohash` + Haversine** | Sub-kilometer geohash bounding box calculations & radius queries |
+| **Reverse Proxy & Web** | **Nginx** | Port 443 SSL termination, HTTP/2 buffering, request routing |
+| **DDoS & Web Security** | **Cloudflare WAF** | Edge proxy, rate limit enforcement, origin IP cloaking |
+| **API Documentation** | **SpringDoc OpenAPI 3.0** | Interactive Swagger UI (`/swagger-ui.html`) |
+
+---
+
+## 🏗️ Architecture & Security Features
+
+```text
+[ Client (Browser / PWA) ]
+          │
+          ▼  (HTTPS Port 443)
+┌──────────────────────────────────────┐
+│  Cloudflare Global CDN & DDoS Shield │  <-- Origin IP Protection & WAF
+└──────────────────┬───────────────────┘
+                   │
+                   ▼
+┌──────────────────────────────────────┐
+│       AWS EC2 Nginx Reverse Proxy    │  <-- SSL Termination & X-Forwarded Headers
+└──────────────────┬───────────────────┘
+                   │
+                   ▼  (Port 8081)
+┌──────────────────────────────────────┐
+│   Spring Boot Application (Docker)   │
+│ ┌──────────────────────────────────┐ │
+│ │ RateLimitingFilter (60 req/min)  │ │  <-- Token Bucket Client-IP Throttling
+│ ├──────────────────────────────────┤ │
+│ │ JwtFilter & Spring Security      │ │  <-- Stateless JWT Validation & Role Control
+│ └────────────────┬─────────────────┘ │
+└──────────────────┼───────────────────┘
+                   │
+         ┌─────────┴─────────┬───────────────────┬──────────────────┐
+         ▼                   ▼                   ▼                  ▼
+┌────────────────┐  ┌─────────────────┐  ┌───────────────┐  ┌────────────────┐
+│ MongoDB Atlas  │  │ Cloudinary CDN  │  │ Resend Email  │  │ Twilio SMS API │
+│ (User/Business)│  │ (Logos/Photos)  │  │ (OTP Delivery)│  │ (Mobile OTPs)  │
+└────────────────┘  └─────────────────┘  └───────────────┘  └────────────────┘
 ```
-client (Thymeleaf pages + JS)
-        |  Authorization: Bearer <JWT>
-        v
-  Spring Security (stateless)
-        |  JwtFilter -> sets principal = entityId, authorities = ROLE_*
-        v
-  Controllers  ->  Services  ->  MongoDB repositories  ->  MongoDB
-```
 
-- **Stateless auth**: login issues a JWT carrying `sub` (email), `sub_id` (entity id),
-  `sub_name` (display name), `roles`, and a unique `jti`. No HTTP session is created.
-- **Logout** revokes the token by storing its `jti` in a MongoDB blacklist until it
-  expires; a scheduled job purges expired entries.
-- **Brute-force protection**: 5 failed logins within 15 minutes locks an account for 30
-  minutes; locked logins return `429 Too Many Requests` with a `Retry-After` header.
-- **Uniform responses**: every REST endpoint returns `ApiResponse<T>`
-  (`{ success, data, error, timestamp }`); errors are normalized by a
-  `@RestControllerAdvice` global handler.
+### 🔒 Core Security Highlights
+1. **Stateless JWT Security**: Logins issue signed JWTs storing user identity and `ROLE_USER` / `ROLE_BUSINESS` / `ROLE_ADMIN` authorities. No server-side HTTP session state is created.
+2. **Instant Logout & Revocation**: Calling `/api/auth/logout` blacklists the token's unique `jti` in MongoDB until expiration, purges `localStorage`, and expires browser cookies.
+3. **Cross-Collection Email Uniqueness**: Dual-repository checking prevents an email address from being registered twice across both User and Business accounts.
+4. **Brute-Force & Rate Limiting**: `RateLimitingFilter` enforces a token-bucket limit of 60 requests per minute per IP address, returning `HTTP 429 Too Many Requests`.
+5. **Instant In-Memory Filtering**: User Dashboard filters businesses by category in **< 1 millisecond** using in-memory client state without network round-trip overhead.
 
 ---
 
-## Getting started
+## ⚙️ Environment Configuration (`.env`)
+
+Create a `.env` file in the root directory before running the application:
+
+```env
+# --- Core Application ---
+SERVER_PORT=8081
+SPRING_PROFILES_ACTIVE=prod
+JWT_SECRET_KEY=change-me-to-a-long-random-secret-at-least-32-chars
+ADMIN_EMAILS=swarajritik@gmail.com
+CORS_ALLOWED_ORIGINS=https://locality-connector.in,https://www.locality-connector.in,http://localhost:8081
+
+# --- MongoDB Atlas Connection ---
+MONGODB_URI=mongodb+srv://<username>:<password>@cluster0.vhqx37e.mongodb.net/locality-connector
+
+# --- Resend Email API ---
+RESEND_API_KEY=re_xxxxxxxxxxxxxxxxxxxx
+RESEND_FROM_EMAIL=no-reply@locality-connector.in
+
+# --- Twilio SMS API ---
+TWILIO_ACCOUNT_SID=ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+TWILIO_AUTH_TOKEN=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+TWILIO_PHONE_NUMBER=+12345678901
+
+# --- Cloudinary Image CDN ---
+CLOUDINARY_CLOUD_NAME=wgot7nvl
+CLOUDINARY_API_KEY=xxxxxxxxxxxxxxx
+CLOUDINARY_API_SECRET=xxxxxxxxxxxxxxxxxxxxxxxxxxx
+```
+
+---
+
+## 🚀 Local Setup & Deployment Guide
 
 ### Prerequisites
+* JDK 23+
+* Maven 3.9+
+* Docker & Docker Compose
 
-- JDK 23
-- Maven 3.9+
-- MongoDB Atlas cluster (or local MongoDB instance)
-- (Optional) Google Maps API keys for geocoding / nearby search
-
-### Configuration
-
-Configuration is environment-driven. Copy the template and fill in values:
-
+### 1. Run Locally with Maven
 ```bash
+# Clone the repository
+git clone https://github.com/rswaraj09/Locality-Connector.git
+cd Locality-Connector
+
+# Copy environment template
 cp .env.example .env
-```
 
-| Variable                         | Purpose                                              | Required |
-| -------------------------------- | ---------------------------------------------------- | -------- |
-| `JWT_SECRET_KEY`                 | HMAC-SHA256 signing key (>= 32 chars)                | Yes      |
-| `MONGODB_URI`                    | MongoDB connection URI (must include database name)  | Yes      |
-| `ADMIN_EMAILS`                   | Comma-separated emails granted the ADMIN role        | No       |
-| `CORS_ALLOWED_ORIGINS`           | Comma-separated allowed origins                      | No       |
-| `SERVER_PORT`                    | HTTP port (default `8081`)                           | No       |
-| `GOOGLE_MAPS_API_KEY`            | Google Places key                                    | No       |
-| `GOOGLE_MAPS_GEOCODING_API_KEY`  | Google Geocoding key                                 | No       |
-
-The app validates that `JWT_SECRET_KEY` is at least 32 bytes and fails fast on startup
-otherwise.
-
-### MongoDB Setup
-
-1. Create a MongoDB Atlas cluster at [cloud.mongodb.com](https://cloud.mongodb.com) (or run MongoDB locally).
-2. Add your IP address to the Atlas **Network Access** allowlist.
-3. Set `MONGODB_URI` in your `.env` file — **include the database name** in the URI path:
-   ```
-   MONGODB_URI=mongodb+srv://user:pass@cluster.mongodb.net/locality_connector
-   ```
-
-> **Note:** The `.env` file is auto-loaded at startup by `spring-dotenv`. No manual env export needed.
-
-### Run locally
-
-```bash
+# Run locally
 mvn spring-boot:run
 ```
+The app will start at `http://localhost:8081`. Access Swagger UI at `http://localhost:8081/swagger-ui.html`.
 
-The app starts on `http://localhost:8081`. Swagger UI is at
-`http://localhost:8081/swagger-ui.html` and the OpenAPI spec at `/v3/api-docs`.
-
-### Run the tests + coverage
-
+### 2. Run with Docker Compose
 ```bash
-mvn verify
+docker compose up -d --build
 ```
 
-This runs the unit/integration tests and enforces the JaCoCo line-coverage gate (60%).
-The HTML report is written to `target/site/jacoco/index.html`.
-
----
-
-## Running with Docker
-
+### 3. Deploying to AWS EC2
 ```bash
-cp .env.example .env          # fill in secrets
-mkdir -p config               # place serviceAccountKey.json here
-# Ensure .env has FIREBASE_SERVICE_ACCOUNT_PATH=file:/app/config/serviceAccountKey.json
-docker compose up --build
-```
+# SSH into your EC2 instance
+ssh -i "your-key.pem" ubuntu@your-ec2-ip
 
-The `docker-compose.yml` mounts `./config:/app/config:ro`, ensuring the container can read your `serviceAccountKey.json` securely without baking secrets into the Docker image.
+# Clone project and navigate
+git clone https://github.com/rswaraj09/Locality-Connector.git
+cd Locality-Connector
 
-The image is multi-stage (Maven build -> JRE runtime), runs as a non-root user, and
-exposes a container `HEALTHCHECK` that calls `/health` (which in turn verifies Firestore
-connectivity and returns `503` when the datastore is unreachable).
+# Configure .env secrets
+nano .env
 
----
-
-## Authentication flow (client)
-
-1. `POST /api/auth/{user|business}/login` with `{ email, password }`.
-2. Store the returned `data.token` (the bundled `js/auth.js` keeps it in `localStorage`).
-3. Send it on protected calls as `Authorization: Bearer <token>` (use `LCAuth.authFetch`).
-4. `POST /api/auth/logout` revokes the token server-side.
-
----
-
-## Key endpoints
-
-| Method & path                                | Role      | Description                          |
-| -------------------------------------------- | --------- | ----------------------------------- |
-| `POST /api/auth/user/signup`                 | public    | Register a user                     |
-| `POST /api/auth/business/signup`             | public    | Register a business                 |
-| `POST /api/auth/user/login`                  | public    | User login -> JWT                   |
-| `POST /api/auth/business/login`              | public    | Business login -> JWT               |
-| `POST /api/auth/refresh`                     | any       | Refresh current valid JWT           |
-| `POST /api/auth/logout`                      | any       | Revoke current token                |
-| `GET  /api/items/business/{id}`              | public    | List a business's catalog           |
-| `POST /api/items`                            | BUSINESS  | Create a catalog item               |
-| `PUT/DELETE /api/items/{id}`                 | BUSINESS  | Update / delete an owned item       |
-| `GET  /api/business/dashboard/feedback`      | BUSINESS  | Feedback for the logged-in business |
-| `GET  /api/business/dashboard/customers`     | BUSINESS  | Distinct reviewers (own data only)  |
-| `PUT  /api/business/dashboard/profile`       | BUSINESS  | Update the business profile         |
-| `POST /api/feedback`                         | USER      | Submit a 1-5 star rating            |
-| `GET  /api/feedback/business/{id}`           | public    | List feedback / average rating      |
-| `GET  /api/feedback/business/{id}/histogram` | public    | Rating distribution histogram       |
-| `POST /api/feedback/{id}/report`             | any       | Report feedback as inappropriate    |
-| `POST /api/favorites/toggle`                 | USER      | Toggle a business favorite          |
-| `GET  /api/admin/**`                         | ADMIN     | Moderation & management             |
-| `GET  /health`                               | public    | Liveness + Firebase connectivity    |
-
-Server-rendered Thymeleaf pages (e.g. `/user`, `/business`, dashboards) are public shells;
-the client scripts guard access using the stored JWT and redirect to login when needed.
-
----
-
-## Project structure
-
-```
-src/main/java/com/example/localityconnector/
-  config/        OpenAPI, Firebase, RestTemplate beans
-  controller/    REST + page controllers
-  dto/           Request/response payloads (validated)
-  exception/     Custom exceptions + global handler
-  model/         Firestore-backed domain models
-  repository/    Firestore repositories
-  security/      JwtUtil, JwtFilter, SecurityConfig
-  service/       Business logic
-  util/          ApiResponse, SecurityUtils, GeolocationUtils
-src/main/resources/
-  static/css|js  Frontend assets (main.css, auth.js, validation.js)
-  templates/     Thymeleaf pages + fragments/layout.html
-  firestore.indexes.json  Composite index definitions
+# Launch application containers
+docker compose up -d --build
 ```
 
 ---
 
-## CI/CD
+## 📡 API Endpoint Reference
 
-`.gitlab-ci.yml` defines three stages: **build** (compile), **test** (`mvn verify` with
-JaCoCo gate + JUnit reports), and **package** (build the runnable jar on `main`/tags).
-
----
-
-## License
-
-MIT.
-
----
-
-## Firestore Security Rules
-
-This application talks to Firestore **exclusively through the Firebase Admin SDK**.
-The Admin SDK runs with service-account privileges and **bypasses Firestore Security
-Rules entirely**, so a `firestore.rules` file would give a false sense of protection
-for application traffic. The previously bundled `firestore.rules` has therefore been
-**removed**. Authorization is enforced in the application layer by Spring Security
-(stateless JWT, `ROLE_*` authorities) plus per-resource ownership checks in the
-controllers.
-
-If you later add a client that talks to Firestore directly with the Firebase client
-SDK, reintroduce a `firestore.rules` file at that point and deploy it with
-`firebase deploy --only firestore:rules`.
+| Method & Endpoint | Auth / Role | Description |
+| :--- | :--- | :--- |
+| `POST /api/auth/user/signup` | Public | Register a new customer user account |
+| `POST /api/auth/business/signup` | Public | Register a new business account |
+| `POST /api/auth/user/login` | Public | Authenticate user & issue JWT token |
+| `POST /api/auth/business/login` | Public | Authenticate business & issue JWT token |
+| `POST /api/auth/otp/send` | Public | Send 4-digit OTP via Email (Resend) or SMS (Twilio) |
+| `POST /api/auth/otp/verify` | Public | Verify 4-digit registration OTP code |
+| `POST /api/auth/logout` | Any | Blacklist active JWT token & purge session cookies |
+| `GET  /api/user/dashboard/businesses` | Public | List all active local businesses |
+| `GET  /api/user/dashboard/businesses/nearby` | Public | Search nearby businesses using Geohash radius (lat, lng, radiusKm) |
+| `POST /api/business/dashboard/logo` | BUSINESS | Upload business logo image to Cloudinary CDN |
+| `POST /api/business/dashboard/storefront` | BUSINESS | Upload storefront cover image to Cloudinary CDN |
+| `POST /api/items` | BUSINESS | Add catalog item/product with image upload |
+| `POST /api/feedback` | USER | Submit 1–5 star rating and review for a business |
+| `POST /api/favorites/toggle` | USER | Toggle favorite business bookmark |
+| `GET  /health` | Public | System liveness, health check & database status |
 
 ---
 
-## Required configuration (fail-fast at startup)
+## 📜 License
 
-The following keys are validated when the application context is built; a blank or
-missing value throws `IllegalStateException` at startup instead of silently degrading:
-
-| Property | Used by | Behavior when blank |
-| -------- | ------- | ------------------- |
-| `JWT_SECRET_KEY` (`jwt.secret`) | `JwtUtil` | Startup fails (also rejected if < 32 bytes) |
-| `google.maps.api.key` / geocoding key | `GooglePlacesService` | Startup fails: "Maps API key must be configured" |
-| `mappls.api.key` | `DirectionsService` (Mappls) | Startup fails: "Maps API key must be configured" |
-
-Provide these via environment variables (see `.env.example`) before booting the app.
-#   L o c a l i t y - C o n n e c t o r  
- 
+Distributed under the **MIT License**. See `LICENSE` for details.
