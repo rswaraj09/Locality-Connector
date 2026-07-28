@@ -427,6 +427,8 @@
         function filterBusinesses(category) {
             currentFilter = category;
             const targetCat = (category || '').trim().toLowerCase();
+
+            // Update active button state instantly
             document.querySelectorAll('.category-btn').forEach(btn => {
                 const attr = btn.getAttribute('onclick') || '';
                 if (attr.toLowerCase().includes("'" + targetCat + "'")) {
@@ -436,10 +438,9 @@
                 }
             });
 
+            // Instant in-memory filtering (<1ms response time)
             if (targetCat === 'all') {
                 displayBusinesses(allBusinesses);
-            } else if (userLocation) {
-                loadNearbyBusinessesByCategory(category);
             } else {
                 const filtered = (allBusinesses || []).filter(business => 
                     (business.category || '').trim().toLowerCase() === targetCat
