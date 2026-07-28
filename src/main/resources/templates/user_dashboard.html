@@ -335,7 +335,8 @@
 
             try {
                 const response = await fetch(`/api/user/dashboard/businesses/nearby?latitude=${userLocation.latitude}&longitude=${userLocation.longitude}&radiusKm=5`);
-                const businesses = await response.json();
+                const resData = await response.json();
+                const businesses = Array.isArray(resData) ? resData : (resData.data || []);
                 allBusinesses = businesses;
                 displayBusinesses(businesses);
                 updateLocationInfo();
@@ -349,7 +350,8 @@
         async function loadAllBusinesses() {
             try {
                 const response = await fetch('/api/user/dashboard/businesses');
-                const businesses = await response.json();
+                const resData = await response.json();
+                const businesses = Array.isArray(resData) ? resData : (resData.data || []);
                 allBusinesses = businesses;
                 displayBusinesses(businesses);
             } catch (error) {
@@ -377,8 +379,8 @@
 
         function displayBusinesses(businesses) {
             const container = document.getElementById('businesses-list');
-            if (!businesses || businesses.length === 0) {
-                container.innerHTML = '<p>No businesses found.</p>';
+            if (!businesses || !Array.isArray(businesses) || businesses.length === 0) {
+                container.innerHTML = '<p style="padding: 20px; color: #94a3b8;">No nearby businesses found.</p>';
                 return;
             }
 
@@ -433,25 +435,26 @@
             } else if (userLocation) {
                 loadNearbyBusinessesByCategory(category);
             } else {
-                const filtered = allBusinesses.filter(business => business.category === category);
+                const filtered = (allBusinesses || []).filter(business => business.category === category);
                 displayBusinesses(filtered);
             }
         }
 
         async function loadNearbyBusinessesByCategory(category) {
             if (!userLocation) {
-                const filtered = allBusinesses.filter(business => business.category === category);
+                const filtered = (allBusinesses || []).filter(business => business.category === category);
                 displayBusinesses(filtered);
                 return;
             }
 
             try {
                 const response = await fetch(`/api/user/dashboard/businesses/nearby?latitude=${userLocation.latitude}&longitude=${userLocation.longitude}&radiusKm=5&category=${category}`);
-                const businesses = await response.json();
+                const resData = await response.json();
+                const businesses = Array.isArray(resData) ? resData : (resData.data || []);
                 displayBusinesses(businesses);
             } catch (error) {
                 console.error('Error loading nearby businesses by category:', error);
-                const filtered = allBusinesses.filter(business => business.category === category);
+                const filtered = (allBusinesses || []).filter(business => business.category === category);
                 displayBusinesses(filtered);
             }
         }
@@ -459,12 +462,13 @@
         async function viewBusinessItems(businessId) {
             try {
                 const response = await fetch(`/api/user/dashboard/items/business/${businessId}`);
-                const items = await response.json();
+                const resData = await response.json();
+                const items = Array.isArray(resData) ? resData : (resData.data || []);
                 
                 if (response.ok) {
                     displayBusinessItemsModal(items, businessId);
                 } else {
-                    alert('Error loading items: ' + items.error);
+                    alert('Error loading items: ' + (resData.error || 'Failed to fetch items'));
                 }
             } catch (error) {
                 alert('Error loading items: ' + error.message);
