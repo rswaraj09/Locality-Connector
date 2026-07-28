@@ -596,6 +596,18 @@
 
 <script src="/js/auth.js"></script>
 <script>
+    /* Compatibility shim: the admin panel was written against an older "Auth" API.
+       Map it to the current LCAuth global so every Auth.* call works. */
+    var Auth = window.Auth || {};
+    if (window.LCAuth) {
+        Auth.isAuthenticated = function() { return LCAuth.isLoggedIn(); };
+        Auth.fetchWithAuth   = function(url, opts) { return LCAuth.authFetch(url, opts); };
+        Auth.setSession       = function(t, i) { return LCAuth.setSession(t, i); };
+        Auth.getToken         = function() { return LCAuth.getToken(); };
+        Auth.logout           = function(r) { return LCAuth.logout(r); };
+    }
+</script>
+<script>
     /* ============================================================
        AMBIENT RADAR BACKGROUND
        A slow dot-grid with a rotating sweep beam and a few pulsing
