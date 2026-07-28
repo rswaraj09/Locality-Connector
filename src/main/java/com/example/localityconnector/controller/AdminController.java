@@ -102,6 +102,76 @@ public class AdminController {
         return ResponseEntity.ok(ApiResponse.ok(Map.of("message", "User activated", "userId", activated.getId(), "active", activated.isActive())));
     }
 
+    @Operation(summary = "Create a new user (admin)")
+    @PostMapping("/users")
+    public ResponseEntity<ApiResponse<Object>> createUser(@RequestBody Map<String, Object> body) {
+        String name = (String) body.getOrDefault("name", "");
+        String email = (String) body.getOrDefault("email", "");
+        String password = (String) body.getOrDefault("password", "");
+        String address = (String) body.getOrDefault("address", "N/A");
+        String phoneNumber = (String) body.getOrDefault("phoneNumber", "");
+        @SuppressWarnings("unchecked")
+        List<String> roles = body.containsKey("roles") ? (List<String>) body.get("roles") : List.of("USER");
+        boolean active = body.containsKey("active") ? Boolean.parseBoolean(body.get("active").toString()) : true;
+
+        if (name.isBlank() || email.isBlank() || password.isBlank()) {
+            return ResponseEntity.badRequest().body(ApiResponse.fail("Name, email and password are required"));
+        }
+        if (userService.findByEmail(email.trim().toLowerCase()).isPresent()) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(ApiResponse.fail("A user with this email already exists"));
+        }
+
+        com.example.localityconnector.model.User user = new com.example.localityconnector.model.User();
+        user.setName(name.trim());
+        user.setEmail(email.trim().toLowerCase());
+        user.setPassword(new org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder().encode(password));
+        user.setAddress(address);
+        user.setPhoneNumber(phoneNumber);
+        user.setRoles(roles);
+        user.setActive(active);
+        user.setEmailVerified(true);
+        user.prePersist();
+
+        com.example.localityconnector.model.User saved = userService.updateUser(user);
+        Map<String, Object> data = new LinkedHashMap<>();
+        data.put("message", "User created");
+        data.put("userId", saved.getId());
+        data.put("email", saved.getEmail());
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok(data));
+    }
+
+    @Operation(summary = "Update an existing user (admin)")
+    @PutMapping("/users/{id}")
+    public ResponseEntity<ApiResponse<Object>> updateUser(@PathVariable String id, @RequestBody Map<String, Object> body) {
+        Optional<com.example.localityconnector.model.User> userOpt = userService.findById(id);
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.fail("User not found"));
+        }
+        com.example.localityconnector.model.User user = userOpt.get();
+
+        if (body.containsKey("name")) user.setName(((String) body.get("name")).trim());
+        if (body.containsKey("email")) user.setEmail(((String) body.get("email")).trim().toLowerCase());
+        if (body.containsKey("address")) user.setAddress((String) body.get("address"));
+        if (body.containsKey("phoneNumber")) user.setPhoneNumber((String) body.get("phoneNumber"));
+        if (body.containsKey("active")) user.setActive(Boolean.parseBoolean(body.get("active").toString()));
+        if (body.containsKey("roles")) {
+            @SuppressWarnings("unchecked")
+            List<String> roles = (List<String>) body.get("roles");
+            user.setRoles(roles);
+        }
+        if (body.containsKey("password") && body.get("password") != null && !((String) body.get("password")).isBlank()) {
+            user.setPassword(new org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder().encode((String) body.get("password")));
+        }
+        user.prePersist();
+        com.example.localityconnector.model.User updated = userService.updateUser(user);
+
+        Map<String, Object> data = new LinkedHashMap<>();
+        data.put("message", "User updated");
+        data.put("userId", updated.getId());
+        data.put("email", updated.getEmail());
+        return ResponseEntity.ok(ApiResponse.ok(data));
+    }
+
     @Operation(summary = "Delete a user")
     @DeleteMapping("/users/{id}")
     public ResponseEntity<ApiResponse<Object>> deleteUser(@PathVariable String id) {

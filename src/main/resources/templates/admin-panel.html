@@ -508,22 +508,74 @@
     <div id="users" class="tab-content">
         <div class="action-bar">
             <h2>Users</h2>
-            <button class="btn btn-primary" onclick="loadUsers()">Refresh</button>
+            <div>
+                <button class="btn btn-primary" onclick="openUserModal()">+ Add User</button>
+                <button class="btn btn-primary" onclick="loadUsers()">Refresh</button>
+            </div>
         </div>
         <div class="table-wrap" style="overflow-x:auto;">
             <table id="usersTable">
                 <thead>
                     <tr>
-                        <th>ID</th>
                         <th>Name</th>
                         <th>Email</th>
+                        <th>Phone</th>
+                        <th>Status</th>
                         <th>Role</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     <!-- Populated by JS -->
                 </tbody>
             </table>
+        </div>
+    </div>
+
+    <!-- User Modal Overlay -->
+    <div id="userModal" style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,0.7); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px); justify-content:center; align-items:center;">
+        <div style="background:var(--bg-1); border:1px solid var(--border-hi); border-radius:var(--radius-lg); padding:36px 32px; width:100%; max-width:520px; max-height:90vh; overflow-y:auto; box-shadow:0 30px 70px rgba(0,0,0,0.7), 0 0 50px rgba(63,225,200,0.08);">
+            <h2 id="userModalTitle" style="font-family:'Space Grotesk',sans-serif; font-size:1.4rem; margin-bottom:20px; color:var(--cyan);">Add User</h2>
+            <input type="hidden" id="userModalId">
+            <div style="margin-bottom:14px;">
+                <label style="display:block; font-size:0.8rem; font-weight:600; color:var(--text-mid); margin-bottom:6px; text-transform:uppercase; letter-spacing:0.5px;">Name *</label>
+                <input type="text" id="userModalName" placeholder="Full name" style="width:100%; padding:12px 14px; background:rgba(255,255,255,0.05); border:1px solid var(--border); border-radius:10px; color:#fff; font-size:0.92rem; outline:none;">
+            </div>
+            <div style="margin-bottom:14px;">
+                <label style="display:block; font-size:0.8rem; font-weight:600; color:var(--text-mid); margin-bottom:6px; text-transform:uppercase; letter-spacing:0.5px;">Email *</label>
+                <input type="email" id="userModalEmail" placeholder="user@example.com" style="width:100%; padding:12px 14px; background:rgba(255,255,255,0.05); border:1px solid var(--border); border-radius:10px; color:#fff; font-size:0.92rem; outline:none;">
+            </div>
+            <div style="margin-bottom:14px;">
+                <label style="display:block; font-size:0.8rem; font-weight:600; color:var(--text-mid); margin-bottom:6px; text-transform:uppercase; letter-spacing:0.5px;">Password <span id="pwdHint">*</span></label>
+                <input type="password" id="userModalPassword" placeholder="Min 8 characters" style="width:100%; padding:12px 14px; background:rgba(255,255,255,0.05); border:1px solid var(--border); border-radius:10px; color:#fff; font-size:0.92rem; outline:none;">
+            </div>
+            <div style="margin-bottom:14px;">
+                <label style="display:block; font-size:0.8rem; font-weight:600; color:var(--text-mid); margin-bottom:6px; text-transform:uppercase; letter-spacing:0.5px;">Address</label>
+                <input type="text" id="userModalAddress" placeholder="Address" style="width:100%; padding:12px 14px; background:rgba(255,255,255,0.05); border:1px solid var(--border); border-radius:10px; color:#fff; font-size:0.92rem; outline:none;">
+            </div>
+            <div style="margin-bottom:14px;">
+                <label style="display:block; font-size:0.8rem; font-weight:600; color:var(--text-mid); margin-bottom:6px; text-transform:uppercase; letter-spacing:0.5px;">Phone Number</label>
+                <input type="text" id="userModalPhone" placeholder="+91 9876543210" style="width:100%; padding:12px 14px; background:rgba(255,255,255,0.05); border:1px solid var(--border); border-radius:10px; color:#fff; font-size:0.92rem; outline:none;">
+            </div>
+            <div style="margin-bottom:14px;">
+                <label style="display:block; font-size:0.8rem; font-weight:600; color:var(--text-mid); margin-bottom:6px; text-transform:uppercase; letter-spacing:0.5px;">Role</label>
+                <select id="userModalRole" style="width:100%; padding:12px 14px; background:rgba(255,255,255,0.05); border:1px solid var(--border); border-radius:10px; color:#fff; font-size:0.92rem; outline:none;">
+                    <option value="USER" style="background:#0b1220;">USER</option>
+                    <option value="ADMIN" style="background:#0b1220;">ADMIN</option>
+                </select>
+            </div>
+            <div style="margin-bottom:20px;">
+                <label style="display:block; font-size:0.8rem; font-weight:600; color:var(--text-mid); margin-bottom:6px; text-transform:uppercase; letter-spacing:0.5px;">Active</label>
+                <select id="userModalActive" style="width:100%; padding:12px 14px; background:rgba(255,255,255,0.05); border:1px solid var(--border); border-radius:10px; color:#fff; font-size:0.92rem; outline:none;">
+                    <option value="true" style="background:#0b1220;">Yes</option>
+                    <option value="false" style="background:#0b1220;">No</option>
+                </select>
+            </div>
+            <div id="userModalError" style="display:none; padding:10px 14px; border-radius:8px; background:rgba(255,107,107,0.15); border:1px solid rgba(255,107,107,0.3); color:var(--coral); font-size:0.85rem; margin-bottom:14px;"></div>
+            <div style="display:flex; gap:12px; justify-content:flex-end;">
+                <button class="btn" onclick="closeUserModal()" style="background:rgba(255,255,255,0.08); border:1px solid var(--border);">Cancel</button>
+                <button class="btn btn-primary" id="userModalSubmit" onclick="submitUserModal()">Save User</button>
+            </div>
         </div>
     </div>
 
@@ -842,6 +894,8 @@
 
     // --- Users ---
 
+    var _allUsers = []; // cache for edit lookups
+
     async function loadUsers() {
         showLoading(true);
         try {
@@ -849,28 +903,141 @@
             const data = await response.json();
 
             if (response.ok) {
+                _allUsers = data.data || [];
                 const tbody = document.querySelector('#usersTable tbody');
                 tbody.innerHTML = '';
-                if (data.data && data.data.length > 0) {
-                    data.data.forEach((u, i) => {
+                if (_allUsers.length > 0) {
+                    _allUsers.forEach((u, i) => {
                         const row = document.createElement('tr');
                         row.style.animationDelay = (i * 0.04) + 's';
+                        const roles = (u.roles || []);
+                        const roleBadge = roles.map(r => {
+                            const isAdmin = r.toUpperCase().includes('ADMIN');
+                            return `<span class="badge ${isAdmin ? 'badge-danger' : 'badge-success'}">${r}</span>`;
+                        }).join(' ');
+                        const statusBadge = u.active !== false
+                            ? '<span class="badge badge-success">Active</span>'
+                            : '<span class="badge badge-danger">Suspended</span>';
                         row.innerHTML = `
-                                <td>${u.id}</td>
-                                <td>${u.fullName || 'N/A'}</td>
-                                <td>${u.email}</td>
-                                <td><span class="badge ${u.roles.includes('ROLE_ADMIN') ? 'badge-danger' : 'badge-success'}">${u.roles.join(', ')}</span></td>
+                                <td>${u.name || 'N/A'}</td>
+                                <td>${u.email || ''}</td>
+                                <td>${u.phoneNumber || '—'}</td>
+                                <td>${statusBadge}</td>
+                                <td>${roleBadge}</td>
+                                <td>
+                                    <button class="btn btn-primary" style="padding:6px 12px;font-size:0.78rem;" onclick="editUser('${u.id}')">✏️ Edit</button>
+                                    <button class="btn btn-danger" style="padding:6px 12px;font-size:0.78rem;" onclick="deleteUser('${u.id}','${(u.email||'').replace(/'/g,"\\'")}')">🗑️ Delete</button>
+                                </td>
                         `;
                         tbody.appendChild(row);
                     });
                 } else {
-                    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">No users found.</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">No users found.</td></tr>';
                 }
             }
         } catch (error) {
             alert('Error: ' + error.message);
         } finally {
             showLoading(false);
+        }
+    }
+
+    function openUserModal(user) {
+        document.getElementById('userModalId').value = user ? user.id : '';
+        document.getElementById('userModalName').value = user ? (user.name || '') : '';
+        document.getElementById('userModalEmail').value = user ? (user.email || '') : '';
+        document.getElementById('userModalPassword').value = '';
+        document.getElementById('userModalAddress').value = user ? (user.address || '') : '';
+        document.getElementById('userModalPhone').value = user ? (user.phoneNumber || '') : '';
+        document.getElementById('userModalRole').value = user && user.roles && user.roles.some(r => r.toUpperCase().includes('ADMIN')) ? 'ADMIN' : 'USER';
+        document.getElementById('userModalActive').value = user ? String(user.active !== false) : 'true';
+        document.getElementById('userModalTitle').textContent = user ? 'Edit User' : 'Add User';
+        document.getElementById('userModalSubmit').textContent = user ? 'Update User' : 'Save User';
+        document.getElementById('pwdHint').textContent = user ? '(leave blank to keep current)' : '*';
+        document.getElementById('userModalError').style.display = 'none';
+        const modal = document.getElementById('userModal');
+        modal.style.display = 'flex';
+    }
+
+    function closeUserModal() {
+        document.getElementById('userModal').style.display = 'none';
+    }
+
+    function editUser(userId) {
+        const user = _allUsers.find(u => u.id === userId);
+        if (user) openUserModal(user);
+    }
+
+    async function deleteUser(userId, email) {
+        if (!confirm('Are you sure you want to permanently delete user "' + email + '"? This cannot be undone.')) return;
+        showLoading(true);
+        try {
+            const res = await Auth.fetchWithAuth('/api/admin/users/' + userId, { method: 'DELETE' });
+            const data = await res.json();
+            if (res.ok) {
+                alert('User deleted successfully.');
+                loadUsers();
+            } else {
+                alert('Error: ' + (data.error || 'Failed to delete user'));
+            }
+        } catch (e) {
+            alert('Error: ' + e.message);
+        } finally {
+            showLoading(false);
+        }
+    }
+
+    async function submitUserModal() {
+        const errEl = document.getElementById('userModalError');
+        errEl.style.display = 'none';
+        const id = document.getElementById('userModalId').value;
+        const name = document.getElementById('userModalName').value.trim();
+        const email = document.getElementById('userModalEmail').value.trim();
+        const password = document.getElementById('userModalPassword').value;
+        const address = document.getElementById('userModalAddress').value.trim();
+        const phoneNumber = document.getElementById('userModalPhone').value.trim();
+        const role = document.getElementById('userModalRole').value;
+        const active = document.getElementById('userModalActive').value === 'true';
+        const roles = role === 'ADMIN' ? ['ADMIN', 'USER'] : ['USER'];
+
+        if (!name || !email) {
+            errEl.textContent = 'Name and Email are required.';
+            errEl.style.display = 'block';
+            return;
+        }
+        if (!id && !password) {
+            errEl.textContent = 'Password is required for new users.';
+            errEl.style.display = 'block';
+            return;
+        }
+
+        const body = { name, email, address, phoneNumber, roles, active };
+        if (password) body.password = password;
+
+        const url = id ? '/api/admin/users/' + id : '/api/admin/users';
+        const method = id ? 'PUT' : 'POST';
+
+        document.getElementById('userModalSubmit').disabled = true;
+        try {
+            const res = await Auth.fetchWithAuth(url, {
+                method: method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+            const data = await res.json();
+            if (res.ok) {
+                closeUserModal();
+                loadUsers();
+                alert(id ? 'User updated successfully!' : 'User created successfully!');
+            } else {
+                errEl.textContent = data.error || 'Operation failed.';
+                errEl.style.display = 'block';
+            }
+        } catch (e) {
+            errEl.textContent = 'Network error: ' + e.message;
+            errEl.style.display = 'block';
+        } finally {
+            document.getElementById('userModalSubmit').disabled = false;
         }
     }
 
