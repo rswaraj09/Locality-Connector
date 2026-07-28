@@ -8,8 +8,10 @@ WORKDIR /workspace
 COPY pom.xml .
 RUN mvn -B -q -DskipTests dependency:go-offline
 
+# Optimize Maven memory usage to prevent CPU/memory swapping on EC2
+ENV MAVEN_OPTS="-Xmx512m -XX:+UseParallelGC"
 COPY src ./src
-RUN mvn -B -q -DskipTests clean package
+RUN mvn -B -DskipTests package -Dmaven.javadoc.skip=true
 
 # ---------- Runtime stage ----------
 FROM eclipse-temurin:23-jre
