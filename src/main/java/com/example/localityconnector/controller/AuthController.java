@@ -278,7 +278,12 @@ public class AuthController {
                 // A malformed/expired token needs no revocation.
             }
         }
-        response.addCookie(buildJwtCookie("", 0));
+        jakarta.servlet.http.Cookie clearCookie = buildJwtCookie("", 0);
+        response.addCookie(clearCookie);
+
+        // Explicitly set Set-Cookie header with Max-Age=0 and past expiration date
+        String secureFlag = cookieSecure ? "; Secure" : "";
+        response.addHeader(HttpHeaders.SET_COOKIE, "jwt=; Path=/; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; SameSite=Lax" + secureFlag);
         return ResponseEntity.ok(ApiResponse.ok(Map.of("message", "Logged out successfully")));
     }
 

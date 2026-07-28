@@ -36,7 +36,18 @@
   function clearSession() {
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(IDENTITY_KEY);
-    document.cookie = "jwt=; path=/; max-age=0;";
+    try { sessionStorage.clear(); } catch (e) {}
+
+    var isHttps = window.location.protocol === "https:";
+    var secureSuffix = isHttps ? "; Secure" : "";
+    var hostname = window.location.hostname;
+
+    // Clear cookies across path and domain variations
+    document.cookie = "jwt=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; max-age=0; SameSite=Lax" + secureSuffix;
+    document.cookie = "jwt=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; max-age=0; domain=" + hostname + "; SameSite=Lax" + secureSuffix;
+    if (hostname.startsWith("www.")) {
+      document.cookie = "jwt=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; max-age=0; domain=" + hostname.substring(4) + "; SameSite=Lax" + secureSuffix;
+    }
   }
 
   function isLoggedIn() {
@@ -148,4 +159,15 @@
     requireRole: requireRole,
     requireAuth: requireAuth
   };
+
+  document.addEventListener("DOMContentLoaded", function () {
+    document.addEventListener("click", function (e) {
+      var btn = e.target.closest(".logout-btn, [data-action='logout']");
+      if (btn) {
+        e.preventDefault();
+        var targetUrl = btn.getAttribute("href") || "/user/login";
+        logout(targetUrl);
+      }
+    });
+  });
 })(window);
