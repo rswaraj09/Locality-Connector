@@ -426,35 +426,48 @@
 
         function filterBusinesses(category) {
             currentFilter = category;
-            document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active'));
-            if (window.event && window.event.target) {
-                window.event.target.classList.add('active');
-            }
-            if (category === 'all') {
+            const targetCat = (category || '').trim().toLowerCase();
+            document.querySelectorAll('.category-btn').forEach(btn => {
+                const attr = btn.getAttribute('onclick') || '';
+                if (attr.toLowerCase().includes("'" + targetCat + "'")) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+
+            if (targetCat === 'all') {
                 displayBusinesses(allBusinesses);
             } else if (userLocation) {
                 loadNearbyBusinessesByCategory(category);
             } else {
-                const filtered = (allBusinesses || []).filter(business => business.category === category);
+                const filtered = (allBusinesses || []).filter(business => 
+                    (business.category || '').trim().toLowerCase() === targetCat
+                );
                 displayBusinesses(filtered);
             }
         }
 
         async function loadNearbyBusinessesByCategory(category) {
+            const targetCat = (category || '').trim().toLowerCase();
             if (!userLocation) {
-                const filtered = (allBusinesses || []).filter(business => business.category === category);
+                const filtered = (allBusinesses || []).filter(business => 
+                    (business.category || '').trim().toLowerCase() === targetCat
+                );
                 displayBusinesses(filtered);
                 return;
             }
 
             try {
-                const response = await fetch(`/api/user/dashboard/businesses/nearby?latitude=${userLocation.latitude}&longitude=${userLocation.longitude}&radiusKm=5&category=${category}`);
+                const response = await fetch(`/api/user/dashboard/businesses/nearby?latitude=${userLocation.latitude}&longitude=${userLocation.longitude}&radiusKm=5&category=${encodeURIComponent(category)}`);
                 const resData = await response.json();
                 const businesses = Array.isArray(resData) ? resData : (resData.data || []);
                 displayBusinesses(businesses);
             } catch (error) {
                 console.error('Error loading nearby businesses by category:', error);
-                const filtered = (allBusinesses || []).filter(business => business.category === category);
+                const filtered = (allBusinesses || []).filter(business => 
+                    (business.category || '').trim().toLowerCase() === targetCat
+                );
                 displayBusinesses(filtered);
             }
         }
