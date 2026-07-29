@@ -16,15 +16,18 @@ public class EmailService {
 
     private final ResendEmailService resendEmailService;
 
-    @Value("${app.base-url:http://localhost:8081}")
+    @Value("${app.base-url:https://locality-connector.in}")
     private String baseUrl;
 
     @Value("${app.name:Locality Connector}")
     private String appName;
 
     public void sendWelcomeSuccessEmail(String to, String name, String accountType) {
+        String base = (baseUrl != null && !baseUrl.isBlank() && !baseUrl.contains("localhost")) 
+                ? baseUrl.replaceAll("/+$", "") 
+                : "https://locality-connector.in";
         String loginPath = "BUSINESS".equalsIgnoreCase(accountType) ? "/business/login" : "/user/login";
-        String link = baseUrl + loginPath;
+        String link = base + loginPath;
         String subject = appName + " — Account Created Successfully!";
         String body = """
                 <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 520px; margin: 0 auto; padding: 32px; background: #0d1210; color: #f6f1e4; border-radius: 16px; border: 1px solid rgba(246,241,228,0.2);">
