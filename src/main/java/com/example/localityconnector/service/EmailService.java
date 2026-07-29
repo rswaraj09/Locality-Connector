@@ -22,6 +22,29 @@ public class EmailService {
     @Value("${app.name:Locality Connector}")
     private String appName;
 
+    public void sendWelcomeSuccessEmail(String to, String name, String accountType) {
+        String loginPath = "BUSINESS".equalsIgnoreCase(accountType) ? "/business/login" : "/user/login";
+        String link = baseUrl + loginPath;
+        String subject = appName + " — Account Created Successfully!";
+        String body = """
+                <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 520px; margin: 0 auto; padding: 32px; background: #0d1210; color: #f6f1e4; border-radius: 16px; border: 1px solid rgba(246,241,228,0.2);">
+                  <h2 style="color: #ff6b35; margin-bottom: 8px;">Welcome to %s! 🎉</h2>
+                  <p style="color: #f6f1e4; font-size: 16px; margin-top: 16px;">Hello <strong>%s</strong>,</p>
+                  <p style="color: rgba(246,241,228,0.85); font-size: 15px; line-height: 1.6;">Your %s account has been <strong>successfully created and activated</strong>.</p>
+                  <p style="color: rgba(246,241,228,0.85); font-size: 15px; line-height: 1.6;">You can now log in anytime to discover local businesses and connect with your neighborhood.</p>
+                  <div style="margin: 28px 0; text-align: center;">
+                    <a href="%s"
+                       style="display: inline-block; padding: 14px 32px; background: #ff6b35; color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: 700; font-size: 15px;">
+                      Log In to Your Account
+                    </a>
+                  </div>
+                  <p style="color: rgba(246,241,228,0.5); font-size: 13px; border-top: 1px solid rgba(246,241,228,0.1); padding-top: 16px;">Thank you for joining %s!</p>
+                </div>
+                """.formatted(appName, name != null && !name.isBlank() ? name : "there", accountType.toLowerCase(), link, appName);
+
+        sendHtmlEmail(to, subject, body);
+    }
+
     public void sendVerificationEmail(String to, String token) {
         String link = baseUrl + "/api/auth/verify?token=" + token;
         String subject = appName + " — Verify Your Email";

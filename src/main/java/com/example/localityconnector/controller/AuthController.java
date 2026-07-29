@@ -58,6 +58,7 @@ public class AuthController {
     private final VerificationService verificationService;
     private final PasswordResetService passwordResetService;
     private final com.example.localityconnector.service.OtpVerificationService otpVerificationService;
+    private final com.example.localityconnector.service.EmailService emailService;
 
     @Value("${app.admin.emails:}")
     private String adminEmailsRaw;
@@ -136,7 +137,11 @@ public class AuthController {
         }
 
         User user = userService.signup(request);
-        verificationService.createAndSendVerification(user.getId(), "USER", user.getEmail());
+        try {
+            emailService.sendWelcomeSuccessEmail(user.getEmail(), user.getName(), "USER");
+        } catch (Exception e) {
+            // best-effort welcome email
+        }
         Map<String, Object> data = new LinkedHashMap<>();
         data.put("message", "User registered successfully.");
         data.put("userId", user.getId());
@@ -158,7 +163,11 @@ public class AuthController {
         }
 
         Business business = businessService.signup(request);
-        verificationService.createAndSendVerification(business.getId(), "BUSINESS", business.getEmail());
+        try {
+            emailService.sendWelcomeSuccessEmail(business.getEmail(), business.getBusinessName(), "BUSINESS");
+        } catch (Exception e) {
+            // best-effort welcome email
+        }
         Map<String, Object> data = new LinkedHashMap<>();
         data.put("message", "Business registered successfully.");
         data.put("businessId", business.getId());

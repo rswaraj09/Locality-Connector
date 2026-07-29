@@ -31,6 +31,7 @@ public class UserService {
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setAddress(request.getAddress());
         user.setPhoneNumber(request.getPhoneNumber());
+        user.setEmailVerified(true);
         user.prePersist();
 
         return userRepository.save(user);

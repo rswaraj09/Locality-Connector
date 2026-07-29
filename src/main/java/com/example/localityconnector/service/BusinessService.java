@@ -56,6 +56,7 @@ public class BusinessService {
         business.setCategory(request.getCategory());
         business.setDescription(request.getDescription());
         business.setBusinessLicense(request.getBusinessLicense());
+        business.setEmailVerified(true);
         business.prePersist();
 
         Business saved = businessRepository.save(business);
